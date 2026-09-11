@@ -1,0 +1,28 @@
+ALLROUND WEBER – INSTALLIERBARE WEB-APP (PWA)
+
+Diese Dateien bilden eine installierbare Web-App.
+
+Wichtig:
+Damit iPadOS „Zum Home-Bildschirm“ als echte PWA nutzen kann, muss der Ordner einmal auf einer HTTPS-Webadresse veröffentlicht werden.
+Eine lokale ZIP/HTML-Datei reicht dafür nicht.
+
+Danach auf dem iPad:
+1. Webadresse in Safari öffnen.
+2. Teilen-Symbol antippen.
+3. „Zum Home-Bildschirm“ wählen.
+4. „Hinzufügen“.
+
+Danach erscheint „Allround Weber“ mit eigenem Symbol auf dem Home-Bildschirm und kann im Standalone-Modus geöffnet werden.
+
+Enthalten:
+- Startseite
+- Bautagebuch
+- Arbeitsbeginn/-ende
+- Pause + automatische Stundenberechnung
+- Notiz/Tätigkeit
+- Material
+- lokale dauerhafte Speicherung
+- Kundenverwaltung
+- PV-Projektübersicht
+- Materialübersicht
+- Offline-Cache nach erstem Laden
