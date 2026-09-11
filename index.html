@@ -58,17 +58,54 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 <div class="card"><b>Dressler – Oberottendorf</b><div class="muted">Oberottendorf 12, 01689 Niederau</div><div class="green">● In Bearbeitung</div><div class="rule"></div><div>12,5 kWp</div><div class="muted">Fronius Symo Gen24 Plus 10.0</div><div class="muted">Fronius Reserva · 2 Strings · Wallbox</div></div>
 </section>
 
-<section id="customers" class="screen"><div class="head"><button class="back" onclick="show('home')">‹</button><h2>Kunden</h2></div>
-<div class="card">
-<label>Name</label><input id="custName" placeholder="Neuer Kunde">
-<label>Straße & Hausnummer</label><input id="custStreet" placeholder="z. B. Hauptstraße 12">
-<div class="row">
-<div><label>PLZ</label><input id="custZip" inputmode="numeric" placeholder="01689"></div>
-<div><label>Ort</label><input id="custPlace" placeholder="Niederau"></div>
-</div>
-<div class="actions"><button class="btn" onclick="addCustomer()">+ Kunde anlegen</button></div>
-</div>
-<div id="customerList"></div></section>
+
+<section id="customers" class="screen">
+
+  <div class="head">
+    <button class="back" onclick="show('home')">‹</button>
+    <h2>Kunden</h2>
+  </div>
+
+  <div class="card">
+
+    <label>Name / Firma</label>
+    <input id="custName" placeholder="z. B. Max Mustermann oder Muster GmbH">
+
+    <label>Ansprechpartner</label>
+    <input id="custContact" placeholder="z. B. Max Mustermann">
+
+    <label>Straße & Hausnummer</label>
+    <input id="custStreet" placeholder="z. B. Hauptstraße 12">
+
+    <div class="row">
+      <div>
+        <label>PLZ</label>
+        <input id="custZip" inputmode="numeric" placeholder="01689">
+      </div>
+      <div>
+        <label>Ort</label>
+        <input id="custPlace" placeholder="Niederau">
+      </div>
+    </div>
+
+    <label>Telefon</label>
+    <input id="custPhone" type="tel" placeholder="z. B. 0172 1234567">
+
+    <label>E-Mail</label>
+    <input id="custEmail" type="email" placeholder="z. B. kunde@beispiel.de">
+
+    <label>Notizen</label>
+    <textarea id="custNotes" placeholder="z. B. bevorzugte Erreichbarkeit, Zugang zur Baustelle, Besonderheiten"></textarea>
+
+    <div class="actions">
+      <button class="btn" onclick="addCustomer()">+ Kunde anlegen</button>
+    </div>
+
+  </div>
+
+  <div id="customerList"></div>
+
+</section>
 
 <section id="material" class="screen"><div class="head"><button class="back" onclick="show('home')">‹</button><h2>Material</h2></div>
 <div class="card item"><span class="emoji">☀️</span><div class="grow"><b>PV-Module</b><div class="muted">48 Stück auf Lager</div></div></div>
@@ -103,31 +140,90 @@ document.getElementById('date').valueAsDate=new Date();
 function saveDiary(){let x={date:document.getElementById('date').value,site:document.getElementById('site').value,start:document.getElementById('start').value,end:document.getElementById('end').value,pause:document.getElementById('pause').value,hours:document.getElementById('hours').textContent,note:document.getElementById('note').value,mat:document.getElementById('mat').value};db.diary.unshift(x);saveDB();renderDiary();toast('Bautagebuch gespeichert');document.getElementById('note').value='';document.getElementById('mat').value=''}
 function clearDiary(){document.getElementById('note').value='';document.getElementById('mat').value=''}
 function renderDiary(){let el=document.getElementById('entries');el.innerHTML=db.diary.map(x=>`<div class="card"><b>${x.site}</b><div class="blue">${x.date} · ${x.start}–${x.end} · ${x.hours}</div><div class="muted">Pause: ${x.pause} min</div><div class="rule"></div><div>${x.note||'Keine Notiz'}</div><div class="blue">Material: ${x.mat||'—'}</div></div>`).join('')}
-function addCustomer(){
-let n=document.getElementById('custName').value.trim(),
-    s=document.getElementById('custStreet').value.trim(),
-    z=document.getElementById('custZip').value.trim(),
-    p=document.getElementById('custPlace').value.trim();
-if(!n)return;
-db.customers.push({name:n,street:s,zip:z,place:p});
-saveDB();
-renderCustomers();
-document.getElementById('custName').value='';
-document.getElementById('custStreet').value='';
-document.getElementById('custZip').value='';
-document.getElementById('custPlace').value='';
-toast('Kunde gespeichert');
+function addCustomer() {
+
+  const name = document.getElementById('custName').value.trim();
+  const contact = document.getElementById('custContact').value.trim();
+  const street = document.getElementById('custStreet').value.trim();
+  const zip = document.getElementById('custZip').value.trim();
+  const place = document.getElementById('custPlace').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const email = document.getElementById('custEmail').value.trim();
+  const notes = document.getElementById('custNotes').value.trim();
+
+  if (!name) {
+    toast('Bitte Name oder Firma eingeben');
+    return;
+  }
+
+  db.customers.push({
+    name,
+    contact,
+    street,
+    zip,
+    place,
+    phone,
+    email,
+    notes
+  });
+
+  saveDB();
+  renderCustomers();
+
+  document.getElementById('custName').value = '';
+  document.getElementById('custContact').value = '';
+  document.getElementById('custStreet').value = '';
+  document.getElementById('custZip').value = '';
+  document.getElementById('custPlace').value = '';
+  document.getElementById('custPhone').value = '';
+  document.getElementById('custEmail').value = '';
+  document.getElementById('custNotes').value = '';
+
+  toast('Kunde gespeichert');
 }
-function renderCustomers(){
-document.getElementById('customerList').innerHTML=db.customers.map(x=>`
-<div class="card item">
-<span class="emoji">👤</span>
-<div>
-<b>${x.name}</b>
-<div class="muted">${x.street||''}</div>
-<div class="muted">${[x.zip||'',x.place||''].filter(Boolean).join(' ')}</div>
-</div>
-</div>`).join('');
+
+function renderCustomers() {
+
+  document.getElementById('customerList').innerHTML =
+    db.customers.map(customer => {
+
+      const address = [
+        customer.street || '',
+        [customer.zip || '', customer.place || ''].filter(Boolean).join(' ')
+      ].filter(Boolean).join('<br>');
+
+      const contact = customer.contact
+        ? `<div class="muted">Ansprechpartner: ${customer.contact}</div>`
+        : '';
+
+      const phone = customer.phone
+        ? `<div><a href="tel:${customer.phone.replace(/\s/g,'')}" style="color:var(--blue2);text-decoration:none;">📞 ${customer.phone}</a></div>`
+        : '';
+
+      const email = customer.email
+        ? `<div><a href="mailto:${customer.email}" style="color:var(--blue2);text-decoration:none;">✉️ ${customer.email}</a></div>`
+        : '';
+
+      const notes = customer.notes
+        ? `<div class="rule"></div><div class="muted">${customer.notes}</div>`
+        : '';
+
+      return `
+        <div class="card">
+          <div class="item">
+            <span class="emoji">👤</span>
+            <div class="grow">
+              <b>${customer.name}</b>
+              ${contact}
+              <div class="muted">${address}</div>
+            </div>
+          </div>
+          ${phone}
+          ${email}
+          ${notes}
+        </div>
+      `;
+    }).join('');
 }
 renderDiary();renderCustomers();calc();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
