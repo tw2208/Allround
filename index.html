@@ -59,7 +59,15 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 </section>
 
 <section id="customers" class="screen"><div class="head"><button class="back" onclick="show('home')">‹</button><h2>Kunden</h2></div>
-<div class="card"><label>Name</label><input id="custName" placeholder="Neuer Kunde"><label>Ort</label><input id="custPlace" placeholder="Ort"><div class="actions"><button class="btn" onclick="addCustomer()">+ Kunde anlegen</button></div></div>
+<div class="card">
+<label>Name</label><input id="custName" placeholder="Neuer Kunde">
+<label>Straße & Hausnummer</label><input id="custStreet" placeholder="z. B. Hauptstraße 12">
+<div class="row">
+<div><label>PLZ</label><input id="custZip" inputmode="numeric" placeholder="01689"></div>
+<div><label>Ort</label><input id="custPlace" placeholder="Niederau"></div>
+</div>
+<div class="actions"><button class="btn" onclick="addCustomer()">+ Kunde anlegen</button></div>
+</div>
 <div id="customerList"></div></section>
 
 <section id="material" class="screen"><div class="head"><button class="back" onclick="show('home')">‹</button><h2>Material</h2></div>
@@ -95,8 +103,32 @@ document.getElementById('date').valueAsDate=new Date();
 function saveDiary(){let x={date:document.getElementById('date').value,site:document.getElementById('site').value,start:document.getElementById('start').value,end:document.getElementById('end').value,pause:document.getElementById('pause').value,hours:document.getElementById('hours').textContent,note:document.getElementById('note').value,mat:document.getElementById('mat').value};db.diary.unshift(x);saveDB();renderDiary();toast('Bautagebuch gespeichert');document.getElementById('note').value='';document.getElementById('mat').value=''}
 function clearDiary(){document.getElementById('note').value='';document.getElementById('mat').value=''}
 function renderDiary(){let el=document.getElementById('entries');el.innerHTML=db.diary.map(x=>`<div class="card"><b>${x.site}</b><div class="blue">${x.date} · ${x.start}–${x.end} · ${x.hours}</div><div class="muted">Pause: ${x.pause} min</div><div class="rule"></div><div>${x.note||'Keine Notiz'}</div><div class="blue">Material: ${x.mat||'—'}</div></div>`).join('')}
-function addCustomer(){let n=document.getElementById('custName').value.trim(),p=document.getElementById('custPlace').value.trim();if(!n)return;db.customers.push({name:n,place:p});saveDB();renderCustomers();document.getElementById('custName').value='';document.getElementById('custPlace').value='';toast('Kunde gespeichert')}
-function renderCustomers(){document.getElementById('customerList').innerHTML=db.customers.map(x=>`<div class="card item"><span class="emoji">👤</span><div><b>${x.name}</b><div class="muted">${x.place||''}</div></div></div>`).join('')}
+function addCustomer(){
+let n=document.getElementById('custName').value.trim(),
+    s=document.getElementById('custStreet').value.trim(),
+    z=document.getElementById('custZip').value.trim(),
+    p=document.getElementById('custPlace').value.trim();
+if(!n)return;
+db.customers.push({name:n,street:s,zip:z,place:p});
+saveDB();
+renderCustomers();
+document.getElementById('custName').value='';
+document.getElementById('custStreet').value='';
+document.getElementById('custZip').value='';
+document.getElementById('custPlace').value='';
+toast('Kunde gespeichert');
+}
+function renderCustomers(){
+document.getElementById('customerList').innerHTML=db.customers.map(x=>`
+<div class="card item">
+<span class="emoji">👤</span>
+<div>
+<b>${x.name}</b>
+<div class="muted">${x.street||''}</div>
+<div class="muted">${[x.zip||'',x.place||''].filter(Boolean).join(' ')}</div>
+</div>
+</div>`).join('');
+}
 renderDiary();renderCustomers();calc();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
 </script>
