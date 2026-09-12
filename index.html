@@ -148,6 +148,18 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .backup-box h3{margin:0 0 6px;font-size:18px}
 .backup-box p{margin:0 0 10px;color:var(--muted);line-height:1.45}
 .backup-status{margin-top:10px;font-size:13px;color:var(--blue2);min-height:18px}
+.backup-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.backup-stat{background:#071d2f;border:1px solid var(--line);border-radius:12px;padding:10px}
+.backup-stat b{display:block;font-size:14px}
+.backup-stat span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.backup-warning{margin-top:10px;padding:10px 12px;border-radius:10px;background:#392a0c;border:1px solid #765b19;color:#ffd978;font-size:13px}
+.backup-ok{margin-top:10px;padding:10px 12px;border-radius:10px;background:#0a3025;border:1px solid #1d6c50;color:#79e6b3;font-size:13px}
+.backup-list{display:grid;gap:7px;margin-top:10px}
+.backup-row{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#071d2f;border:1px solid var(--line);border-radius:11px;padding:9px 10px}
+.backup-row .meta{min-width:0}.backup-row .meta b{display:block;font-size:13px}.backup-row .meta span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.backup-row button{flex:0 0 auto;padding:8px 10px;min-height:34px;font-size:12px}
+@media(max-width:520px){.backup-summary{grid-template-columns:1fr}.backup-row{align-items:flex-start}}
+
 
 /* Kundenakte – Master/Detail-Ansicht */
 .customer-form-grid{
@@ -438,7 +450,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.37: kompaktere, dezentere Buttons */
+/* Version 1.38: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +458,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.37 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.38 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -514,7 +526,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
 
-/* Version 1.37 – schmale Kopfzeile und vollständige untere Navigation */
+/* Version 1.38 – schmale Kopfzeile und vollständige untere Navigation */
 header,.topbar,.header{
   min-height:42px!important;
   padding-top:5px!important;
@@ -556,7 +568,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-own-hours b{color:var(--green);font-size:14px}
 
 
-/* Version 1.37 – übersichtlicher Tagebucheintrag */
+/* Version 1.38 – übersichtlicher Tagebucheintrag */
 .diary-form-section{
   margin:10px 0;
   padding:11px;
@@ -577,7 +589,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .diary-form-section .hours{margin:8px 0}
 
 
-/* Version 1.37 – schnelle Baustellenerfassung */
+/* Version 1.38 – schnelle Baustellenerfassung */
 .new-project-tile{
   border:1px solid rgba(92,190,255,.65)!important;
   background:rgba(65,169,238,.10)!important;
@@ -616,7 +628,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:430px){.project-form-grid{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.37 – Kundenliste links sauber und lesbar */
+/* Version 1.38 – Kundenliste links sauber und lesbar */
 .customer-alpha-item{
   width:100%;
   display:block;
@@ -693,7 +705,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.37 – Suchfeld und Kundenliste sauber getrennt */
+/* Version 1.38 – Suchfeld und Kundenliste sauber getrennt */
 .customer-list-pane{
   display:flex!important;
   flex-direction:column;
@@ -723,7 +735,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.37 – tatsächliche Kunden-Seitenleiste korrigiert */
+/* Version 1.38 – tatsächliche Kunden-Seitenleiste korrigiert */
 .customer-sidebar{
   display:flex!important;
   flex-direction:column!important;
@@ -764,7 +776,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.37 – Kunden und Baustellen sauber getrennt */
+/* Version 1.38 – Kunden und Baustellen sauber getrennt */
 .project-customer-box{
   margin-bottom:12px;
   padding:11px;
@@ -796,7 +808,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.37 – Feldgrößen, Schriften und Tagebuch-Layout vereinheitlicht */
+/* Version 1.38 – Feldgrößen, Schriften und Tagebuch-Layout vereinheitlicht */
 :root{
   --control-h:40px;
   --control-radius:9px;
@@ -880,12 +892,12 @@ textarea{
 }
 
 
-/* Version 1.37 – zusätzliche Baustellenarten */
+/* Version 1.38 – zusätzliche Baustellenarten */
 .project-tabs{display:flex!important;flex-wrap:nowrap!important;gap:6px;overflow-x:auto!important;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
 .project-tabs::-webkit-scrollbar{display:none}
 .project-tab{flex:0 0 auto!important;white-space:nowrap;min-height:34px!important;padding:6px 9px!important;font-size:11px!important}
 
-/* Version 1.37 – eigene Baustellenarten */
+/* Version 1.38 – eigene Baustellenarten */
 .project-type-manage-actions{margin:0 0 9px}
 .project-type-manage-actions .btn{width:100%}
 .project-type-manager-heading{
@@ -930,7 +942,7 @@ textarea{
 }
 
 
-/* Version 1.37 – PV-Materialliste in der Kundenakte */
+/* Version 1.38 – PV-Materialliste in der Kundenakte */
 .pv-material-section-title{align-items:center}
 .pv-material-section-title>div:first-child{min-width:0}
 .pv-material-section-body{
@@ -1058,7 +1070,7 @@ textarea{
 }
 
 
-/* Version 1.37 – direkte WebRTC-Gerätesynchronisierung */
+/* Version 1.38 – direkte WebRTC-Gerätesynchronisierung */
 .sync-card{background:#0a2943;border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
 .sync-card h3{margin:0 0 6px;font-size:17px}
 .sync-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
@@ -1489,31 +1501,54 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.37</div>
+    <div class="blue" style="margin-top:6px;">Version 1.38</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
   <div class="card">
-    <h3 style="margin-top:0;">AirDrop-Backup</h3>
-    <div class="muted">Übertrage Kunden, Bautagebuch und Baustellenfotos zwischen iPhone und iPad.</div>
+    <h3 style="margin-top:0;">Backup & Wiederherstellung</h3>
+    <div class="muted">Die App hält automatisch bis zu 30 tägliche lokale Datenstände vor. Zusätzlich solltest du regelmäßig eine Komplettsicherung außerhalb der App, z. B. in iCloud Drive, speichern.</div>
+
+    <div class="backup-summary">
+      <div class="backup-stat"><b id="dailyBackupState">Automatisches Backup</b><span id="dailyBackupInfo">wird geprüft …</span></div>
+      <div class="backup-stat"><b>Externes Backup</b><span id="externalBackupInfo">noch nicht erstellt</span></div>
+    </div>
+    <div id="externalBackupWarning"></div>
 
     <div class="backup-box">
-      <h3>Backup exportieren</h3>
-      <p>Erstellt eine einzelne Backup-Datei. Danach öffnet sich auf iPhone und iPad das Teilen-Menü – dort kannst du AirDrop auswählen.</p>
-      <button class="btn" type="button" onclick="exportBackup()">⬆️ Backup exportieren</button>
+      <h3>Automatische Tagesstände</h3>
+      <p>Bei Benutzung der App wird der heutige Datenstand automatisch aktualisiert. Die letzten 30 Tage bleiben erhalten. Diese lokalen Tagesstände sichern App-Daten, aber keine gelöschten Fotodateien.</p>
+      <div class="actions">
+        <button class="btn btn2" type="button" onclick="createManualDailySnapshot()">💾 Jetzt lokal sichern</button>
+        <button class="btn btn2" type="button" onclick="renderDailyBackups()">↻ Liste aktualisieren</button>
+      </div>
+      <div id="dailyBackupList" class="backup-list"></div>
     </div>
 
     <div class="backup-box">
-      <h3>Backup importieren</h3>
-      <p>Wähle eine Allround-Weber-Backup-Datei aus. Vor dem Import werden die enthaltenen Daten geprüft. Neue Daten werden ergänzt; vorhandene Daten werden nicht automatisch überschrieben.</p>
-      <button class="btn btn2" type="button" onclick="chooseBackupFile()">⬇️ Backup-Datei auswählen</button>
+      <h3>Externes Komplett-Backup</h3>
+      <p>Enthält Kunden, Baustellen, Bautagebuch, Stunden, Materiallisten und Fotos. Im iOS-Teilen-Menü kannst du „In Dateien sichern“ und danach iCloud Drive auswählen.</p>
+      <button class="btn" type="button" onclick="exportBackup()">☁️ Externes Backup sichern</button>
+    </div>
+
+    <div class="backup-box">
+      <h3>Komplett wiederherstellen</h3>
+      <p>Stellt eine .awbackup-Datei vollständig wieder her. Der aktuelle Datenbestand und die Fotos werden dabei ersetzt. Vorher legt die App automatisch einen lokalen Sicherheitsstand an.</p>
+      <button class="btn btn2" type="button" onclick="chooseRestoreBackupFile()">↩️ Backup vollständig wiederherstellen</button>
+      <input id="restoreBackupFileInput" type="file" accept=".awbackup,.json,application/json" style="display:none" onchange="handleRestoreBackupFile(event)">
+    </div>
+
+    <div class="backup-box">
+      <h3>Backup zusammenführen</h3>
+      <p>Für ältere Übertragungen: Neue Inhalte aus einer Backup-Datei werden ergänzt, vorhandene Daten nicht automatisch überschrieben.</p>
+      <button class="btn btn2" type="button" onclick="chooseBackupFile()">＋ Backup-Datei zusammenführen</button>
       <input id="backupFileInput" type="file" accept=".awbackup,.json,application/json" style="display:none" onchange="handleBackupFile(event)">
       <div class="backup-status" id="backupStatus"></div>
     </div>
 
     <div class="sync-card">
       <h3>Direkte Gerätesynchronisierung</h3>
-      <div class="muted">iPhone und iPad direkt per WebRTC synchronisieren. Keine Cloud. Fotos werden in v1.37 noch nicht übertragen.</div>
+      <div class="muted">iPhone und iPad direkt per WebRTC synchronisieren. Keine Cloud. Fotos werden noch nicht über die direkte Gerätesynchronisierung übertragen.</div>
       <div class="sync-grid">
         <button class="btn" type="button" onclick="syncStartDeviceA()">Gerät A · Starten</button>
         <button class="btn btn2" type="button" onclick="syncPrepareDeviceB()">Gerät B · Verbinden</button>
@@ -1769,7 +1804,7 @@ function syncEnsureDataModel(){
 }
 syncEnsureDataModel();
 
-function saveDB(){localStorage.setItem(DBKEY,JSON.stringify(db))}
+function saveDB(){localStorage.setItem(DBKEY,JSON.stringify(db));scheduleDailySnapshot()}
 
 // ---------- WebRTC sync runtime ----------
 let syncPC=null,syncDC=null,syncRole='',syncScannerStream=null,syncScannerFrame=null;
@@ -1815,7 +1850,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.37'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.38'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -2041,7 +2076,7 @@ function syncRecoveryCheck(){
 syncRecoveryCheck();
 
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more')renderBackupCenter();window.scrollTo(0,0)}
 function calculatedWorkHoursNumber(){
   const s=document.getElementById('start')?.value||'';
   const e=document.getElementById('end')?.value||'';
@@ -4059,6 +4094,183 @@ function selectCustomer(index){
 }
 
 
+const DAILY_BACKUP_DB='allround_weber_daily_backups_v1';
+const DAILY_BACKUP_STORE='snapshots';
+const EXTERNAL_BACKUP_META_KEY='allround_weber_external_backup_v1';
+let dailySnapshotTimer=null;
+
+function backupDateKey(date=new Date()){
+  const p=n=>String(n).padStart(2,'0');
+  return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}`;
+}
+function backupOpenDb(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DAILY_BACKUP_DB,1);
+    req.onupgradeneeded=()=>{
+      const idb=req.result;
+      if(!idb.objectStoreNames.contains(DAILY_BACKUP_STORE)) idb.createObjectStore(DAILY_BACKUP_STORE,{keyPath:'key'});
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error);
+  });
+}
+async function backupPutSnapshot(snapshot){
+  const idb=await backupOpenDb();
+  return new Promise((resolve,reject)=>{
+    const tx=idb.transaction(DAILY_BACKUP_STORE,'readwrite');
+    tx.objectStore(DAILY_BACKUP_STORE).put(snapshot);
+    tx.oncomplete=()=>{idb.close();resolve()};
+    tx.onerror=()=>{const e=tx.error;idb.close();reject(e)};
+  });
+}
+async function backupGetSnapshots(){
+  const idb=await backupOpenDb();
+  return new Promise((resolve,reject)=>{
+    const tx=idb.transaction(DAILY_BACKUP_STORE,'readonly');
+    const req=tx.objectStore(DAILY_BACKUP_STORE).getAll();
+    req.onsuccess=()=>{const rows=req.result||[];idb.close();resolve(rows.sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||''))))};
+    req.onerror=()=>{const e=req.error;idb.close();reject(e)};
+  });
+}
+async function backupDeleteSnapshot(key){
+  const idb=await backupOpenDb();
+  return new Promise((resolve,reject)=>{
+    const tx=idb.transaction(DAILY_BACKUP_STORE,'readwrite');
+    tx.objectStore(DAILY_BACKUP_STORE).delete(key);
+    tx.oncomplete=()=>{idb.close();resolve()};
+    tx.onerror=()=>{const e=tx.error;idb.close();reject(e)};
+  });
+}
+async function pruneDailySnapshots(){
+  const rows=await backupGetSnapshots();
+  const daily=rows.filter(x=>x.kind==='daily');
+  for(const row of daily.slice(30)) await backupDeleteSnapshot(row.key);
+  const safety=rows.filter(x=>x.kind==='safety');
+  for(const row of safety.slice(5)) await backupDeleteSnapshot(row.key);
+}
+async function createOrUpdateDailySnapshot(force=false){
+  try{
+    const now=new Date();
+    const key='daily:'+backupDateKey(now);
+    await backupPutSnapshot({
+      key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
+      appVersion:'1.38',db:syncClone(db)
+    });
+    await pruneDailySnapshots();
+    if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
+    if(document.getElementById('dailyBackupList')) renderBackupCenter();
+  }catch(e){console.error('Daily backup failed',e);if(force){toast('Lokales Backup fehlgeschlagen');setBackupStatus('Lokales Backup konnte nicht gespeichert werden.')}}
+}
+function scheduleDailySnapshot(){
+  clearTimeout(dailySnapshotTimer);
+  dailySnapshotTimer=setTimeout(()=>createOrUpdateDailySnapshot(false),700);
+}
+async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(true)}
+async function createSafetySnapshot(reason='Vor Wiederherstellung'){
+  const now=new Date();
+  const key='safety:'+now.getTime();
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.38',db:syncClone(db)});
+  await pruneDailySnapshots();
+  return key;
+}
+function formatBackupDate(iso){
+  if(!iso)return 'unbekannt';
+  try{return new Date(iso).toLocaleString('de-DE',{dateStyle:'medium',timeStyle:'short'})}catch(e){return new Date(iso).toLocaleString('de-DE')}
+}
+async function renderDailyBackups(){
+  const el=document.getElementById('dailyBackupList');if(!el)return;
+  el.innerHTML='<div class="muted">Tagesstände werden geladen …</div>';
+  try{
+    const rows=await backupGetSnapshots();
+    if(!rows.length){el.innerHTML='<div class="muted">Noch kein lokaler Tagesstand vorhanden.</div>';return}
+    el.innerHTML=rows.map(row=>{
+      const label=row.kind==='safety'?(row.label||'Sicherheitsstand'):`Tagesstand ${row.dateKey||''}`;
+      return `<div class="backup-row"><div class="meta"><b>${escapeHtml(label)}</b><span>${escapeHtml(formatBackupDate(row.updatedAt||row.createdAt))}</span></div><button class="btn btn2" type="button" onclick="restoreDailySnapshot('${String(row.key).replace(/'/g,"\\'")}')">Wiederherstellen</button></div>`;
+    }).join('');
+  }catch(e){console.error(e);el.innerHTML='<div class="muted">Lokale Tagesstände konnten nicht gelesen werden.</div>'}
+}
+async function restoreDailySnapshot(key){
+  try{
+    const rows=await backupGetSnapshots();
+    const row=rows.find(x=>x.key===key);if(!row||!row.db)throw new Error('Snapshot fehlt');
+    const ok=confirm(`Diesen lokalen Datenstand wiederherstellen?\n\n${formatBackupDate(row.updatedAt||row.createdAt)}\n\nKunden, Baustellen, Bautagebuch, Stunden und Materiallisten werden auf diesen Stand zurückgesetzt. Fotodateien werden nicht verändert.`);
+    if(!ok)return;
+    await createSafetySnapshot('Vor lokaler Wiederherstellung');
+    const localDeviceId=db.sync?.deviceId||makeStableId('device');
+    const localDeviceName=db.sync?.deviceName||syncDeviceLabel();
+    db=syncClone(row.db);
+    if(!db.sync||typeof db.sync!=='object')db.sync={};
+    db.sync.deviceId=localDeviceId;db.sync.deviceName=localDeviceName;
+    localStorage.setItem(DBKEY,JSON.stringify(db));
+    toast('Datenstand wiederhergestellt');
+    setTimeout(()=>location.reload(),350);
+  }catch(e){console.error(e);toast('Wiederherstellung fehlgeschlagen');setBackupStatus('Lokaler Datenstand konnte nicht wiederhergestellt werden.')}
+}
+function getExternalBackupMeta(){
+  try{return JSON.parse(localStorage.getItem(EXTERNAL_BACKUP_META_KEY)||'null')}catch(e){return null}
+}
+function recordExternalBackup(fileName){
+  const meta={createdAt:new Date().toISOString(),fileName:fileName||''};
+  localStorage.setItem(EXTERNAL_BACKUP_META_KEY,JSON.stringify(meta));
+  renderBackupCenter();
+}
+async function renderBackupCenter(){
+  const dailyInfo=document.getElementById('dailyBackupInfo');
+  const extInfo=document.getElementById('externalBackupInfo');
+  const warning=document.getElementById('externalBackupWarning');
+  try{
+    const rows=await backupGetSnapshots();
+    const daily=rows.filter(x=>x.kind==='daily');
+    if(dailyInfo) dailyInfo.textContent=daily.length?`${daily.length} Tagesstände · zuletzt ${formatBackupDate(daily[0].updatedAt||daily[0].createdAt)}`:'Noch kein Tagesstand';
+  }catch(e){if(dailyInfo)dailyInfo.textContent='Lokaler Backup-Speicher nicht verfügbar'}
+  const meta=getExternalBackupMeta();
+  if(meta?.createdAt){
+    const age=(Date.now()-new Date(meta.createdAt).getTime())/86400000;
+    if(extInfo)extInfo.textContent=`zuletzt ${formatBackupDate(meta.createdAt)}`;
+    if(warning)warning.innerHTML=age>=7?'<div class="backup-warning">⚠️ Das letzte externe Backup ist mindestens 7 Tage alt. Bitte wieder in iCloud Drive oder „Dateien“ sichern.</div>':'<div class="backup-ok">✓ Externes Backup ist aktuell.</div>';
+  }else{
+    if(extInfo)extInfo.textContent='noch nicht auf diesem Gerät bestätigt';
+    if(warning)warning.innerHTML='<div class="backup-warning">⚠️ Noch kein externes Backup bestätigt. Ein lokaler Tagesstand schützt nicht bei Verlust des Geräts oder gelöschten Safari-/App-Daten.</div>';
+  }
+  renderDailyBackups();
+}
+function validateFullBackup(backup){
+  return !!(backup&&backup.format==='allround-weber-backup'&&backup.data&&Array.isArray(backup.data.customers)&&Array.isArray(backup.data.diary)&&Array.isArray(backup.data.photos));
+}
+function chooseRestoreBackupFile(){
+  const input=document.getElementById('restoreBackupFileInput');if(!input)return;input.value='';input.click();
+}
+async function handleRestoreBackupFile(event){
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  setBackupStatus('Komplett-Backup wird geprüft …');
+  try{
+    const backup=JSON.parse(await file.text());
+    if(!validateFullBackup(backup))throw new Error('Ungültiges Backup');
+    const when=backup.createdAt?formatBackupDate(backup.createdAt):'unbekannt';
+    const ok=confirm(`Backup vollständig wiederherstellen?\n\nBackup vom: ${when}\nKunden: ${backup.data.customers.length}\nTagebucheinträge: ${backup.data.diary.length}\nFotos: ${backup.data.photos.length}\n\nACHTUNG: Die aktuellen App-Daten und Fotos auf diesem Gerät werden ersetzt. Vorher wird automatisch ein lokaler Sicherheitsstand der App-Daten angelegt.`);
+    if(!ok){setBackupStatus('Wiederherstellung abgebrochen.');return}
+    await createSafetySnapshot('Vor Komplett-Wiederherstellung');
+    const photoRecords=[];
+    for(const photo of backup.data.photos){
+      if(!photo?.dataUrl)continue;
+      const copy={...photo};
+      const blob=dataUrlToBlob(copy.dataUrl);delete copy.dataUrl;delete copy.mimeType;copy.blob=blob;photoRecords.push(copy);
+    }
+    const localDeviceId=db.sync?.deviceId||makeStableId('device');
+    const localDeviceName=db.sync?.deviceName||syncDeviceLabel();
+    const restored=syncClone(backup.data);delete restored.photos;
+    db=restored;
+    if(!db.sync||typeof db.sync!=='object')db.sync={};
+    db.sync.deviceId=localDeviceId;db.sync.deviceName=localDeviceName;
+    await replaceStoredPhotos(photoRecords);
+    localStorage.setItem(DBKEY,JSON.stringify(db));
+    setBackupStatus('Backup vollständig wiederhergestellt. App wird neu geladen …');
+    toast('Backup wiederhergestellt');
+    setTimeout(()=>location.reload(),500);
+  }catch(e){console.error(e);setBackupStatus('Komplett-Wiederherstellung fehlgeschlagen. Die ausgewählte Datei wurde nicht übernommen.');toast('Wiederherstellung fehlgeschlagen')}
+  finally{event.target.value=''}
+}
+
 function setBackupStatus(message){
   const el=document.getElementById('backupStatus');
   if(el) el.textContent=message||'';
@@ -4129,7 +4341,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.37',
+      appVersion:'1.38',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -4149,10 +4361,11 @@ async function exportBackup(){
     if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
       await navigator.share({
         title:'Allround Weber Backup',
-        text:'Allround-Weber-Backup für AirDrop',
+        text:'Allround-Weber Komplett-Backup',
         files:[file]
       });
-      setBackupStatus('Backup bereitgestellt.');
+      recordExternalBackup(fileName);
+      setBackupStatus('Backup bereitgestellt. In iOS kannst du es über „In Dateien sichern“ in iCloud Drive ablegen.');
       toast('Backup erstellt');
       return;
     }
@@ -4165,6 +4378,7 @@ async function exportBackup(){
     a.click();
     a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),2000);
+    recordExternalBackup(fileName);
     setBackupStatus('Backup-Datei wurde gespeichert.');
     toast('Backup erstellt');
 
@@ -4523,6 +4737,8 @@ async function handleBackupFile(event){
 
 
 renderDiary();renderCustomers();calc();
+scheduleDailySnapshot();
+setTimeout(()=>renderBackupCenter(),900);
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
 
 const SCHLETTER_ARTICLES=[{"number":"100001-000","name":"Dachhaken Universal (Frankfurter Pfanne oder Falzziegel)","category":"Ziegeldach"},{"number":"100004-000","name":"Dachhaken Eco S 135","category":"Ziegeldach"},{"number":"100020-100","name":"Dachhaken EcoA 45 Max","category":"Ziegeldach"},{"number":"101001-020","name":"Dachhaken Rapid2+ Pro 45","category":"Ziegeldach"},{"number":"101001-022","name":"Dachhaken Rapid2+ Pro 45 HSL","category":"Ziegeldach"},{"number":"101002-020","name":"Dachhaken Rapid2+ Pro 35","category":"Ziegeldach"},{"number":"101004-020","name":"Dachhaken Rapid2+ Pro Universal","category":"Ziegeldach"},{"number":"101005-020","name":"Dachhaken Rapid2+ Pro Max","category":"Ziegeldach"},{"number":"101005-021","name":"Dachhaken Rapid2+ Pro Max 150","category":"Ziegeldach"},{"number":"101005-024","name":"Dachhaken Rapid2+ Pro Max HSL","category":"Ziegeldach"},{"number":"101006-020","name":"Dachhaken Rapid2+ Pro MaxV","category":"Ziegeldach"},{"number":"101020-120","name":"Dachhaken RapidA Pro 45 Max","category":"Ziegeldach"},{"number":"101020-220","name":"Dachhaken RapidA 35 Pro Max","category":"Ziegeldach"},{"number":"101024-120","name":"Dachhaken RapidA 45 Pro Universal Max","category":"Ziegeldach"},{"number":"101028-020","name":"Dachhaken RapidA Pro 2L","category":"Ziegeldach"},{"number":"103005-002","name":"Alu-Tile Blechersatzziegel Erlus Falzziegel","category":"Ziegeldach"},{"number":"103005-003","name":"Braas Frankfurter Pfanne","category":"Sonstige PV-Komponenten"},{"number":"103005-004","name":"Alu-Tile Blechersatzziegel Eternit Rustico","category":"Ziegeldach"},{"number":"103005-006","name":"Alu-Tile Blechersatzziegel Eternit Heidelberger","category":"Ziegeldach"},{"number":"103005-007","name":"Alu-Tile Blechersatzziegel Erlus Großfalzziegel","category":"Ziegeldach"},{"number":"103005-010","name":"Alu-Tile Blechersatzziegel Erlus Großfalzziegel XXL","category":"Ziegeldach"},{"number":"103005-011","name":"Alu-Tile Blechersatzziegel Braas Taunuspfanne","category":"Ziegeldach"},{"number":"103005-015","name":"Alu-Tile Blechersatzziegel Erlus E 58 (nicht für E 58 S / SL / RS / Max / Plus ..)","category":"Ziegeldach"},{"number":"103005-022","name":"Alu-Tile Blechersatzziegel Braas Harzer Pfanne","category":"Ziegeldach"},{"number":"103005-024","name":"Alu-Tile Blechersatzziegel Erlus Forma","category":"Ziegeldach"},{"number":"103005-025","name":"Alu-Tile Blechersatzziegel Braas Tegalit","category":"Ziegeldach"},{"number":"103005-049","name":"Erlus Falzziegel","category":"Ziegeldach"},{"number":"103005-057","name":"Alu-Tile Blechersatzziegel Erlus Reformpfanne XXL","category":"Ziegeldach"},{"number":"103005-067","name":"Alu-Tile Blechersatzziegel Braas Topas 13V","category":"Ziegeldach"},{"number":"103005-184","name":"Erlus Forma","category":"Sonstige PV-Komponenten"},{"number":"103006-020","name":"Alu-Tile Pro Dachhaken-Set","category":"Ziegeldach"},{"number":"109008-003","name":"RapFix – Aufsatz für Eco-Dachhaken","category":"Ziegeldach"},{"number":"109008-004","name":"RapFix – Aufsatz flach","category":"Sonstige PV-Komponenten"},{"number":"109008-023","name":"RapFix Pro – Aufsatz für Eco-Dachhaken","category":"Ziegeldach"},{"number":"109008-024","name":"RapFix Pro – Aufsatz flach","category":"Sonstige PV-Komponenten"},{"number":"109010-000","name":"Zusatzwinkel Iso07","category":"Sonstige PV-Komponenten"},{"number":"109016-007","name":"Biberschwanz BEZ Rapid Alu 180 x 380","category":"Ziegeldach"},{"number":"109016-008","name":"Biberschwanz BEZ Rapid Cu 180 x 380","category":"Ziegeldach"},{"number":"109016-009","name":"Biberschwanz BEZ Rapid Alu 170 x 380","category":"Ziegeldach"},{"number":"109016-010","name":"Biberschwanz BEZ Rapid Alu 190 x 400","category":"Ziegeldach"},{"number":"109017-000","name":"SlatePlan mit Dichtung 270 x 200 x 0,5 mm","category":"Sonstige PV-Komponenten"},{"number":"109017-001","name":"SlatePlan mit Dichtung 370 x 200 x 0,5 mm","category":"Sonstige PV-Komponenten"},{"number":"109017-010","name":"Schindel zu Dachhaken Rapid2+ Pro Slate125","category":"Ziegeldach"},{"number":"109019-020","name":"Dachhaken für Biberschwanz Rapid Pro Alu","category":"Ziegeldach"},{"number":"109019-021","name":"Dachhaken für Biberschwanz Rapid Pro","category":"Ziegeldach"},{"number":"109019-022","name":"Dachhaken für Biberschwanz Rapid Pro 190 x 400","category":"Ziegeldach"},{"number":"109019-024","name":"Dachhaken Rapid2+ Pro Slate125","category":"Ziegeldach"},{"number":"109019-025","name":"Dachhaken Pro-N","category":"Ziegeldach"},{"number":"110010-200","name":"Stockschraubenset 10 x 200 montiert","category":"Welldach"},{"number":"110012-200","name":"**​ Stockschraubenset 12 x 200 montiert","category":"Welldach"},{"number":"110012-300","name":"**​ Stockschraubenset 12 x 300 montiert","category":"Welldach"},{"number":"110210-200","name":"​      Stockschraubenset 10 x 200 montiert","category":"Welldach"},{"number":"110212-200","name":"Stockschraubenset 12 x 200 montiert","category":"Welldach"},{"number":"110212-300","name":"​      Stockschraubenset 12 x 300 montiert","category":"Welldach"},{"number":"112001-000","name":"Falzklemme 503 VA für Stehfalzdach","category":"Stehfalzdach"},{"number":"112001-005","name":"Falzklemme 503 Rapid für Stehfalzdach","category":"Stehfalzdach"},{"number":"112001-010","name":"Falzklemme 504 für Stehfalzdach","category":"Stehfalzdach"},{"number":"112001-105","name":"Falzklemme Pro 503 für Stehfalzdach","category":"Stehfalzdach"},{"number":"112001-110","name":"Falzklemme Pro 504 für Stehfalzdach","category":"Stehfalzdach"},{"number":"112001-210","name":"Falzklemme Pro 504-F","category":"Stehfalzdach"},{"number":"112002-003","name":"Falzklemme 510 Rapid","category":"Stehfalzdach"},{"number":"112002-103","name":"Falzklemme Pro 510","category":"Stehfalzdach"},{"number":"112003-003","name":"Falzklemme 520 Rapid","category":"Stehfalzdach"},{"number":"112003-103","name":"Falzklemme Pro 520","category":"Stehfalzdach"},{"number":"112004-002","name":"Falzklemme 522 Rapid","category":"Stehfalzdach"},{"number":"112004-102","name":"Falzklemme Pro 522","category":"Stehfalzdach"},{"number":"112006-002","name":"Falzklemme 524 Rapid","category":"Stehfalzdach"},{"number":"112006-102","name":"Falzklemme Pro 524","category":"Stehfalzdach"},{"number":"112007-000","name":"Falzklemme 525 VA","category":"Stehfalzdach"},{"number":"112012-112","name":"Falzklemme Pro 562 Universal","category":"Stehfalzdach"},{"number":"113009-003","name":"SingleFix Pro","category":"Trapezdach"},{"number":"113014-000","name":"EcoRapid","category":"Trapezdach"},{"number":"114003-000","name":"FixPlan Dichtplatte","category":"Sonstige PV-Komponenten"},{"number":"114004-000","name":"Bituplan Zusatzabdichtung für FixPlan","category":"Sonstige PV-Komponenten"},{"number":"119001-020","name":"KlickTop Pro Aufsatzteil zu Stockschraube","category":"Welldach"},{"number":"119002-000","name":"Montageplatte für Stockschraube M10 / M12","category":"Welldach"},{"number":"119004-003","name":"Distanzhülse Alu 995 x 20","category":"Welldach"},{"number":"119005-000","name":"Dichtkappe Wellplatte 5 / 6 / 8","category":"Welldach"},{"number":"119005-001","name":"Universal-Kalotte mit EPDM","category":"Sonstige PV-Komponenten"},{"number":"119014-012","name":"Fix T-K","category":"Bitumen / Blechdach"},{"number":"119014-212","name":"Fix T-K Pro","category":"Bitumen / Blechdach"},{"number":"119015-002","name":"Montagelochband 6 - Rolle à 50 m","category":"Sonstige PV-Komponenten"},{"number":"119015-003","name":"Montagelochband 16 - Rolle à 50 m","category":"Sonstige PV-Komponenten"},{"number":"119016-000","name":"Dichtung für Tellerkopfschrauben diam 8 EPDM","category":"Zubehör & Kleinteile"},{"number":"119026-102","name":"Dachhaken Rapid2+ Pro SML","category":"Ziegeldach"},{"number":"119026-122","name":"Rapid Pro L Winkelverbinder","category":"Montageprofile & Verbinder"},{"number":"119033-001","name":"Universal-Adapter Uno M10 / M12","category":"Sonstige PV-Komponenten"},{"number":"119033-002","name":"Universal-Adapter Uno M8","category":"Sonstige PV-Komponenten"},{"number":"119033-004","name":"Universal-Adapter Duo M10 / M12","category":"Sonstige PV-Komponenten"},{"number":"120001-03550","name":"3550 mm","category":"Sonstige PV-Komponenten"},{"number":"120001-04750","name":"4750 mm","category":"Sonstige PV-Komponenten"},{"number":"120001-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120005-02450","name":"2450 mm","category":"Sonstige PV-Komponenten"},{"number":"120005-03550","name":"3550 mm","category":"Sonstige PV-Komponenten"},{"number":"120005-04400","name":"4400 mm","category":"Sonstige PV-Komponenten"},{"number":"120005-04750","name":"4750 mm","category":"Sonstige PV-Komponenten"},{"number":"120005-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120005-06200","name":"6200 mm","category":"Sonstige PV-Komponenten"},{"number":"120005-95900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120006-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120011-00450","name":"Modultragprofil EcoLight 450 mm","category":"Montageprofile & Verbinder"},{"number":"120015-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120020-00100","name":"​         Modultragprofil Pro35 100 mm​","category":"Montageprofile & Verbinder"},{"number":"120020-00450","name":"Modultragprofil Pro35 450 mm","category":"Montageprofile & Verbinder"},{"number":"120020-03550","name":"3550 mm","category":"Sonstige PV-Komponenten"},{"number":"120020-04400","name":"4400 mm","category":"Sonstige PV-Komponenten"},{"number":"120020-04750","name":"4750 mm","category":"Sonstige PV-Komponenten"},{"number":"120020-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120021-00260","name":"260 mm","category":"Sonstige PV-Komponenten"},{"number":"120021-02450","name":"2450 mm","category":"Sonstige PV-Komponenten"},{"number":"120021-03550","name":"3550 mm","category":"Sonstige PV-Komponenten"},{"number":"120021-04400","name":"4400 mm","category":"Sonstige PV-Komponenten"},{"number":"120021-04750","name":"4750 mm","category":"Sonstige PV-Komponenten"},{"number":"120021-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120021-94750","name":"4750 mm","category":"Sonstige PV-Komponenten"},{"number":"120022-000","name":"Eindreh-Profil Pro70","category":"Montageprofile & Verbinder"},{"number":"120022-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120023-000","name":"Eindreh-Profil Pro100","category":"Montageprofile & Verbinder"},{"number":"120023-00450","name":"Modultragprofil Pro100 450 mm","category":"Montageprofile & Verbinder"},{"number":"120023-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120034-00450","name":"450 mm","category":"Sonstige PV-Komponenten"},{"number":"120034-03550","name":"3550 mm","category":"Sonstige PV-Komponenten"},{"number":"120034-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120039-04400","name":"4400 mm","category":"Sonstige PV-Komponenten"},{"number":"120039-04750","name":"4750 mm","category":"Sonstige PV-Komponenten"},{"number":"120039-05900","name":"5900 mm","category":"Sonstige PV-Komponenten"},{"number":"120039-06200","name":"6200 mm","category":"Sonstige PV-Komponenten"},{"number":"121001-04400","name":"FixZ-7 Systemprofil18 oben 4400 mm","category":"Montageprofile & Verbinder"},{"number":"121001-05500","name":"FixZ-7 Systemprofil18 oben 5500 mm","category":"Montageprofile & Verbinder"},{"number":"121001-202","name":"FixZ-7 Systemprofil18 oben 450 mm","category":"Montageprofile & Verbinder"},{"number":"121008-04400","name":"FixZ-15 Systemprofil18 oben 4400 mm","category":"Montageprofile & Verbinder"},{"number":"121008-05500","name":"Schletter PV-Komponente","category":"Sonstige PV-Komponenten"},{"number":"121008-202","name":"FixZ-15 Systemprofil18 oben 450 mm","category":"Montageprofile & Verbinder"},{"number":"121009-04400","name":"FixZ-15 Systemprofil18 unten 4400 mm","category":"Montageprofile & Verbinder"},{"number":"121009-05500","name":"FixZ-15 Systemprofil18 unten 5500 mm","category":"Montageprofile & Verbinder"},{"number":"121009-202","name":"FixZ-15 Systemprofil18 unten 450 mm","category":"Montageprofile & Verbinder"},{"number":"121010-04400","name":"FixZ-7 Systemprofil18 unten 4400 mm","category":"Montageprofile & Verbinder"},{"number":"121010-05500","name":"FixZ-7 Systemprofil18 unten 5500 mm","category":"Montageprofile & Verbinder"},{"number":"121010-202","name":"FixZ-7 Systemprofil18 unten 450 mm","category":"Montageprofile & Verbinder"},{"number":"128039-006","name":"Grundprofil für FlatGrid 6000 mm","category":"Montageprofile & Verbinder"},{"number":"128039-203","name":"Grundprofil für FlatGrid 2150 mm","category":"Montageprofile & Verbinder"},{"number":"128039-214","name":"Grundprofil für FlatGrid 4200 mm","category":"Montageprofile & Verbinder"},{"number":"128039-215","name":"Grundprofil für FlatGrid 6300 mm","category":"Montageprofile & Verbinder"},{"number":"129001-003","name":"Verbinder E Eco, vormontiert","category":"Montageprofile & Verbinder"},{"number":"129001-007","name":"SoloPlus Innenverbinder","category":"Montageprofile & Verbinder"},{"number":"129001-008","name":"EcoLight Innenverbinder","category":"Montageprofile & Verbinder"},{"number":"129001-014","name":"Eco05 Innenverbinder 250 mm","category":"Montageprofile & Verbinder"},{"number":"129001-019","name":"Innenverbinder SoloXL","category":"Montageprofile & Verbinder"},{"number":"129002-002","name":"Verbinder E Solo, SoloPlus, FixZ-7, FixZ-15, vormontiert","category":"Montageprofile & Verbinder"},{"number":"129010-001","name":"KlickIn Einklickbaustein für Mutter M10","category":"Zubehör & Kleinteile"},{"number":"129010-008","name":"KlickIn Einklickbaustein für Mutter M8","category":"Zubehör & Kleinteile"},{"number":"129011-000","name":"129011-900                Kunststoff-Endkappe Solo","category":"Montageprofile & Verbinder"},{"number":"129011-900","name":"Kunststoff-Endkappe Solo","category":"Montageprofile & Verbinder"},{"number":"129019-011","name":"Zusatzverbinder für FixZ-15 oben","category":"Montageprofile & Verbinder"},{"number":"129060-000","name":"Verbinder Einschub Solo","category":"Montageprofile & Verbinder"},{"number":"129061-001","name":"Firstverbinder Set","category":"Montageprofile & Verbinder"},{"number":"129062-021","name":"​          Zugverbinder","category":"Montageprofile & Verbinder"},{"number":"129063-000","name":"Rapid Kreuzverbinder","category":"Montageprofile & Verbinder"},{"number":"129063-002","name":"RapidConnect90","category":"Sonstige PV-Komponenten"},{"number":"129063-010","name":"Kreuzverbinder Rapid Pro","category":"Montageprofile & Verbinder"},{"number":"129063-020","name":"Rapid Kreuzverbinder 90 Pro","category":"Montageprofile & Verbinder"},{"number":"129063-900","name":"Rapid Kreuzverbinder","category":"Montageprofile & Verbinder"},{"number":"129065-001","name":"Proklip-Multi 10S","category":"Zubehör & Kleinteile"},{"number":"129065-008","name":"Proklip-Multi 8","category":"Zubehör & Kleinteile"},{"number":"129065-018","name":"Proklip-Multi PS​","category":"Zubehör & Kleinteile"},{"number":"129078-001","name":"Innenverbinder für FlatGrid","category":"Montageprofile & Verbinder"},{"number":"129200-000","name":"Innenverbinder Pro","category":"Montageprofile & Verbinder"},{"number":"129200-001","name":"Verbinder Bodenprofil Pro","category":"Montageprofile & Verbinder"},{"number":"129200-002","name":"Verbinder Ballastschiene Pro","category":"Montageprofile & Verbinder"},{"number":"129200-010","name":"129200-910               Kunststoff-Endkappe Pro","category":"Montageprofile & Verbinder"},{"number":"129200-910","name":"Kunststoff-Endkappe Pro","category":"Montageprofile & Verbinder"},{"number":"130004-200","name":"ClampFit","category":"Trapezdach"},{"number":"130004-300","name":"ClampFit Pro","category":"Trapezdach"},{"number":"131020-000","name":"131020-900        Endklemme RapidPro         V+H","category":"Modulklemmen"},{"number":"131020-001","name":"131020-901        Mittelklemme RapidPro      V+H","category":"Modulklemmen"},{"number":"131020-900","name":"Endklemme RapidPro         V+H","category":"Modulklemmen"},{"number":"131020-901","name":"Mittelklemme RapidPro      V+H","category":"Modulklemmen"},{"number":"131021-000","name":"131021-900        Endklemme Pro              V+H","category":"Modulklemmen"},{"number":"131021-001","name":"131021-901        Mittelklemme Pro           V+H","category":"Modulklemmen"},{"number":"131021-900","name":"Endklemme Pro              V+H","category":"Modulklemmen"},{"number":"131021-901","name":"Mittelklemme Pro           V+H","category":"Modulklemmen"},{"number":"131101-001","name":"131101-901         Endklemme Rapid16 30 – 40      V","category":"Modulklemmen"},{"number":"131101-002","name":"131101-902         Endklemme Rapid16 40 – 50      V+H","category":"Modulklemmen"},{"number":"131101-003","name":"131101-903         Endklemme Rapid16 30 – 40      H","category":"Modulklemmen"},{"number":"131101-021","name":"131101-921         Endklemme Classic Wide H       H","category":"Modulklemmen"},{"number":"131101-022","name":"131101-922         Endklemme Classic Wide V       V","category":"Modulklemmen"},{"number":"131101-101","name":"Endklemme Rapid16 30 – 40 L","category":"Modulklemmen"},{"number":"131101-901","name":"Endklemme Rapid16 30 – 40      V","category":"Modulklemmen"},{"number":"131101-902","name":"Endklemme Rapid16 40 – 50      V+H","category":"Modulklemmen"},{"number":"131101-903","name":"Endklemme Rapid16 30 – 40      H","category":"Modulklemmen"},{"number":"131101-921","name":"Endklemme Classic Wide H       H","category":"Modulklemmen"},{"number":"131101-922","name":"Endklemme Classic Wide V       V","category":"Modulklemmen"},{"number":"131121-001","name":"131121-901         Mittelklemme Rapid16 30 – 40   V+H","category":"Modulklemmen"},{"number":"131121-002","name":"131121-902         Mittelklemme Rapid16 40 – 50   V+H","category":"Modulklemmen"},{"number":"131121-021","name":"131121-921         Mittelklemme Classic Wide      V+H","category":"Modulklemmen"},{"number":"131121-111","name":"Mittelklemme Rapid16 30 –","category":"Modulklemmen"},{"number":"131121-901","name":"Mittelklemme Rapid16 30 – 40   V+H","category":"Modulklemmen"},{"number":"131121-902","name":"Mittelklemme Rapid16 40 – 50   V+H","category":"Modulklemmen"},{"number":"131121-921","name":"Mittelklemme Classic Wide      V+H","category":"Modulklemmen"},{"number":"132101-308","name":"Endklemme Profi schmal 3 – 8 mm Set","category":"Modulklemmen"},{"number":"132101-328","name":"Endklemme Pro schmal 3 – 9 mm","category":"Modulklemmen"},{"number":"132102-308","name":"Endklemme Profi breit 3 – 8 mm Set","category":"Modulklemmen"},{"number":"132102-328","name":"Endklemme Pro breit 3 – 9 mm","category":"Modulklemmen"},{"number":"132201-308","name":"Mittelklemme Profi schmal 3 – 8 mm Set","category":"Modulklemmen"},{"number":"132201-328","name":"Mittelklemme Pro schmal 3 – 9 mm","category":"Modulklemmen"},{"number":"132202-308","name":"Mittelklemme Profi breit 3 – 8 mm Set","category":"Modulklemmen"},{"number":"132202-328","name":"Mittelklemme Pro breit 3 – 9 mm","category":"Modulklemmen"},{"number":"133164-168","name":"Endklemme Eco6-S4 Laminat 6,8 mm Set","category":"Modulklemmen"},{"number":"133164-268","name":"Endklemme Eco6-S4 6,8 mm Pro","category":"Modulklemmen"},{"number":"133264-168","name":"Mittelklemme Eco6-S4 Laminat 6,8 mm Set","category":"Modulklemmen"},{"number":"133264-268","name":"Mittelklemme Eco6-S4 6,8 mm Pro","category":"Modulklemmen"},{"number":"135003-000","name":"Blitzschutzklemme für 8 mm","category":"Sonstige PV-Komponenten"},{"number":"135003-002","name":"Erdungs- und Blitzschutzklemme A2 M8","category":"Sonstige PV-Komponenten"},{"number":"135003-022","name":"Erdungs- und Blitzschutzklemme Pro A2 M8","category":"Sonstige PV-Komponenten"},{"number":"135004-000","name":"Erdungsblech","category":"Sonstige PV-Komponenten"},{"number":"135004-020","name":"Erdungsblech Pro","category":"Sonstige PV-Komponenten"},{"number":"139004-000","name":"Unterlegblech Modulklemme Eco","category":"Modulklemmen"},{"number":"139008-006","name":"Sicherheitshaken Laminat 3 – 8 mm","category":"Sonstige PV-Komponenten"},{"number":"149023-001","name":"Befestigungsbinder 1,0 – 3,0 mm, Führung oben","category":"Zubehör & Kleinteile"},{"number":"149023-002","name":"Befestigungsbinder 1,0 – 3,0 mm, Führung seitlich","category":"Zubehör & Kleinteile"},{"number":"150002-130","name":"Flachdachstütze Light 1,3 m Trägerset\b","category":"Flachdach"},{"number":"150002-150","name":"Flachdachstütze Light 1,5 m Trägerset\b","category":"Flachdach"},{"number":"152001-001","name":"Gründachstütze bis 1,6 m Trägerset\b","category":"Flachdach"},{"number":"155002-320","name":"Flachdachstütze Light 3,2 m Trägerset\b","category":"Flachdach"},{"number":"156002-160","name":"Fassadenstütze Light 1,3 m Trägerset\b","category":"Flachdach"},{"number":"159000-027","name":"Betonblock Beschwerungsset18","category":"Sonstige PV-Komponenten"},{"number":"159005-001","name":"Strebe mit Endkappe 338 mm","category":"Montageprofile & Verbinder"},{"number":"159005-002","name":"Strebe mit Endkappe 428 mm","category":"Montageprofile & Verbinder"},{"number":"159005-003","name":"Strebe mit Endkappe 520 mm","category":"Montageprofile & Verbinder"},{"number":"159005-004","name":"Strebe mit Endkappe 613 mm","category":"Montageprofile & Verbinder"},{"number":"159005-005","name":"Strebe mit Endkappe 700 mm","category":"Montageprofile & Verbinder"},{"number":"159005-006","name":"Strebe mit Endkappe 781 mm","category":"Montageprofile & Verbinder"},{"number":"159005-007","name":"Strebe mit Endkappe 1359 mm","category":"Montageprofile & Verbinder"},{"number":"160002-001","name":"SolRack Alu (1 Platte)","category":"Flachdach"},{"number":"163000-400","name":"​            FixGrid Pro Kit Ost/West​","category":"Flachdach"},{"number":"163900-001","name":"FixZ-15 Systemprofil oben 96 mm mit Verbinder","category":"Montageprofile & Verbinder"},{"number":"163900-002","name":"FixZ-15 Systemprofil unten 96 mm mit Verbinder","category":"Montageprofile & Verbinder"},{"number":"163900-003","name":"FixZ-15 Systemprofil Mitte 96 mm mit Verbinder","category":"Montageprofile & Verbinder"},{"number":"163900-011","name":"FixZ-7 Systemprofil oben 96 mm mit Verbinder","category":"Montageprofile & Verbinder"},{"number":"163900-012","name":"FixZ-7 Systemprofil unten 96 mm mit Verbinder","category":"Montageprofile & Verbinder"},{"number":"163900-021","name":"FixZ-10 Systemprofil oben 96 mm mit Verbinder","category":"Montageprofile & Verbinder"},{"number":"163900-022","name":"FixZ-10 Systemprofil unten 96 mm mit Verbinder","category":"Montageprofile & Verbinder"},{"number":"163900-023","name":"FixZ-10 Systemprofil Mitte 96 mm mit Verbinder","category":"Montageprofile & Verbinder"},{"number":"164160-180","name":"Windsafe Vario Alu 160 x 1830 mm","category":"Flachdach"},{"number":"164250-180","name":"Windsafe Vario Alu 250 x 1830 mm","category":"Flachdach"},{"number":"165001-00550","name":"Bodenschiene Pro 550","category":"Sonstige PV-Komponenten"},{"number":"165001-01500","name":"Bodenprofil Pro 1500 mm","category":"Montageprofile & Verbinder"},{"number":"165001-02500","name":"Bodenprofil Pro 2500 mm","category":"Montageprofile & Verbinder"},{"number":"165001-03500","name":"Bodenprofil Pro 3500 mm","category":"Montageprofile & Verbinder"},{"number":"165001-04500","name":"Bodenprofil Pro 4500 mm","category":"Montageprofile & Verbinder"},{"number":"165001-06000","name":"Bodenprofil Pro 6000 mm","category":"Montageprofile & Verbinder"},{"number":"165002-01600","name":"Ballast + Verbundschiene Pro 1600 mm","category":"Flachdach"},{"number":"165002-02000","name":"Ballast + Verbundschiene Pro 2000 mm","category":"Flachdach"},{"number":"165002-02350","name":"Ballast + Verbundschiene Pro 2350 mm","category":"Flachdach"},{"number":"165002-02700","name":"Ballast + Verbundschiene Pro 2700 mm","category":"Flachdach"},{"number":"165002-06000","name":"Ballast + Verbundschiene Pro 6000 mm","category":"Flachdach"},{"number":"165005-001","name":"Eindreh-Modulauflager Pro","category":"Sonstige PV-Komponenten"},{"number":"165005-002","name":"Eindreh-Erhöhungselement Pro","category":"Sonstige PV-Komponenten"},{"number":"165005-003","name":"Erhöhungselement Pro","category":"Sonstige PV-Komponenten"},{"number":"165005-004","name":"Modulauflager Pro","category":"Sonstige PV-Komponenten"},{"number":"165005-005","name":"FixGrid Pro Stützblech 2","category":"Flachdach"},{"number":"165005-006","name":"FixGrid Pro Stützblech 3","category":"Flachdach"},{"number":"165005-007","name":"Eindreh-Modulauflager Flex Pro","category":"Sonstige PV-Komponenten"},{"number":"165005-008","name":"Modulauflager Flex Pro","category":"Sonstige PV-Komponenten"},{"number":"165005-100","name":"Eindreh-Mittelstütze Pro","category":"Flachdach"},{"number":"169004-003","name":"Bautenschutzmatte 300 x 110 x 20 mm AK SK","category":"Flachdach"},{"number":"169004-008","name":"Bautenschutzmatte 300 x 110 x 20 mm FH AK SK","category":"Flachdach"},{"number":"169004-013","name":"Bautenschutzmatte 230 x 110 x 8 mm (kaschiert)","category":"Flachdach"},{"number":"169008-006","name":"Eindrehwerkzeug FixGrid Pro","category":"Flachdach"},{"number":"169017-000","name":"Zusatzwanne","category":"Sonstige PV-Komponenten"},{"number":"169017-170","name":"FixZ-10 Windsafe bis 1700 mm","category":"Flachdach"},{"number":"169017-210","name":"FixZ-10 Windsafe bis 2067 mm","category":"Flachdach"},{"number":"169017-240","name":"FixZ-10 Windsafe bis 2400 mm","category":"Flachdach"},{"number":"169018-170","name":"FixZ-7 Windsafe bis 1700 mm","category":"Flachdach"},{"number":"169018-210","name":"FixZ-7 Windsafe bis 2067 mm","category":"Flachdach"},{"number":"169019-170","name":"FixZ-15 Windsafe bis 1700 mm","category":"Flachdach"},{"number":"169019-210","name":"FixZ-15 Windsafe bis 2067 mm","category":"Flachdach"},{"number":"169019-240","name":"FixZ-15 Windsafe bis 2400 mm","category":"Flachdach"},{"number":"169020-000","name":"FixGrid Abschlussblech Ballastschacht","category":"Flachdach"},{"number":"169020-001","name":"Abschlussblech Ballastwanne Pro","category":"Flachdach"},{"number":"169020-100","name":"Ballastwanne Pro","category":"Flachdach"},{"number":"169020-170","name":"FixGrid Ballastschacht bis 1700 mm","category":"Flachdach"},{"number":"169020-210","name":"FixGrid Ballastschacht bis 2067 mm","category":"Flachdach"},{"number":"169020-240","name":"FixGrid Ballastschacht bis 2400 mm","category":"Flachdach"},{"number":"169200-000","name":"Klemmkeil Ballastwanne Pro","category":"Flachdach"},{"number":"169205-135","name":"Windsafe 5 Pro bis 1350 mm Modul","category":"Flachdach"},{"number":"169205-180","name":"Windsafe 5 Pro bis 1800 mm Modul","category":"Flachdach"},{"number":"169205-215","name":"Windsafe 5 Pro bis 2150 mm Modul","category":"Flachdach"},{"number":"169205-250","name":"Windsafe 5 Pro bis 2500 mm Modul","category":"Flachdach"},{"number":"169210-135","name":"Windsafe 10 Pro bis 1350 mm Modul","category":"Flachdach"},{"number":"169210-180","name":"Windsafe 10 Pro bis 1800 mm Modul","category":"Flachdach"},{"number":"169210-215","name":"Windsafe 10 Pro bis 2150 mm Modul","category":"Flachdach"},{"number":"169210-250","name":"Windsafe 10 Pro bis 2500 mm Modul","category":"Flachdach"},{"number":"169215-135","name":"Windsafe 15 Pro bis 1350 mm Modul","category":"Flachdach"},{"number":"169215-180","name":"Windsafe 15 Pro bis 1800 mm Modul","category":"Flachdach"},{"number":"169215-215","name":"Windsafe 15 Pro bis 2150 mm Modul","category":"Flachdach"},{"number":"169215-250","name":"Windsafe 15 Pro bis 2500 mm Modul","category":"Flachdach"},{"number":"195000-397","name":"Musterkoffer Dachsysteme","category":"Sonstige PV-Komponenten"},{"number":"925120-002","name":"Distanzhülse Kunststoff 1 m","category":"Welldach"},{"number":"942000-902","name":"Hammerkopfmutter Pro","category":"Zubehör & Kleinteile"},{"number":"942208-080","name":"8 x 80","category":"Sonstige PV-Komponenten"},{"number":"942208-100","name":"8 x 100","category":"Sonstige PV-Komponenten"},{"number":"942208-120","name":"8 x 120","category":"Sonstige PV-Komponenten"},{"number":"943000-015","name":"M8","category":"Sonstige PV-Komponenten"},{"number":"943000-022","name":"Flanschmutter M10 mit Sperrverzahnung, DIN EN 1661,","category":"Zubehör & Kleinteile"},{"number":"943000-024","name":"Schraube Zylinderkopf Innensechskant M8x55, DIN EN ISO","category":"Zubehör & Kleinteile"},{"number":"943000-025","name":"Innensechskantschraube M8 x 20, DIN EN ISO 4762, A2 ​","category":"Zubehör & Kleinteile"},{"number":"943000-029","name":"Schraube Sechskant M10 x 25, DIN EN ISO 4017, A2 mit","category":"Zubehör & Kleinteile"},{"number":"943000-032","name":"M10 x 35","category":"Sonstige PV-Komponenten"},{"number":"943000-037","name":"M10 x 45","category":"Sonstige PV-Komponenten"},{"number":"943000-043","name":"Unterlegscheibe groß M8, DIN EN ISO 7093-1, A2","category":"Zubehör & Kleinteile"},{"number":"943000-056","name":"Unterlegscheibe groß M10 DIN EN ISO 7093-1, A2","category":"Zubehör & Kleinteile"},{"number":"943000-063","name":"Schraube Zylinderkopf mit Sperrverzahnung M8x40,","category":"Zubehör & Kleinteile"},{"number":"943000-360","name":"Dünnblechschraube 6,0 x 25 A2 mit Dichtscheibe","category":"Zubehör & Kleinteile"},{"number":"943000-700","name":"Dünnblechschraube 5,5 x 25 A2 mit Dichtscheibe","category":"Zubehör & Kleinteile"},{"number":"943001-232","name":"Dünnblechschraube 6,0 x 22 A2 mit Dichtscheibe oZ","category":"Zubehör & Kleinteile"},{"number":"943001-238","name":"M8 x 16","category":"Sonstige PV-Komponenten"},{"number":"943001-240","name":"Mutter Sechskant selbstsichernd M8, DIN EN ISO 7040,","category":"Zubehör & Kleinteile"},{"number":"943001-242","name":"​            M8 x 16                           DIN EN ISO 14580","category":"Sonstige PV-Komponenten"},{"number":"943208-080","name":"8 x 80","category":"Sonstige PV-Komponenten"},{"number":"943208-100","name":"8 x 100","category":"Sonstige PV-Komponenten"},{"number":"943208-120","name":"8 x 120","category":"Sonstige PV-Komponenten"},{"number":"943218-080","name":"8 x 80","category":"Sonstige PV-Komponenten"},{"number":"943218-100","name":"8 x 100","category":"Sonstige PV-Komponenten"},{"number":"943218-120","name":"8 x 120","category":"Sonstige PV-Komponenten"},{"number":"943410-025","name":"M10 x 25","category":"Sonstige PV-Komponenten"},{"number":"943610-025","name":"Schraube M10 x 25 Sechskant, DIN 933, A2","category":"Zubehör & Kleinteile"},{"number":"943718-064","name":"8 x 64","category":"Sonstige PV-Komponenten"},{"number":"943718-125","name":"8 x 125","category":"Sonstige PV-Komponenten"},{"number":"943718-150","name":"8 x 150","category":"Sonstige PV-Komponenten"},{"number":"943718-200","name":"8 x 200","category":"Sonstige PV-Komponenten"},{"number":"943755-925","name":"Bohrschraube 5,5 x 25 mit Dichtscheibe","category":"Zubehör & Kleinteile"},{"number":"943763-064","name":"** 6,3 x 64","category":"Sonstige PV-Komponenten"},{"number":"943763-115","name":"**     6,3 x 115","category":"Sonstige PV-Komponenten"},{"number":"943763-200","name":"** 6,3 x 200","category":"Sonstige PV-Komponenten"},{"number":"943772-019","name":"Reparaturschraube 7,2 x 19 selbstfurchend FABA-A A2","category":"Welldach"},{"number":"943914-008","name":"Vierkantmutter M8","category":"Zubehör & Kleinteile"},{"number":"943914-010","name":"Vierkantmutter M10, A4","category":"Zubehör & Kleinteile"},{"number":"973000-041","name":"EPDM Gummi selbstklebend 48 mm breit, Rolle 50 m","category":"Zubehör & Kleinteile"},{"number":"973000-075","name":"Unterlegplatte Dachhaken 2,5/5 mm","category":"Ziegeldach"},{"number":"973000-683","name":"Dachhakendichtband grau TP600 10 m","category":"Ziegeldach"}];
