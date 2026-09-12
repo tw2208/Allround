@@ -438,12 +438,37 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.19: kompaktere, dezentere Buttons */
+/* Version 1.20: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
 .project-tab{min-height:34px;padding:7px 6px;border-radius:10px;font-size:11px;font-weight:700}
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
+
+
+/* Version 1.20 – kompakte Tagesübersicht im Bautagebuch */
+.diary-summary-card{padding:0;overflow:hidden}
+.diary-summary-main{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:var(--text);
+  text-align:left;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 13px;
+  font:inherit;
+}
+.diary-summary-main:active{background:rgba(255,255,255,.025)}
+.diary-summary-main b{font-size:14px}
+.diary-chevron{
+  flex:0 0 auto;
+  font-size:18px;
+  color:var(--muted);
+}
+.diary-detail{padding:0 13px 12px}
+.diary-detail[hidden]{display:none}
 
 </style>
 </head>
@@ -493,7 +518,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
     </div>
 
     <div class="actions">
-      <button class="btn" type="button" onclick="toggleDiaryForm(true)">+ Eintrag für diesen Tag</button>
+      <button class="btn" type="button" onclick="openNewDiaryEntry()">+ Eintrag für diesen Tag</button>
       <button class="btn btn2 diary-danger" id="deleteDiaryDayBtn" type="button" onclick="deleteDiaryDay()">🗑️ Tageseinträge löschen</button>
     </div>
   </div>
@@ -504,7 +529,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
     <div class="item">
       <span class="emoji">📝</span>
       <div class="grow">
-        <b>Neuer Tagebucheintrag</b>
+        <b id="diaryFormTitle">Neuer Tagebucheintrag</b>
         <div class="muted" id="diaryFormDateLabel"></div>
       </div>
       <button class="diary-form-close" type="button" onclick="toggleDiaryForm(false)">✕</button>
@@ -512,6 +537,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
     <div class="rule"></div>
 
     <input id="date" type="hidden">
+    <input id="diaryEditIndex" type="hidden" value="">
 
     <label>Kunde</label>
     <select id="diaryCustomer"></select>
@@ -560,7 +586,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
     </div>
 
     <div class="actions">
-      <button class="btn" onclick="saveDiary()">Eintrag speichern</button>
+      <button class="btn" id="diarySaveBtn" onclick="saveDiary()">Eintrag speichern</button>
       <button class="btn btn2" onclick="clearDiary()">Felder leeren</button>
     </div>
   </div>
@@ -724,7 +750,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.19</div>
+    <div class="blue" style="margin-top:6px;">Version 1.20</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -773,7 +799,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 <div class="nav"><div class="navin">
 <button id="n-home" class="active" onclick="show('home')"><span class="ni">⌂</span>Start</button>
 <button id="n-diary" onclick="show('diary')"><span class="ni">📝</span>Bautagebuch</button>
-<button id="n-pv" onclick="show('pv')"><span class="ni">☀️</span>PV</button>
+<button id="n-projects" onclick="show('projects')"><span class="ni">🏗️</span>Baustellen</button>
 <button id="n-customers" onclick="show('customers')"><span class="ni">👥</span>Kunden</button>
 <button id="n-more" onclick="show('more')"><span class="ni">•••</span>Mehr</button>
 </div></div>
@@ -1019,16 +1045,30 @@ async function loadStoredPhotos(selector,dataAttribute){
 async function saveDiary(){
   const customerIndex=Number(document.getElementById('diaryCustomer').value||0);
   const customer=db.customers[customerIndex];
-  let photoId=null;
+  const editIndexRaw=document.getElementById('diaryEditIndex')?.value ?? '';
+  const editIndex=editIndexRaw==='' ? null : Number(editIndexRaw);
+  const previous=editIndex!==null ? db.diary[editIndex] : null;
+  let photoId=previous?.photoId || null;
 
   if(pendingPhotoBlob){
     try{
-      photoId=await storePhoto(pendingPhotoBlob,{
+      const newPhotoId=await storePhoto(pendingPhotoBlob,{
         customerIndex,
         customerName:customer?customer.name:'',
         site:document.getElementById('site').value,
         date:document.getElementById('date').value
       });
+
+      if(previous?.photoId && previous.photoId!==newPhotoId){
+        for(const c of db.customers){
+          if(Array.isArray(c.photoIds)){
+            c.photoIds=c.photoIds.filter(id=>id!==previous.photoId);
+          }
+        }
+        try{ await deleteStoredPhoto(previous.photoId); }catch(e){}
+      }
+
+      photoId=newPhotoId;
     }catch(e){
       toast('Foto konnte nicht gespeichert werden');
       return;
@@ -1049,23 +1089,90 @@ async function saveDiary(){
     photoId
   };
 
-  db.diary.unshift(x);
+  if(editIndex!==null && db.diary[editIndex]){
+    const old=db.diary[editIndex];
+
+    if(old.photoId && old.customerIndex!==customerIndex){
+      const oldCustomer=db.customers[old.customerIndex];
+      if(oldCustomer && Array.isArray(oldCustomer.photoIds)){
+        oldCustomer.photoIds=oldCustomer.photoIds.filter(id=>id!==old.photoId);
+      }
+    }
+
+    db.diary[editIndex]=x;
+  }else{
+    db.diary.unshift(x);
+  }
 
   if(photoId&&customer){
     if(!Array.isArray(customer.photoIds))customer.photoIds=[];
-    customer.photoIds.unshift(photoId);
+    if(!customer.photoIds.includes(photoId))customer.photoIds.unshift(photoId);
   }
 
   saveDB();
   selectDiaryDate(x.date);
   renderCustomers();
-  toast(photoId?'Tagebuch + Foto gespeichert':'Bautagebuch gespeichert');
+  toast(editIndex!==null ? 'Tagebucheintrag aktualisiert' : (photoId?'Tagebuch + Foto gespeichert':'Bautagebuch gespeichert'));
   document.getElementById('note').value='';
   document.getElementById('mat').value='';
   removePendingPhoto();
+  resetDiaryEditMode();
   toggleDiaryForm(false);
 }
-function clearDiary(){document.getElementById('note').value='';document.getElementById('mat').value=''}
+
+function clearDiary(){
+  document.getElementById('note').value='';
+  document.getElementById('mat').value='';
+}
+
+function resetDiaryEditMode(){
+  const idx=document.getElementById('diaryEditIndex');
+  if(idx) idx.value='';
+  const title=document.getElementById('diaryFormTitle');
+  if(title) title.textContent='Neuer Tagebucheintrag';
+  const btn=document.getElementById('diarySaveBtn');
+  if(btn) btn.textContent='Eintrag speichern';
+}
+
+async function editDiaryEntry(index){
+  const entry=db.diary[index];
+  if(!entry) return;
+
+  const selected=entry.date||diaryTodayISO;
+  selectDiaryDate(selected);
+
+  const customerSelect=document.getElementById('diaryCustomer');
+  refreshDiaryCustomerSelect();
+  if(customerSelect && Number.isInteger(entry.customerIndex) && customerSelect.options[entry.customerIndex]){
+    customerSelect.value=String(entry.customerIndex);
+  }else if(customerSelect){
+    const match=[...customerSelect.options].find(o=>{
+      const c=db.customers[Number(o.value)];
+      return c && c.name===entry.customerName;
+    });
+    if(match) customerSelect.value=match.value;
+  }
+
+  document.getElementById('site').value=entry.site||'';
+  document.getElementById('start').value=entry.start||'08:00';
+  document.getElementById('end').value=entry.end||'16:00';
+  document.getElementById('pause').value=entry.pause||0;
+  document.getElementById('note').value=entry.note||'';
+  document.getElementById('mat').value=entry.mat||'';
+  document.getElementById('date').value=selected;
+  document.getElementById('diaryEditIndex').value=String(index);
+
+  const title=document.getElementById('diaryFormTitle');
+  if(title) title.textContent='Tagebucheintrag bearbeiten';
+  const btn=document.getElementById('diarySaveBtn');
+  if(btn) btn.textContent='Änderungen speichern';
+
+  calc();
+  removePendingPhoto();
+  toggleDiaryForm(true);
+}
+
+
 function diaryDateLabel(iso){
   if(!iso) return '';
   const [y,m,d]=iso.split('-').map(Number);
@@ -1116,6 +1223,19 @@ function shiftDiaryDate(days){
   selectDiaryDate(next);
 }
 
+function openNewDiaryEntry(){
+  resetDiaryEditMode();
+  document.getElementById('site').value='';
+  document.getElementById('start').value='08:00';
+  document.getElementById('end').value='16:00';
+  document.getElementById('pause').value='0';
+  document.getElementById('note').value='';
+  document.getElementById('mat').value='';
+  removePendingPhoto();
+  calc();
+  toggleDiaryForm(true);
+}
+
 function toggleDiaryForm(open){
   const card=document.getElementById('diaryEntryFormCard');
   if(!card) return;
@@ -1160,7 +1280,7 @@ function renderDiary(){
     el.innerHTML=`
       <div class="card diary-empty">
         <div class="emoji" style="font-size:30px;">📭</div>
-        <b>Keine Einträge für diesen Tag</b>
+        <b>Keine Baustellen für diesen Tag</b>
         <div class="muted" style="margin-top:6px;">Lege über „+ Eintrag für diesen Tag“ einen neuen Eintrag an.</div>
       </div>`;
     return;
@@ -1172,24 +1292,41 @@ function renderDiary(){
       <span class="pill">${rows.length}</span>
     </div>
     ${rows.map(({entry:x,index})=>`
-      <div class="card">
-        <div class="item">
+      <div class="card diary-summary-card">
+        <button class="diary-summary-main" type="button" onclick="toggleDiaryDetails(${index})">
           <div class="grow">
-            <b>${x.site||'Baustelle'}</b>
-            ${x.customerName?`<div class="muted">Kunde: ${x.customerName}</div>`:''}
+            <b>${escapeHtml(x.site||'Baustelle')}</b>
+            ${x.customerName?`<div class="muted">${escapeHtml(x.customerName)}</div>`:''}
+            <div class="blue">${x.start||'—'}–${x.end||'—'} · ${x.hours||'—'}</div>
           </div>
-          <button class="diary-delete-btn" type="button" onclick="deleteDiaryEntry(${index})" title="Tagebucheintrag löschen">🗑️</button>
+          <span class="diary-chevron" id="diaryChevron-${index}">⌄</span>
+        </button>
+
+        <div class="diary-detail" id="diaryDetail-${index}" hidden>
+          <div class="rule"></div>
+          <div class="muted">Pause: ${x.pause||0} min</div>
+          <div style="margin-top:8px;">${escapeHtml(x.note||'Keine Notiz')}</div>
+          <div class="blue" style="margin-top:8px;">Material: ${escapeHtml(x.mat||'—')}</div>
+          ${x.photoId?`<div class="photo-grid"><img class="photo-thumb" data-photo-id="${x.photoId}" alt="Tagebuchfoto"></div>`:''}
+          <div class="actions" style="margin-top:10px;">
+            <button class="btn btn2" type="button" onclick="editDiaryEntry(${index})">✏️ Bearbeiten</button>
+            <button class="btn btn2 diary-danger" type="button" onclick="deleteDiaryEntry(${index})">🗑️ Löschen</button>
+          </div>
         </div>
-        <div class="blue">${x.start||'—'}–${x.end||'—'} · ${x.hours||'—'}</div>
-        <div class="muted">Pause: ${x.pause||0} min</div>
-        <div class="rule"></div>
-        <div>${x.note||'Keine Notiz'}</div>
-        <div class="blue">Material: ${x.mat||'—'}</div>
-        ${x.photoId?`<div class="photo-grid"><img class="photo-thumb" data-photo-id="${x.photoId}" alt="Tagebuchfoto"></div>`:''}
       </div>
     `).join('')}`;
 
   loadStoredPhotos('img[data-photo-id]','photoId');
+}
+
+function toggleDiaryDetails(index){
+  const detail=document.getElementById(`diaryDetail-${index}`);
+  const chevron=document.getElementById(`diaryChevron-${index}`);
+  if(!detail) return;
+  const willOpen=detail.hidden;
+  detail.hidden=!willOpen;
+  if(chevron) chevron.textContent=willOpen?'⌃':'⌄';
+  if(willOpen) loadStoredPhotos(`#diaryDetail-${index} img[data-photo-id]`,'photoId');
 }
 
 async function deleteDiaryEntry(index){
@@ -1714,7 +1851,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.19',
+      appVersion:'1.20',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
