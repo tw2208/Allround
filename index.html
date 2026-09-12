@@ -260,6 +260,69 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .schletter-cat{font-size:12px;color:var(--muted);margin-top:3px}
 @media(max-width:560px){.schletter-row{grid-template-columns:1fr;gap:3px}}
 
+
+.schletter-row{
+  grid-template-columns:150px minmax(0,1fr) 92px;
+}
+.schletter-qty-wrap{display:flex;flex-direction:column;gap:4px}
+.schletter-qty-label{font-size:11px;color:var(--blue2);font-weight:800}
+.schletter-qty{padding:9px 8px;text-align:center}
+.schletter-selected{background:#0a2943}
+.schletter-summary-row{
+  display:grid;
+  grid-template-columns:90px 150px minmax(0,1fr);
+  gap:10px;
+  padding:9px 0;
+  border-bottom:1px solid var(--line);
+}
+.schletter-summary-row:last-child{border-bottom:0}
+.schletter-summary-qty{font-weight:900;color:var(--green)}
+@media(max-width:560px){
+  .schletter-row{grid-template-columns:1fr 84px;gap:6px 10px}
+  .schletter-number{grid-column:1}
+  .schletter-namebox{grid-column:1}
+  .schletter-qty-wrap{grid-column:2;grid-row:1/span 2}
+  .schletter-summary-row{grid-template-columns:60px 1fr}
+  .schletter-summary-row .sum-name{grid-column:1/-1}
+}
+
+
+.solar-live-card{overflow:hidden}
+.solar-live-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin-top:14px;
+}
+.solar-metric{
+  background:#0a2943;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:11px;
+  min-width:0;
+}
+.solar-metric span{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}
+.solar-metric strong{display:block;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.solar-foot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:12px;
+  color:var(--muted);
+  font-size:12px;
+}
+.solar-refresh{
+  width:38px;height:38px;border:1px solid var(--line);border-radius:12px;
+  background:#173a5c;color:var(--blue2);font-size:23px;line-height:1;
+}
+.solar-online{color:var(--green)!important}
+.solar-error{color:#ff9c9c!important}
+@media(max-width:620px){
+  .solar-live-grid{grid-template-columns:1fr 1fr}
+  .solar-foot{align-items:flex-start;flex-direction:column}
+}
+
 </style>
 </head>
 <body>
@@ -268,6 +331,40 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="hero">Guten Morgen Thomas</div><div class="muted">Alles für deine Baustellen an einem Ort.</div><div class="rule"></div><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
+<div class="card solar-live-card">
+  <div class="item">
+    <span class="emoji">☀️</span>
+    <div class="grow">
+      <b>Meine Solaranlage live</b>
+      <div class="muted" id="solarLiveStatus">EVCC wird verbunden</div>
+    </div>
+    <button class="solar-refresh" type="button" onclick="refreshEvcc(true)" title="Aktualisieren">↻</button>
+  </div>
+
+  <div class="solar-live-grid">
+    <div class="solar-metric">
+      <span>PV-Leistung</span>
+      <strong id="solarPvPower">—</strong>
+    </div>
+    <div class="solar-metric">
+      <span>Hausverbrauch</span>
+      <strong id="solarLoadPower">—</strong>
+    </div>
+    <div class="solar-metric">
+      <span>Netz</span>
+      <strong id="solarGridPower">—</strong>
+    </div>
+    <div class="solar-metric">
+      <span>Batterie</span>
+      <strong id="solarBatterySoc">—</strong>
+    </div>
+  </div>
+
+  <div class="solar-foot">
+    <span id="solarLiveUpdated">Keine Live-Daten</span>
+    <button class="btn btn2" type="button" onclick="show('more');setTimeout(()=>document.getElementById('solarWebSettings')?.scrollIntoView({behavior:'smooth'}),100)">EVCC verbinden</button>
+  </div>
+</div>
 <div class="grid">
 <div class="tile" onclick="show('diary')"><span class="emoji">📝</span><b>Bautagebuch</b><small>Arbeitszeit, Pause, Notiz und Material</small><span class="arr">›</span></div>
 <div class="tile" onclick="show('pv')"><span class="emoji">☀️</span><b>PV-Anlagen</b><small>Projekte und Anlagendaten</small><span class="arr">›</span></div>
@@ -393,7 +490,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
       <span class="emoji">🔩</span>
       <div class="grow">
         <b>Schletter PV-Materialkatalog 2026</b>
-        <div class="muted">Artikel und Artikelnummern aus dem Schletter Produktkatalog Dach 2026.</div>
+        <div class="muted">Vollständiger Katalog mit Artikelnummer, Bezeichnung und Mengenauswahl.</div>
       </div>
       <span class="pill" id="schletterCount"></span>
     </div>
@@ -405,8 +502,20 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
     <select id="schletterCategory" onchange="renderSchletterCatalog()">
       <option value="">Alle Kategorien</option>
     </select>
+
+    <div class="actions">
+      <button class="btn btn2" type="button" onclick="resetSchletterFilters()">Alle Artikel anzeigen</button>
+      <button class="btn" type="button" onclick="exportSchletterMaterialList()">📄 Materialliste für Pages exportieren</button>
+      <button class="btn btn2" type="button" onclick="clearSchletterQuantities()">Mengen leeren</button>
+    </div>
+
+    <div class="hours" style="margin-top:12px;">
+      <span class="muted">Ausgewählte Positionen</span>
+      <b class="green" id="schletterSelectedCount">0</b>
+    </div>
   </div>
 
+  <div id="schletterSelectionPreview"></div>
   <div id="schletterCatalog"></div>
 </section>
 
@@ -416,7 +525,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.11</div>
+    <div class="blue" style="margin-top:6px;">Version 1.14</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -436,6 +545,38 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
       <button class="btn btn2" type="button" onclick="chooseBackupFile()">⬇️ Backup-Datei auswählen</button>
       <input id="backupFileInput" type="file" accept=".awbackup,.json,application/json" style="display:none" onchange="handleBackupFile(event)">
       <div class="backup-status" id="backupStatus"></div>
+    </div>
+  </div>
+
+  <div class="card" id="solarWebSettings">
+    <div class="item">
+      <span class="emoji">🔗</span>
+      <div class="grow">
+        <b>EVCC Live-Verbindung</b>
+        <div class="muted">Daten direkt vom EVCC-Server</div>
+      </div>
+    </div>
+
+    <label>EVCC-Server</label>
+    <input id="evccServerUrl" type="url" autocomplete="off" autocapitalize="off"
+           value="https://cool-equal-drop.evcc.cloud/"
+           placeholder="https://dein-server.evcc.cloud/">
+
+    <label>Aktualisierung</label>
+    <select id="solarRefreshSeconds">
+      <option value="15">alle 15 Sekunden</option>
+      <option value="30" selected>alle 30 Sekunden</option>
+      <option value="60">jede Minute</option>
+      <option value="300">alle 5 Minuten</option>
+    </select>
+
+    <div class="actions">
+      <button class="btn" type="button" onclick="saveEvccSettings()">Verbindung speichern & testen</button>
+      <button class="btn btn2" type="button" onclick="clearEvccSettings()">Verbindung entfernen</button>
+    </div>
+
+    <div class="muted" style="margin-top:10px;line-height:1.45;">
+      Verwendet den EVCC-Endpunkt <b>/api/state</b>. Die Serveradresse wird nur auf diesem Gerät gespeichert.
     </div>
   </div>
 </section>
@@ -1128,7 +1269,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.11',
+      appVersion:'1.14',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -1487,24 +1628,413 @@ function initSchletterCatalog(){
 function renderSchletterCatalog(){
   const out=document.getElementById('schletterCatalog');
   if(!out) return;
+
   const q=(document.getElementById('schletterSearch')?.value||'').trim().toLowerCase();
   const cat=document.getElementById('schletterCategory')?.value||'';
+  const quantities=getSchletterQuantities();
+
   const rows=SCHLETTER_ARTICLES.filter(a=>
     (!cat||a.category===cat) &&
     (!q||a.number.toLowerCase().includes(q)||a.name.toLowerCase().includes(q))
-  ).sort((a,b)=>a.name.localeCompare(b.name,'de',{sensitivity:'base'}));
+  ).sort((a,b)=>{
+    const byCat=a.category.localeCompare(b.category,'de',{sensitivity:'base'});
+    return byCat || a.name.localeCompare(b.name,'de',{sensitivity:'base'}) || a.number.localeCompare(b.number);
+  });
+
   const count=document.getElementById('schletterCount');
   if(count) count.textContent=`${rows.length} / ${SCHLETTER_ARTICLES.length}`;
+
   if(!rows.length){
     out.innerHTML='<div class="card"><div class="muted">Keine passenden Schletter-Artikel gefunden.</div></div>';
+    renderSchletterSelectionPreview();
     return;
   }
-  out.innerHTML='<div class="card">'+rows.map(a=>`
-    <div class="schletter-row">
-      <div class="schletter-number">${a.number}</div>
-      <div><div class="schletter-name">${a.name}</div><div class="schletter-cat">${a.category}</div></div>
-    </div>`).join('')+'</div>';
+
+  let lastCategory='';
+  let html='';
+  for(const a of rows){
+    if(a.category!==lastCategory){
+      if(lastCategory) html+='</div>';
+      lastCategory=a.category;
+      html+=`<div class="card"><div class="hero" style="font-size:19px;">${escapeHtml(a.category)}</div><div class="rule"></div>`;
+    }
+    const qty=Number(quantities[a.number]||0);
+    html+=`
+      <div class="schletter-row ${qty>0?'schletter-selected':''}">
+        <div class="schletter-number">${escapeHtml(a.number)}</div>
+        <div class="schletter-namebox">
+          <div class="schletter-name">${escapeHtml(a.name)}</div>
+          <div class="schletter-cat">${escapeHtml(a.category)}</div>
+        </div>
+        <div class="schletter-qty-wrap">
+          <div class="schletter-qty-label">Anzahl</div>
+          <input class="schletter-qty" type="number" min="0" step="1" inputmode="numeric"
+                 value="${qty||''}" placeholder="0"
+                 onchange="setSchletterQuantity('${escapeHtml(a.number)}',this.value)"
+                 oninput="setSchletterQuantity('${escapeHtml(a.number)}',this.value,true)">
+        </div>
+      </div>`;
+  }
+  if(lastCategory) html+='</div>';
+  out.innerHTML=html;
+  renderSchletterSelectionPreview();
 }
+
+
+const SCHLETTER_QTY_KEY='allround_weber_schletter_qty_v1';
+
+function escapeHtml(value){
+  return String(value??'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function getSchletterQuantities(){
+  try{
+    const data=JSON.parse(localStorage.getItem(SCHLETTER_QTY_KEY)||'{}');
+    return data && typeof data==='object' ? data : {};
+  }catch(e){
+    return {};
+  }
+}
+
+function setSchletterQuantity(number,value,quiet){
+  const quantities=getSchletterQuantities();
+  const qty=Math.max(0,Math.floor(Number(value)||0));
+  if(qty>0) quantities[number]=qty;
+  else delete quantities[number];
+  localStorage.setItem(SCHLETTER_QTY_KEY,JSON.stringify(quantities));
+  renderSchletterSelectionPreview();
+  if(!quiet) renderSchletterCatalog();
+}
+
+function getSelectedSchletterArticles(){
+  const quantities=getSchletterQuantities();
+  return SCHLETTER_ARTICLES
+    .filter(a=>Number(quantities[a.number]||0)>0)
+    .map(a=>({...a,qty:Number(quantities[a.number])}))
+    .sort((a,b)=>a.category.localeCompare(b.category,'de',{sensitivity:'base'}) ||
+                  a.name.localeCompare(b.name,'de',{sensitivity:'base'}));
+}
+
+function renderSchletterSelectionPreview(){
+  const selected=getSelectedSchletterArticles();
+  const count=document.getElementById('schletterSelectedCount');
+  if(count) count.textContent=selected.length;
+
+  const preview=document.getElementById('schletterSelectionPreview');
+  if(!preview) return;
+
+  if(!selected.length){
+    preview.innerHTML='';
+    return;
+  }
+
+  preview.innerHTML=`
+    <div class="card">
+      <div class="item">
+        <span class="emoji">📋</span>
+        <div class="grow">
+          <b>Materialliste</b>
+          <div class="muted">${selected.length} ausgewählte Position${selected.length===1?'':'en'}</div>
+        </div>
+      </div>
+      <div class="rule"></div>
+      ${selected.map(a=>`
+        <div class="schletter-summary-row">
+          <div class="schletter-summary-qty">${a.qty} ×</div>
+          <div class="schletter-number">${escapeHtml(a.number)}</div>
+          <div class="sum-name">${escapeHtml(a.name)}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function resetSchletterFilters(){
+  const q=document.getElementById('schletterSearch');
+  const c=document.getElementById('schletterCategory');
+  if(q) q.value='';
+  if(c) c.value='';
+  renderSchletterCatalog();
+}
+
+function clearSchletterQuantities(){
+  const selected=getSelectedSchletterArticles();
+  if(!selected.length){
+    toast('Keine Mengen eingetragen');
+    return;
+  }
+  if(!window.confirm('Alle eingetragenen Materialmengen löschen?')) return;
+  localStorage.removeItem(SCHLETTER_QTY_KEY);
+  renderSchletterCatalog();
+  toast('Materialmengen gelöscht');
+}
+
+function rtfEscape(value){
+  return String(value??'')
+    .replace(/\\/g,'\\\\')
+    .replace(/{/g,'\\{')
+    .replace(/}/g,'\\}')
+    .replace(/\n/g,'\\line ');
+}
+
+function toRtfUnicode(value){
+  let out='';
+  for(const ch of rtfEscape(value)){
+    const code=ch.charCodeAt(0);
+    if(code>127){
+      const signed=code>32767?code-65536:code;
+      out+=`\\u${signed}?`;
+    }else{
+      out+=ch;
+    }
+  }
+  return out;
+}
+
+async function exportSchletterMaterialList(){
+  const selected=getSelectedSchletterArticles();
+  if(!selected.length){
+    toast('Bitte zuerst Mengen bei Artikeln eintragen');
+    return;
+  }
+
+  const now=new Date();
+  const date=now.toLocaleDateString('de-DE');
+  let rtf='{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Arial;}}\\paperw11906\\paperh16838\\margl1134\\margr1134\\margt1134\\margb1134';
+  rtf+='\\fs32\\b '+toRtfUnicode('Allround Weber – Schletter Materialliste')+'\\b0\\fs22\\line ';
+  rtf+=toRtfUnicode('Erstellt am '+date)+'\\line\\line ';
+  rtf+='\\trowd\\trgaph80\\cellx1200\\cellx3600\\cellx10000';
+  rtf+='\\b '+toRtfUnicode('Anzahl')+'\\cell '+toRtfUnicode('Artikelnummer')+'\\cell '+toRtfUnicode('Bezeichnung')+'\\cell\\b0\\row ';
+
+  let currentCategory='';
+  for(const a of selected){
+    if(a.category!==currentCategory){
+      currentCategory=a.category;
+      rtf+='\\pard\\sb180\\sa80\\b '+toRtfUnicode(currentCategory)+'\\b0\\par ';
+    }
+    rtf+='\\trowd\\trgaph80\\cellx1200\\cellx3600\\cellx10000';
+    rtf+=toRtfUnicode(String(a.qty))+'\\cell '+toRtfUnicode(a.number)+'\\cell '+toRtfUnicode(a.name)+'\\cell\\row ';
+  }
+  rtf+='\\pard\\sa120\\line '+toRtfUnicode('Positionen: '+selected.length)+'\\par }';
+
+  const filename=`Allround-Weber_Schletter-Materialliste_${now.toISOString().slice(0,10)}.rtf`;
+  const file=new File([rtf],filename,{type:'application/rtf'});
+
+  try{
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({
+        files:[file],
+        title:'Schletter Materialliste',
+        text:'Materialliste aus Allround Weber'
+      });
+      toast('Materialliste bereit');
+      return;
+    }
+  }catch(err){
+    if(err && err.name==='AbortError') return;
+  }
+
+  const url=URL.createObjectURL(file);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  toast('Materialliste exportiert');
+}
+
+
+
+const EVCC_KEY='allround_weber_evcc_v1';
+let evccTimer=null;
+
+function getEvccSettings(){
+  try{
+    const s=JSON.parse(localStorage.getItem(EVCC_KEY)||'{}');
+    return s&&typeof s==='object'?s:{};
+  }catch(e){return {};}
+}
+
+function loadEvccSettingsIntoForm(){
+  const s=getEvccSettings();
+  const url=document.getElementById('evccServerUrl');
+  const sec=document.getElementById('solarRefreshSeconds');
+  if(url) url.value=s.serverUrl||'https://cool-equal-drop.evcc.cloud/';
+  if(sec) sec.value=String(s.refreshSeconds||30);
+}
+
+function normalizeEvccBaseUrl(value){
+  let url=String(value||'').trim();
+  if(!url) return '';
+  if(!/^https?:\/\//i.test(url)) url='https://'+url;
+  if(!url.endsWith('/')) url+='/';
+  return url;
+}
+
+function saveEvccSettings(){
+  const settings={
+    serverUrl:normalizeEvccBaseUrl(document.getElementById('evccServerUrl')?.value||''),
+    refreshSeconds:Math.max(15,Number(document.getElementById('solarRefreshSeconds')?.value||30))
+  };
+  if(!settings.serverUrl){
+    toast('Bitte EVCC-Serveradresse eintragen');
+    return;
+  }
+  localStorage.setItem(EVCC_KEY,JSON.stringify(settings));
+  startEvccAutoRefresh();
+  refreshEvcc(true);
+  toast('EVCC-Verbindung gespeichert');
+}
+
+function clearEvccSettings(){
+  if(!window.confirm('EVCC-Verbindung auf diesem Gerät entfernen?')) return;
+  localStorage.removeItem(EVCC_KEY);
+  if(evccTimer){clearInterval(evccTimer);evccTimer=null;}
+  loadEvccSettingsIntoForm();
+  setEvccLiveEmpty('EVCC nicht verbunden');
+  toast('EVCC-Verbindung entfernt');
+}
+
+function setEvccLiveEmpty(message){
+  const status=document.getElementById('solarLiveStatus');
+  if(status){
+    status.textContent=message||'Keine Live-Daten';
+    status.classList.remove('solar-online','solar-error');
+  }
+  ['solarPvPower','solarLoadPower','solarGridPower','solarBatterySoc'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent='—';
+  });
+  const u=document.getElementById('solarLiveUpdated');
+  if(u) u.textContent='Keine Live-Daten';
+}
+
+function evccGet(obj, paths){
+  for(const path of paths){
+    const parts=path.split('.');
+    let cur=obj;
+    let ok=true;
+    for(const part of parts){
+      if(cur==null || !(part in cur)){ok=false;break;}
+      cur=cur[part];
+    }
+    if(ok && cur!==null && cur!==undefined) return cur;
+  }
+  return null;
+}
+
+function formatEvccPower(value){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return '—';
+  if(Math.abs(n)>=1000) return `${(n/1000).toLocaleString('de-DE',{maximumFractionDigits:2})} kW`;
+  return `${Math.round(n).toLocaleString('de-DE')} W`;
+}
+
+function formatEvccSoc(value){
+  const n=Number(value);
+  if(!Number.isFinite(n)) return '—';
+  return `${Math.round(n).toLocaleString('de-DE')} %`;
+}
+
+async function refreshEvcc(manual=false){
+  const s=getEvccSettings();
+  const status=document.getElementById('solarLiveStatus');
+  const serverUrl=normalizeEvccBaseUrl(s.serverUrl||'https://cool-equal-drop.evcc.cloud/');
+  if(!serverUrl){
+    setEvccLiveEmpty('EVCC nicht verbunden');
+    return;
+  }
+
+  if(status){
+    status.textContent='EVCC-Daten werden geladen …';
+    status.classList.remove('solar-online','solar-error');
+  }
+
+  try{
+    const response=await fetch(serverUrl+'api/state',{
+      method:'GET',
+      headers:{'Accept':'application/json'},
+      cache:'no-store',
+      credentials:'omit'
+    });
+    if(!response.ok) throw new Error(`EVCC HTTP ${response.status}`);
+
+    const payload=await response.json();
+    const data=payload?.result ?? payload;
+
+    const pvPower=evccGet(data,[
+      'pvPower','pv.power','site.pvPower','meters.pv.power'
+    ]);
+    const homePower=evccGet(data,[
+      'homePower','home.power','site.homePower','loadPower'
+    ]);
+    const gridPower=evccGet(data,[
+      'gridPower','grid.power','gridMeter.power','site.gridPower'
+    ]);
+    const batterySoc=evccGet(data,[
+      'batterySoc','battery.soc','batteryMeter.soc','site.batterySoc'
+    ]);
+
+    const pvEl=document.getElementById('solarPvPower');
+    const loadEl=document.getElementById('solarLoadPower');
+    const gridEl=document.getElementById('solarGridPower');
+    const socEl=document.getElementById('solarBatterySoc');
+
+    if(pvEl) pvEl.textContent=formatEvccPower(pvPower);
+    if(loadEl) loadEl.textContent=formatEvccPower(homePower);
+    if(gridEl) gridEl.textContent=formatEvccPower(gridPower);
+    if(socEl) socEl.textContent=formatEvccSoc(batterySoc);
+
+    if(status){
+      status.textContent='EVCC online';
+      status.classList.add('solar-online');
+      status.classList.remove('solar-error');
+    }
+
+    const updated=document.getElementById('solarLiveUpdated');
+    if(updated){
+      updated.textContent=`Aktualisiert: ${new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`;
+    }
+  }catch(err){
+    console.error('EVCC',err);
+    if(status){
+      status.textContent='EVCC-Verbindung fehlgeschlagen';
+      status.classList.remove('solar-online');
+      status.classList.add('solar-error');
+    }
+    const updated=document.getElementById('solarLiveUpdated');
+    if(updated) updated.textContent=manual?'Serveradresse bzw. Zugriff prüfen':'Letzte Aktualisierung fehlgeschlagen';
+    if(manual) toast('EVCC konnte nicht geladen werden');
+  }
+}
+
+function startEvccAutoRefresh(){
+  if(evccTimer) clearInterval(evccTimer);
+  const s=getEvccSettings();
+  if(!s.serverUrl){
+    localStorage.setItem(EVCC_KEY,JSON.stringify({
+      serverUrl:'https://cool-equal-drop.evcc.cloud/',
+      refreshSeconds:30
+    }));
+  }
+  const current=getEvccSettings();
+  refreshEvcc(false);
+  evccTimer=setInterval(()=>refreshEvcc(false),Math.max(15,Number(current.refreshSeconds||30))*1000);
+}
+
+window.addEventListener('focus',()=>refreshEvcc(false));
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden) refreshEvcc(false);
+});
+window.addEventListener('load',()=>{
+  loadEvccSettingsIntoForm();
+  startEvccAutoRefresh();
+});
 
 </script>
 </body>
