@@ -437,6 +437,14 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
   .diary-date-nav{grid-template-columns:1fr}
 }
 
+
+/* Version 1.19: kompaktere, dezentere Buttons */
+.btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
+.btn2{min-height:36px;padding:7px 10px}
+.actions{gap:7px}
+.project-tab{min-height:34px;padding:7px 6px;border-radius:10px;font-size:11px;font-weight:700}
+.diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
+
 </style>
 </head>
 <body>
@@ -445,40 +453,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 <main>
 <section id="home" class="screen active">
 <div class="card"><div class="hero">Guten Morgen Thomas</div><div class="muted">Alles für deine Baustellen an einem Ort.</div><div class="rule"></div><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
-<div class="card solar-live-card">
-  <div class="item">
-    <span class="emoji">☀️</span>
-    <div class="grow">
-      <b>Meine Solaranlage live</b>
-      <div class="muted" id="solarLiveStatus">EVCC wird verbunden</div>
-    </div>
-    <button class="solar-refresh" type="button" onclick="refreshEvcc(true)" title="Aktualisieren">↻</button>
-  </div>
 
-  <div class="solar-live-grid">
-    <div class="solar-metric">
-      <span>PV-Leistung</span>
-      <strong id="solarPvPower">—</strong>
-    </div>
-    <div class="solar-metric">
-      <span>Hausverbrauch</span>
-      <strong id="solarLoadPower">—</strong>
-    </div>
-    <div class="solar-metric">
-      <span>Netz</span>
-      <strong id="solarGridPower">—</strong>
-    </div>
-    <div class="solar-metric">
-      <span>Batterie</span>
-      <strong id="solarBatterySoc">—</strong>
-    </div>
-  </div>
-
-  <div class="solar-foot">
-    <span id="solarLiveUpdated">Keine Live-Daten</span>
-    <button class="btn btn2" type="button" onclick="show('more');setTimeout(()=>document.getElementById('solarWebSettings')?.scrollIntoView({behavior:'smooth'}),100)">EVCC verbinden</button>
-  </div>
-</div>
 <div class="grid">
 <div class="tile" onclick="show('diary')"><span class="emoji">📝</span><b>Bautagebuch</b><small>Arbeitszeit, Pause, Notiz und Material</small><span class="arr">›</span></div>
 <div class="tile" onclick="show('pv')"><span class="emoji">☀️</span><b>PV-Anlagen</b><small>Projekte und Anlagendaten</small><span class="arr">›</span></div>
@@ -749,7 +724,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.18</div>
+    <div class="blue" style="margin-top:6px;">Version 1.19</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -772,37 +747,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
     </div>
   </div>
 
-  <div class="card" id="solarWebSettings">
-    <div class="item">
-      <span class="emoji">🔗</span>
-      <div class="grow">
-        <b>EVCC Live-Verbindung</b>
-        <div class="muted">Daten direkt vom EVCC-Server</div>
-      </div>
-    </div>
-
-    <label>EVCC-Server</label>
-    <input id="evccServerUrl" type="url" autocomplete="off" autocapitalize="off"
-           value="https://cool-equal-drop.evcc.cloud/"
-           placeholder="https://dein-server.evcc.cloud/">
-
-    <label>Aktualisierung</label>
-    <select id="solarRefreshSeconds">
-      <option value="15">alle 15 Sekunden</option>
-      <option value="30" selected>alle 30 Sekunden</option>
-      <option value="60">jede Minute</option>
-      <option value="300">alle 5 Minuten</option>
-    </select>
-
-    <div class="actions">
-      <button class="btn" type="button" onclick="saveEvccSettings()">Verbindung speichern & testen</button>
-      <button class="btn btn2" type="button" onclick="clearEvccSettings()">Verbindung entfernen</button>
-    </div>
-
-    <div class="muted" style="margin-top:10px;line-height:1.45;">
-      Verwendet den EVCC-Endpunkt <b>/api/state</b>. Die Serveradresse wird nur auf diesem Gerät gespeichert.
-    </div>
-  </div>
+  
 </section>
 
 </main>
@@ -1769,7 +1714,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.18',
+      appVersion:'1.19',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -2386,7 +2331,6 @@ function saveEvccSettings(){
     return;
   }
   localStorage.setItem(EVCC_KEY,JSON.stringify(settings));
-  startEvccAutoRefresh();
   refreshEvcc(true);
   toast('EVCC-Verbindung gespeichert');
 }
@@ -2395,7 +2339,6 @@ function clearEvccSettings(){
   if(!window.confirm('EVCC-Verbindung auf diesem Gerät entfernen?')) return;
   localStorage.removeItem(EVCC_KEY);
   if(evccTimer){clearInterval(evccTimer);evccTimer=null;}
-  loadEvccSettingsIntoForm();
   setEvccLiveEmpty('EVCC nicht verbunden');
   toast('EVCC-Verbindung entfernt');
 }
@@ -2532,8 +2475,6 @@ document.addEventListener('visibilitychange',()=>{
   if(!document.hidden) refreshEvcc(false);
 });
 window.addEventListener('load',()=>{
-  loadEvccSettingsIntoForm();
-  startEvccAutoRefresh();
   renderProjectTab();
   selectDiaryDate(diaryTodayISO);
 });
