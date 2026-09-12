@@ -143,6 +143,11 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
   font-size:16px;
 }
 
+
+.backup-box{background:#0a2943;border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
+.backup-box h3{margin:0 0 6px;font-size:18px}
+.backup-box p{margin:0 0 10px;color:var(--muted);line-height:1.45}
+.backup-status{margin-top:10px;font-size:13px;color:var(--blue2);min-height:18px}
 </style>
 </head>
 <body>
@@ -257,9 +262,36 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 <div class="card item"><span class="emoji">🧰</span><div class="grow"><b>Montageschienen & Klemmen</b><div class="muted">Bestand vorhanden</div></div></div>
 </section>
 
-<section id="more" class="screen"><div class="head"><button class="back" onclick="show('home')">‹</button><h2>Mehr</h2></div>
-<div class="card"><b>Allround Weber PWA</b><div class="blue" style="margin-top:6px;">Version 1.7</div><div class="muted">Die Daten werden lokal auf diesem iPad gespeichert. Die App funktioniert nach dem ersten Laden auch offline.</div></div>
+
+<section id="more" class="screen">
+  <div class="head"><button class="back" onclick="show('home')">‹</button><h2>Mehr</h2></div>
+
+  <div class="card">
+    <b>Allround Weber PWA</b>
+    <div class="blue" style="margin-top:6px;">Version 1.8</div>
+    <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">AirDrop-Backup</h3>
+    <div class="muted">Übertrage Kunden, Bautagebuch und Baustellenfotos zwischen iPhone und iPad.</div>
+
+    <div class="backup-box">
+      <h3>Backup exportieren</h3>
+      <p>Erstellt eine einzelne Backup-Datei. Danach öffnet sich auf iPhone und iPad das Teilen-Menü – dort kannst du AirDrop auswählen.</p>
+      <button class="btn" type="button" onclick="exportBackup()">⬆️ Backup exportieren</button>
+    </div>
+
+    <div class="backup-box">
+      <h3>Backup importieren</h3>
+      <p>Wähle eine Allround-Weber-Backup-Datei aus. Vor dem Import werden die enthaltenen Daten angezeigt und du musst das Ersetzen ausdrücklich bestätigen.</p>
+      <button class="btn btn2" type="button" onclick="chooseBackupFile()">⬇️ Backup-Datei auswählen</button>
+      <input id="backupFileInput" type="file" accept=".awbackup,.json,application/json" style="display:none" onchange="handleBackupFile(event)">
+      <div class="backup-status" id="backupStatus"></div>
+    </div>
+  </div>
 </section>
+
 </main>
 </div>
 
@@ -814,6 +846,213 @@ async function renderCustomers(){
 
   document.getElementById('customerList').innerHTML=cards.join('');
   loadStoredPhotos('img[data-customer-photo-id]','customerPhotoId');
+}
+
+
+function setBackupStatus(message){
+  const el=document.getElementById('backupStatus');
+  if(el) el.textContent=message||'';
+}
+
+function blobToDataUrl(blob){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(reader.result);
+    reader.onerror=()=>reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+function dataUrlToBlob(dataUrl){
+  const parts=dataUrl.split(',');
+  if(parts.length<2) throw new Error('Ungültige Bilddaten');
+  const mimeMatch=parts[0].match(/data:(.*?);base64/);
+  const mime=mimeMatch?mimeMatch[1]:'application/octet-stream';
+  const binary=atob(parts[1]);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  return new Blob([bytes],{type:mime});
+}
+
+async function getAllStoredPhotos(){
+  const dbx=await openPhotoDB();
+  return new Promise((resolve,reject)=>{
+    const tx=dbx.transaction(PHOTO_STORE,'readonly');
+    const req=tx.objectStore(PHOTO_STORE).getAll();
+    req.onsuccess=()=>resolve(req.result||[]);
+    req.onerror=()=>reject(req.error);
+  });
+}
+
+async function replaceAllStoredPhotos(records){
+  const dbx=await openPhotoDB();
+  return new Promise((resolve,reject)=>{
+    const tx=dbx.transaction(PHOTO_STORE,'readwrite');
+    const store=tx.objectStore(PHOTO_STORE);
+    store.clear();
+    records.forEach(r=>store.put(r));
+    tx.oncomplete=()=>resolve();
+    tx.onerror=()=>reject(tx.error);
+  });
+}
+
+function makeBackupFileName(){
+  const d=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  return `Allround-Weber-Backup_${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}.awbackup`;
+}
+
+async function exportBackup(){
+  setBackupStatus('Backup wird erstellt …');
+  try{
+    const photos=await getAllStoredPhotos();
+    const exportPhotos=[];
+
+    for(const photo of photos){
+      if(!photo.blob) continue;
+      const dataUrl=await blobToDataUrl(photo.blob);
+      const copy={...photo};
+      delete copy.blob;
+      exportPhotos.push({...copy,dataUrl,mimeType:photo.blob.type||'image/jpeg'});
+    }
+
+    const backup={
+      format:'allround-weber-backup',
+      version:1,
+      appVersion:'1.8',
+      createdAt:new Date().toISOString(),
+      data:{
+        customers:Array.isArray(db.customers)?db.customers:[],
+        diary:Array.isArray(db.diary)?db.diary:[],
+        photos:exportPhotos
+      }
+    };
+
+    const fileName=makeBackupFileName();
+    const file=new File([JSON.stringify(backup)],fileName,{type:'application/json'});
+
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({
+        title:'Allround Weber Backup',
+        text:'Allround-Weber-Backup für AirDrop',
+        files:[file]
+      });
+      setBackupStatus('Backup bereitgestellt.');
+      toast('Backup erstellt');
+      return;
+    }
+
+    const url=URL.createObjectURL(file);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    setBackupStatus('Backup-Datei wurde gespeichert.');
+    toast('Backup erstellt');
+
+  }catch(error){
+    if(error && error.name==='AbortError'){
+      setBackupStatus('Teilen wurde abgebrochen.');
+      return;
+    }
+    console.error(error);
+    setBackupStatus('Backup konnte nicht erstellt werden.');
+    toast('Backup fehlgeschlagen');
+  }
+}
+
+function chooseBackupFile(){
+  const input=document.getElementById('backupFileInput');
+  input.value='';
+  input.click();
+}
+
+async function handleBackupFile(event){
+  const file=event.target.files&&event.target.files[0];
+  if(!file) return;
+
+  setBackupStatus('Backup wird geprüft …');
+
+  try{
+    const backup=JSON.parse(await file.text());
+
+    if(
+      !backup ||
+      backup.format!=='allround-weber-backup' ||
+      !backup.data ||
+      !Array.isArray(backup.data.customers) ||
+      !Array.isArray(backup.data.diary) ||
+      !Array.isArray(backup.data.photos)
+    ){
+      throw new Error('Ungültiges Backup');
+    }
+
+    const customerCount=backup.data.customers.length;
+    const diaryCount=backup.data.diary.length;
+    const photoCount=backup.data.photos.length;
+    const backupDate=backup.createdAt
+      ? new Date(backup.createdAt).toLocaleString('de-DE')
+      : 'unbekannt';
+
+    const ok=window.confirm(
+      `Backup importieren?\n\n`+
+      `Erstellt: ${backupDate}\n`+
+      `Kunden: ${customerCount}\n`+
+      `Tagebucheinträge: ${diaryCount}\n`+
+      `Fotos: ${photoCount}\n\n`+
+      `ACHTUNG: Die aktuell auf diesem Gerät gespeicherten Kunden, Tagebucheinträge und Fotos werden vollständig durch dieses Backup ersetzt.\n\n`+
+      `Möchtest du wirklich fortfahren?`
+    );
+
+    if(!ok){
+      setBackupStatus('Import abgebrochen. Es wurde nichts verändert.');
+      toast('Import abgebrochen');
+      return;
+    }
+
+    setBackupStatus('Backup wird importiert …');
+
+    const importedPhotos=[];
+    for(const photo of backup.data.photos){
+      if(!photo.id || !photo.dataUrl) continue;
+      importedPhotos.push({
+        id:photo.id,
+        blob:dataUrlToBlob(photo.dataUrl),
+        createdAt:photo.createdAt||new Date().toISOString(),
+        customerIndex:photo.customerIndex,
+        customerName:photo.customerName||'',
+        site:photo.site||'',
+        date:photo.date||''
+      });
+    }
+
+    await replaceAllStoredPhotos(importedPhotos);
+
+    db={
+      customers:backup.data.customers,
+      diary:backup.data.diary
+    };
+
+    saveDB();
+    resetCustomerForm();
+    removePendingPhoto();
+    refreshDiaryCustomerSelect();
+    await renderCustomers();
+    renderDiary();
+
+    setBackupStatus(`Import abgeschlossen: ${customerCount} Kunden, ${diaryCount} Tagebucheinträge, ${photoCount} Fotos.`);
+    toast('Backup importiert');
+
+  }catch(error){
+    console.error(error);
+    setBackupStatus('Die ausgewählte Datei ist kein gültiges Allround-Weber-Backup.');
+    toast('Import fehlgeschlagen');
+  }finally{
+    event.target.value='';
+  }
 }
 
 renderDiary();renderCustomers();calc();
