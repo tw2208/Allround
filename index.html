@@ -438,7 +438,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.35: kompaktere, dezentere Buttons */
+/* Version 1.36: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +446,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.35 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.36 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -514,7 +514,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
 
-/* Version 1.35 – schmale Kopfzeile und vollständige untere Navigation */
+/* Version 1.36 – schmale Kopfzeile und vollständige untere Navigation */
 header,.topbar,.header{
   min-height:42px!important;
   padding-top:5px!important;
@@ -556,7 +556,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-own-hours b{color:var(--green);font-size:14px}
 
 
-/* Version 1.35 – übersichtlicher Tagebucheintrag */
+/* Version 1.36 – übersichtlicher Tagebucheintrag */
 .diary-form-section{
   margin:10px 0;
   padding:11px;
@@ -577,7 +577,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .diary-form-section .hours{margin:8px 0}
 
 
-/* Version 1.35 – schnelle Baustellenerfassung */
+/* Version 1.36 – schnelle Baustellenerfassung */
 .new-project-tile{
   border:1px solid rgba(92,190,255,.65)!important;
   background:rgba(65,169,238,.10)!important;
@@ -616,7 +616,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:430px){.project-form-grid{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.35 – Kundenliste links sauber und lesbar */
+/* Version 1.36 – Kundenliste links sauber und lesbar */
 .customer-alpha-item{
   width:100%;
   display:block;
@@ -693,7 +693,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.35 – Suchfeld und Kundenliste sauber getrennt */
+/* Version 1.36 – Suchfeld und Kundenliste sauber getrennt */
 .customer-list-pane{
   display:flex!important;
   flex-direction:column;
@@ -723,7 +723,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.35 – tatsächliche Kunden-Seitenleiste korrigiert */
+/* Version 1.36 – tatsächliche Kunden-Seitenleiste korrigiert */
 .customer-sidebar{
   display:flex!important;
   flex-direction:column!important;
@@ -764,7 +764,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.35 – Kunden und Baustellen sauber getrennt */
+/* Version 1.36 – Kunden und Baustellen sauber getrennt */
 .project-customer-box{
   margin-bottom:12px;
   padding:11px;
@@ -796,7 +796,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.35 – Feldgrößen, Schriften und Tagebuch-Layout vereinheitlicht */
+/* Version 1.36 – Feldgrößen, Schriften und Tagebuch-Layout vereinheitlicht */
 :root{
   --control-h:40px;
   --control-radius:9px;
@@ -880,12 +880,12 @@ textarea{
 }
 
 
-/* Version 1.35 – zusätzliche Baustellenarten */
+/* Version 1.36 – zusätzliche Baustellenarten */
 .project-tabs{display:flex!important;flex-wrap:nowrap!important;gap:6px;overflow-x:auto!important;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
 .project-tabs::-webkit-scrollbar{display:none}
 .project-tab{flex:0 0 auto!important;white-space:nowrap;min-height:34px!important;padding:6px 9px!important;font-size:11px!important}
 
-/* Version 1.35 – eigene Baustellenarten */
+/* Version 1.36 – eigene Baustellenarten */
 .project-type-manage-actions{margin:0 0 9px}
 .project-type-manage-actions .btn{width:100%}
 .project-type-manager-heading{
@@ -927,6 +927,134 @@ textarea{
     grid-template-columns:minmax(0,1fr) auto;
   }
   .project-type-manager-row .diary-danger{grid-column:2}
+}
+
+
+/* Version 1.36 – PV-Materialliste in der Kundenakte */
+.pv-material-section-title{align-items:center}
+.pv-material-section-title>div:first-child{min-width:0}
+.pv-material-section-body{
+  margin-top:8px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.015);
+}
+.pv-material-legend{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin:7px 0 10px;
+  color:var(--muted);
+  font-size:10px;
+}
+#pvMaterialSaveStatus{color:var(--blue2);white-space:nowrap}
+.pv-mat-group{
+  overflow:hidden;
+  margin:10px 0 14px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:rgba(0,0,0,.10);
+}
+.pv-mat-group-title{
+  padding:8px 9px;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.055em;
+  color:var(--blue2);
+  background:rgba(31,157,255,.07);
+  border-bottom:1px solid var(--line);
+}
+.pv-mat-table-head,.pv-mat-row{
+  display:grid;
+  grid-template-columns:minmax(145px,1fr) 72px 42px 42px 42px;
+  gap:4px;
+  align-items:center;
+}
+.pv-mat-table-head{
+  padding:6px 7px;
+  font-size:9px;
+  font-weight:700;
+  color:var(--muted);
+  text-align:center;
+  border-bottom:1px solid var(--line);
+}
+.pv-mat-table-head span:first-child{text-align:left}
+.pv-mat-row{
+  min-height:48px;
+  padding:5px 7px;
+  border-bottom:1px solid rgba(255,255,255,.055);
+}
+.pv-mat-row:last-child{border-bottom:0}
+.pv-mat-name{min-width:0}
+.pv-mat-name b{
+  display:block;
+  font-size:11.5px;
+  line-height:1.2;
+  overflow-wrap:anywhere;
+}
+.pv-mat-name span{
+  display:block;
+  margin-top:2px;
+  font-size:9.5px;
+  color:var(--muted);
+}
+.pv-mat-qty{
+  height:34px!important;
+  min-height:34px!important;
+  padding:5px 6px!important;
+  text-align:center;
+  font-size:13px!important;
+}
+.pv-mat-check{
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  margin:0!important;
+  min-height:36px;
+  cursor:pointer;
+}
+.pv-mat-check input{
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+}
+.pv-mat-check span{
+  width:24px;
+  height:24px;
+  border:1.5px solid #4e6880;
+  border-radius:6px;
+  background:#081b2b;
+  position:relative;
+}
+.pv-mat-check input:checked+span{
+  background:var(--blue);
+  border-color:var(--blue);
+}
+.pv-mat-check input:checked+span:after{
+  content:'✓';
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-size:16px;
+  font-weight:900;
+}
+@media(max-width:680px){
+  .pv-material-section-body{
+    margin-left:-2px;
+    margin-right:-2px;
+    padding:7px;
+  }
+  .pv-mat-group{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .pv-mat-table-head,.pv-mat-row{
+    min-width:390px;
+    grid-template-columns:minmax(150px,1fr) 68px 42px 42px 42px;
+  }
+  .pv-mat-name b{font-size:11px}
+  .pv-material-legend{flex-direction:column;gap:2px}
 }
 
 </style>
@@ -1339,7 +1467,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.35</div>
+    <div class="blue" style="margin-top:6px;">Version 1.36</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1458,6 +1586,13 @@ function ensureDataModel(){
   if(changed) localStorage.setItem(DBKEY,JSON.stringify(db));
 }
 ensureDataModel();
+
+function ensureMaterialLists(){
+  if(!db.materialLists || typeof db.materialLists!=='object' || Array.isArray(db.materialLists)){
+    db.materialLists={};
+  }
+}
+ensureMaterialLists();
 
 function saveDB(){localStorage.setItem(DBKEY,JSON.stringify(db))}
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
@@ -2542,6 +2677,8 @@ function deleteCustomer(index) {
   }
 
   const deletedCustomerId=customer.id;
+  ensureMaterialLists();
+  delete db.materialLists[`customer:${deletedCustomerId}`];
   db.customers.splice(index, 1);
   (db.projects||[]).forEach(project=>{
     if(project.customerId===deletedCustomerId){
@@ -2782,6 +2919,8 @@ function deleteProject(projectId){
   if(!window.confirm(`Baustelle wirklich löschen?\n\n${project.name||'Baustelle'}\n\nDer Kunde bleibt erhalten.`)) return;
 
   db.projects=db.projects.filter(p=>p.id!==projectId);
+  ensureMaterialLists();
+  delete db.materialLists[`project:${projectId}`];
   saveDB();
   renderProjectTab();
   renderCustomers();
@@ -3030,6 +3169,205 @@ function openCustomerById(customerId){
   renderCustomers();
 }
 
+
+const PV_MATERIAL_GROUPS=[
+  {name:'PV-MODULE & MONTAGE',items:[
+    ['pv_module','PV-Module','Stk.'],
+    ['dachhaken','Dachhaken','Stk.'],
+    ['montageschienen','Montageschienen','m'],
+    ['schienenverbinder','Schienenverbinder','Stk.'],
+    ['mittelklemmen','Mittelklemmen','Stk.'],
+    ['endklemmen','Endklemmen','Stk.'],
+    ['schienen_endkappen','Schienen-Endkappen','Stk.'],
+    ['befestigungsschrauben','Befestigungsschrauben','Stk.']
+  ]},
+  {name:'DC-SEITE',items:[
+    ['solarkabel_rot','Solarkabel 6 mm² rot','m'],
+    ['solarkabel_schwarz','Solarkabel 6 mm² schwarz','m'],
+    ['pv_stecker','PV-Stecker','Paar'],
+    ['kabelclips','Kabelclips','Stk.'],
+    ['uv_kabelbinder','UV-Kabelbinder','Pack'],
+    ['schutz_wellrohr','Schutz-/Wellrohr','m'],
+    ['dachdurchfuehrung','Dachdurchführung','Stk.']
+  ]},
+  {name:'WECHSELRICHTER / SPEICHER',items:[
+    ['wechselrichter','Wechselrichter','Stk.'],
+    ['smart_meter','Smart Meter','Stk.'],
+    ['batteriespeicher','Batteriespeicher','Satz'],
+    ['batterie_verbindungskabel','Batterie-Verbindungskabel','Satz'],
+    ['daten_kommunikation','Daten-/Kommunikationsleitung','m']
+  ]},
+  {name:'AC-SEITE',items:[
+    ['ac_leitung','AC-Leitung','m'],
+    ['leitungsschutzschalter','Leitungsschutzschalter','Stk.'],
+    ['fi_rcd','FI/RCD','Stk.'],
+    ['ueberspannung_ac','Überspannungsschutz AC','Stk.'],
+    ['klein_zusatzverteiler','Klein-/Zusatzverteiler','Stk.']
+  ]},
+  {name:'POTENTIALAUSGLEICH',items:[
+    ['pa_leitung','Potentialausgleichsleitung','m'],
+    ['erdungs_pa_klemmen','Erdungs-/PA-Klemmen','Stk.'],
+    ['hes_pas','Anschlussmaterial HES/PAS','Satz']
+  ]},
+  {name:'INSTALLATIONSMATERIAL',items:[
+    ['installationsrohr','Installationsrohr','m'],
+    ['kabelkanal','Kabelkanal','m'],
+    ['rohrschellen_clips','Rohrschellen / Clips','Stk.'],
+    ['kabelverschraubungen','Kabelverschraubungen','Stk.'],
+    ['verbindungsklemmen','Verbindungsklemmen','Stk.'],
+    ['aderendhuelsen','Aderendhülsen','Satz']
+  ]},
+  {name:'BESCHRIFTUNG',items:[
+    ['string_beschriftung','String-Beschriftung','Satz'],
+    ['pv_warnschilder','PV-Warn-/Hinweisschilder','Satz'],
+    ['verteiler_beschriftung','Verteiler-/Sicherungsbeschriftung','Satz']
+  ]},
+  {name:'VERBRAUCHSMATERIAL',items:[
+    ['schrauben_duebel','Schrauben / Dübel','Satz'],
+    ['dichtmasse','Dichtmasse','Kart.'],
+    ['isolierband','Isolierband','Rolle'],
+    ['schrumpfschlauch','Schrumpfschlauch','Satz'],
+    ['kabelbinder','Kabelbinder','Pack']
+  ]},
+  {name:'WALLBOX',items:[
+    ['wallbox','Wallbox','Stk.'],
+    ['zuleitung_wallbox','Zuleitung Wallbox','m'],
+    ['datenleitung_wallbox','Datenleitung Wallbox','m'],
+    ['leitungsschutz_wallbox','Leitungsschutz Wallbox','Stk.'],
+    ['fi_rcd_wallbox','FI/RCD Wallbox','Stk.']
+  ]}
+];
+
+function materialTargetKey(customerId,projectId=''){
+  return projectId ? `project:${projectId}` : `customer:${customerId}`;
+}
+
+function emptyMaterialList(){
+  const items={};
+  PV_MATERIAL_GROUPS.forEach(group=>group.items.forEach(([id])=>{
+    items[id]={qty:'',ordered:false,loaded:false,installed:false};
+  }));
+  return {version:1,items,updatedAt:new Date().toISOString()};
+}
+
+function getMaterialList(targetKey){
+  ensureMaterialLists();
+  if(!db.materialLists[targetKey]){
+    db.materialLists[targetKey]=emptyMaterialList();
+  }
+  const list=db.materialLists[targetKey];
+  if(!list.items || typeof list.items!=='object') list.items={};
+  PV_MATERIAL_GROUPS.forEach(group=>group.items.forEach(([id])=>{
+    if(!list.items[id]) list.items[id]={qty:'',ordered:false,loaded:false,installed:false};
+  }));
+  return list;
+}
+
+function materialTargetOptions(customer){
+  const projects=(db.projects||[]).filter(p=>p.customerId===customer.id);
+  const pvProjects=projects.filter(p=>(p.type||'pv')==='pv');
+  return [
+    {key:materialTargetKey(customer.id,''),label:'Kunde allgemein'},
+    ...pvProjects.map(p=>({key:materialTargetKey(customer.id,p.id),label:p.name||'PV-Baustelle'}))
+  ];
+}
+
+function selectedMaterialTargetKey(customer){
+  const select=document.getElementById('pvMaterialTarget');
+  const options=materialTargetOptions(customer);
+  const wanted=select?.value||'';
+  return options.some(o=>o.key===wanted) ? wanted : (options.length===2?options[1].key:options[0].key);
+}
+
+function renderCustomerMaterialList(customer,targetKey=''){
+  const wrap=document.getElementById('pvMaterialListBody');
+  if(!wrap || !customer) return;
+
+  const options=materialTargetOptions(customer);
+  let key=targetKey || selectedMaterialTargetKey(customer);
+  if(!options.some(o=>o.key===key)) key=options.length===2?options[1].key:options[0].key;
+
+  const select=document.getElementById('pvMaterialTarget');
+  if(select){
+    select.innerHTML=options.map(o=>`<option value="${escapeHtml(o.key)}">${escapeHtml(o.label)}</option>`).join('');
+    select.value=key;
+  }
+
+  const list=getMaterialList(key);
+  wrap.dataset.targetKey=key;
+
+  wrap.innerHTML=PV_MATERIAL_GROUPS.map(group=>`
+    <div class="pv-mat-group">
+      <div class="pv-mat-group-title">${escapeHtml(group.name)}</div>
+      <div class="pv-mat-table-head">
+        <span>Material</span><span>Menge</span><span>Best.</span><span>Verl.</span><span>Verb.</span>
+      </div>
+      ${group.items.map(([id,name,unit])=>{
+        const row=list.items[id]||{};
+        return `
+          <div class="pv-mat-row">
+            <div class="pv-mat-name">
+              <b>${escapeHtml(name)}</b>
+              <span>${escapeHtml(unit)}</span>
+            </div>
+            <input class="pv-mat-qty" type="number" min="0" step="any" inputmode="decimal"
+              aria-label="Benötigte Menge ${escapeHtml(name)}"
+              value="${escapeHtml(row.qty??'')}"
+              oninput="saveMaterialField('${escapeHtml(key)}','${id}','qty',this.value)">
+            <label class="pv-mat-check" aria-label="${escapeHtml(name)} bestellt">
+              <input type="checkbox" ${row.ordered?'checked':''}
+                onchange="saveMaterialField('${escapeHtml(key)}','${id}','ordered',this.checked)"><span></span>
+            </label>
+            <label class="pv-mat-check" aria-label="${escapeHtml(name)} verladen">
+              <input type="checkbox" ${row.loaded?'checked':''}
+                onchange="saveMaterialField('${escapeHtml(key)}','${id}','loaded',this.checked)"><span></span>
+            </label>
+            <label class="pv-mat-check" aria-label="${escapeHtml(name)} verbaut">
+              <input type="checkbox" ${row.installed?'checked':''}
+                onchange="saveMaterialField('${escapeHtml(key)}','${id}','installed',this.checked)"><span></span>
+            </label>
+          </div>`;
+      }).join('')}
+    </div>
+  `).join('');
+}
+
+let materialSaveTimer=null;
+function saveMaterialField(targetKey,itemId,field,value){
+  const list=getMaterialList(targetKey);
+  const row=list.items[itemId]||(list.items[itemId]={qty:'',ordered:false,loaded:false,installed:false});
+  row[field]=field==='qty'?String(value??''):Boolean(value);
+  list.updatedAt=new Date().toISOString();
+
+  clearTimeout(materialSaveTimer);
+  materialSaveTimer=setTimeout(()=>{
+    saveDB();
+    const status=document.getElementById('pvMaterialSaveStatus');
+    if(status){
+      status.textContent='Gespeichert';
+      setTimeout(()=>{if(status.textContent==='Gespeichert')status.textContent='Automatisch gespeichert';},1200);
+    }
+  },180);
+}
+
+function changeCustomerMaterialTarget(){
+  const customer=db.customers[selectedCustomerIndex];
+  if(!customer)return;
+  renderCustomerMaterialList(customer,document.getElementById('pvMaterialTarget')?.value||'');
+}
+
+function toggleCustomerMaterialList(){
+  const body=document.getElementById('pvMaterialSectionBody');
+  const btn=document.getElementById('pvMaterialToggle');
+  if(!body)return;
+  body.hidden=!body.hidden;
+  if(btn)btn.textContent=body.hidden?'Öffnen':'Schließen';
+  if(!body.hidden){
+    const customer=db.customers[selectedCustomerIndex];
+    if(customer)renderCustomerMaterialList(customer);
+  }
+}
+
 async function renderCustomers(){
 
   refreshDiaryCustomerSelect();
@@ -3202,6 +3540,23 @@ async function renderCustomers(){
         : '<div class="muted">Noch keine Baustelle für diesen Kunden angelegt.</div>';
     })()}
 
+    <div class="customer-section-title pv-material-section-title">
+      <div>
+        <b>PV-Materialliste</b>
+        <div class="muted">Bestell- und Baustellencheckliste</div>
+      </div>
+      <button class="btn btn2" id="pvMaterialToggle" type="button" onclick="toggleCustomerMaterialList()">Öffnen</button>
+    </div>
+    <div id="pvMaterialSectionBody" class="pv-material-section-body" hidden>
+      <label>Liste für</label>
+      <select id="pvMaterialTarget" onchange="changeCustomerMaterialTarget()"></select>
+      <div class="pv-material-legend">
+        <span>Benötigte Menge frei eintragen</span>
+        <span id="pvMaterialSaveStatus">Automatisch gespeichert</span>
+      </div>
+      <div id="pvMaterialListBody"></div>
+    </div>
+
     <div class="customer-section-title">
       <b>Baustellenfotos</b>
       <span class="muted">${photoIds.length} Foto${photoIds.length===1?'':'s'}</span>
@@ -3296,12 +3651,13 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.35',
+      appVersion:'1.36',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
         projects:Array.isArray(db.projects)?db.projects:[],
         customProjectTypes:Array.isArray(db.customProjectTypes)?db.customProjectTypes:[],
+        materialLists:(db.materialLists&&typeof db.materialLists==='object')?db.materialLists:{},
         diary:Array.isArray(db.diary)?db.diary:[],
         photos:exportPhotos
       }
@@ -3425,13 +3781,24 @@ async function buildMergePreview(backup){
     }
   }
 
+  const importedMaterialLists=(backup.data.materialLists&&typeof backup.data.materialLists==='object'&&!Array.isArray(backup.data.materialLists))
+    ? backup.data.materialLists : {};
+  ensureMaterialLists();
+  let newMaterialLists=0, existingMaterialLists=0;
+  Object.keys(importedMaterialLists).forEach(key=>{
+    if(Object.prototype.hasOwnProperty.call(db.materialLists,key)) existingMaterialLists++;
+    else newMaterialLists++;
+  });
+
   return {
     newCustomers,
     existingCustomers,
     newDiary,
     existingDiary,
     newPhotos,
-    existingPhotosCount
+    existingPhotosCount,
+    newMaterialLists,
+    existingMaterialLists
   };
 }
 
@@ -3454,6 +3821,21 @@ async function mergeBackupData(backup){
   importedProjects.forEach(project=>{
     if(project.id && existingProjectIds.has(project.id)) return;
     db.projects.push({...project,id:project.id||makeStableId('proj')});
+  });
+
+  // Materiallisten additiv zusammenführen: vorhandene lokale Listen werden niemals überschrieben.
+  ensureMaterialLists();
+  const importedMaterialLists=(backup.data.materialLists&&typeof backup.data.materialLists==='object'&&!Array.isArray(backup.data.materialLists))
+    ? backup.data.materialLists : {};
+  let addedMaterialLists=0;
+  let skippedMaterialLists=0;
+  Object.entries(importedMaterialLists).forEach(([key,list])=>{
+    if(Object.prototype.hasOwnProperty.call(db.materialLists,key)){
+      skippedMaterialLists++;
+      return;
+    }
+    db.materialLists[key]=list;
+    addedMaterialLists++;
   });
 
   const existingPhotos=await getAllStoredPhotos();
@@ -3579,7 +3961,9 @@ async function mergeBackupData(backup){
     addedDiary,
     skippedDiary,
     addedPhotos,
-    skippedPhotos
+    skippedPhotos,
+    addedMaterialLists,
+    skippedMaterialLists
   };
 }
 
