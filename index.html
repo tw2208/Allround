@@ -438,7 +438,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.31: kompaktere, dezentere Buttons */
+/* Version 1.32: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +446,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.31 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.32 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -514,7 +514,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
 
-/* Version 1.31 – schmale Kopfzeile und vollständige untere Navigation */
+/* Version 1.32 – schmale Kopfzeile und vollständige untere Navigation */
 header,.topbar,.header{
   min-height:42px!important;
   padding-top:5px!important;
@@ -556,7 +556,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-own-hours b{color:var(--green);font-size:14px}
 
 
-/* Version 1.31 – übersichtlicher Tagebucheintrag */
+/* Version 1.32 – übersichtlicher Tagebucheintrag */
 .diary-form-section{
   margin:10px 0;
   padding:11px;
@@ -577,7 +577,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .diary-form-section .hours{margin:8px 0}
 
 
-/* Version 1.31 – schnelle Baustellenerfassung */
+/* Version 1.32 – schnelle Baustellenerfassung */
 .new-project-tile{
   border:1px solid rgba(92,190,255,.65)!important;
   background:rgba(65,169,238,.10)!important;
@@ -616,7 +616,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:430px){.project-form-grid{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.31 – Kundenliste links sauber und lesbar */
+/* Version 1.32 – Kundenliste links sauber und lesbar */
 .customer-alpha-item{
   width:100%;
   display:block;
@@ -693,7 +693,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.31 – Suchfeld und Kundenliste sauber getrennt */
+/* Version 1.32 – Suchfeld und Kundenliste sauber getrennt */
 .customer-list-pane{
   display:flex!important;
   flex-direction:column;
@@ -723,7 +723,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.31 – tatsächliche Kunden-Seitenleiste korrigiert */
+/* Version 1.32 – tatsächliche Kunden-Seitenleiste korrigiert */
 .customer-sidebar{
   display:flex!important;
   flex-direction:column!important;
@@ -761,6 +761,38 @@ body.modal-open{overflow:hidden}
 }
 @media(max-width:680px){
   #customerList.customer-alpha-list{max-height:34vh!important}
+}
+
+
+/* Version 1.32 – Kunden und Baustellen sauber getrennt */
+.project-customer-box{
+  margin-bottom:12px;
+  padding:11px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.018);
+}
+.project-new-customer-btn{margin-top:8px!important;width:100%}
+.inline-project-customer{margin-top:8px}
+.project-form-grid .full{grid-column:1/-1}
+.customer-project-link{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  text-align:left;
+  margin:6px 0;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:rgba(255,255,255,.02);
+  color:var(--text);
+}
+.customer-project-link span{
+  flex:0 0 auto;
+  color:var(--blue2);
+  font-size:10px;
 }
 
 </style>
@@ -966,15 +998,6 @@ body.modal-open{overflow:hidden}
           <label>Notizen</label>
           <textarea id="custNotes" placeholder="z. B. bevorzugte Erreichbarkeit, Zugang zur Baustelle, Besonderheiten"></textarea>
         </div>
-        <div class="full">
-          <label>Art der Baustelle</label>
-          <select id="custProjectType">
-            <option value="pv">PV-Anlage</option>
-            <option value="fenster">Fensterreinigung</option>
-            <option value="renovierung">Renovierung</option>
-            <option value="sanierung">Sanierung</option>
-          </select>
-        </div>
       </div>
 
       <input type="hidden" id="custEditIndex" value="">
@@ -1022,15 +1045,54 @@ body.modal-open{overflow:hidden}
 </section>
 
 
+
 <div id="newProjectModal" class="project-modal" hidden>
   <div class="project-modal-backdrop" onclick="closeNewProjectForm()"></div>
   <div class="project-modal-sheet">
     <div class="project-modal-head">
       <div>
-        <b>Neue Baustelle</b>
-        <div class="muted">Baustellendaten erfassen</div>
+        <b id="projectModalTitle">Neue Baustelle</b>
+        <div class="muted" id="projectModalHint">Kunde auswählen und Baustellendaten erfassen</div>
       </div>
       <button class="diary-form-close" type="button" onclick="closeNewProjectForm()">✕</button>
+    </div>
+
+    <input type="hidden" id="projectEditId" value="">
+
+    <div class="project-customer-box">
+      <label>Kunde</label>
+      <select id="newProjectCustomer" onchange="projectCustomerChanged()"></select>
+      <button class="btn btn2 project-new-customer-btn" type="button" onclick="toggleInlineProjectCustomer()">＋ Neuen Kunden anlegen</button>
+
+      <div id="inlineProjectCustomer" class="inline-project-customer" hidden>
+        <div class="project-extra-title">Neuer Kunde</div>
+        <div class="project-form-grid">
+          <div class="full">
+            <label>Name / Firma</label>
+            <input id="projectCustName" type="text" placeholder="z. B. Max Mustermann">
+          </div>
+          <div class="full">
+            <label>Straße & Hausnummer</label>
+            <input id="projectCustStreet" type="text" placeholder="z. B. Hauptstraße 12">
+          </div>
+          <div>
+            <label>PLZ</label>
+            <input id="projectCustZip" inputmode="numeric" placeholder="01689">
+          </div>
+          <div>
+            <label>Ort</label>
+            <input id="projectCustPlace" type="text" placeholder="Niederau">
+          </div>
+          <div>
+            <label>Telefon</label>
+            <input id="projectCustPhone" type="tel" placeholder="0172 1234567">
+          </div>
+          <div>
+            <label>E-Mail</label>
+            <input id="projectCustEmail" type="email" placeholder="kunde@beispiel.de">
+          </div>
+        </div>
+      </div>
     </div>
 
     <label>Art der Baustelle</label>
@@ -1041,10 +1103,10 @@ body.modal-open{overflow:hidden}
       <option value="sanierung">Sanierung</option>
     </select>
 
-    <label>Name</label>
-    <input id="newProjectName" type="text" placeholder="Kunde / Baustellenname">
+    <label>Name der Baustelle</label>
+    <input id="newProjectName" type="text" placeholder="z. B. PV-Anlage Wohnhaus">
 
-    <label>Adresse</label>
+    <label>Adresse der Baustelle</label>
     <input id="newProjectAddress" type="text" placeholder="Straße, Hausnummer, PLZ, Ort">
 
     <label>Vorhaben</label>
@@ -1075,7 +1137,7 @@ body.modal-open{overflow:hidden}
     </div>
 
     <div class="actions" style="margin-top:14px;">
-      <button class="btn" type="button" onclick="saveNewProject()">Baustelle speichern</button>
+      <button class="btn" id="projectSaveBtn" type="button" onclick="saveNewProject()">Baustelle speichern</button>
       <button class="btn btn2" type="button" onclick="closeNewProjectForm()">Abbrechen</button>
     </div>
   </div>
@@ -1106,7 +1168,7 @@ body.modal-open{overflow:hidden}
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.31</div>
+    <div class="blue" style="margin-top:6px;">Version 1.32</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1164,8 +1226,68 @@ body.modal-open{overflow:hidden}
 
 <script>
 const DBKEY='allround_weber_pwa_v1';
-let db={diary:[],customers:[{name:'Dressler',place:'Oberottendorf'},{name:'Familie Müller',place:'Meißen'}]};
+let db={diary:[],customers:[{name:'Dressler',place:'Oberottendorf'},{name:'Familie Müller',place:'Meißen'}],projects:[]};
 try{const x=localStorage.getItem(DBKEY);if(x)db=JSON.parse(x)}catch(e){}
+
+function makeStableId(prefix='id'){
+  return prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
+}
+
+function ensureDataModel(){
+  if(!Array.isArray(db.customers)) db.customers=[];
+  if(!Array.isArray(db.diary)) db.diary=[];
+  const hadProjectsArray=Array.isArray(db.projects);
+  if(!hadProjectsArray) db.projects=[];
+
+  let changed=!hadProjectsArray;
+
+  db.customers.forEach(customer=>{
+    if(!customer.id){
+      customer.id=makeStableId('cust');
+      changed=true;
+    }
+    if(!Array.isArray(customer.photoIds)){
+      customer.photoIds=[];
+      changed=true;
+    }
+  });
+
+  // Einmalige Übernahme der bisherigen, kundenbasierten Baustellen in die neue Projektliste.
+  if(!localStorage.getItem('allround_weber_projects_migrated_v1')){
+    const existingProjectCustomers=db.customers.filter(c=>
+      c.projectType || c.projectPlan || c.projectAddress || c.inverter ||
+      c.storage || c.modules || c.roofType || c.windowArea
+    );
+
+    existingProjectCustomers.forEach(customer=>{
+      db.projects.push({
+        id:makeStableId('proj'),
+        customerId:customer.id,
+        customerName:customer.name||'',
+        type:customer.projectType||'pv',
+        name:customer.projectName || customer.name || 'Baustelle',
+        address:customer.projectAddress || [
+          customer.street||'',
+          [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
+        ].filter(Boolean).join(', '),
+        plan:customer.projectPlan || customer.notes || '',
+        inverter:customer.inverter||'',
+        storage:customer.storage||'',
+        modules:Number(customer.modules)||0,
+        roofType:customer.roofType||'',
+        windowArea:Number(customer.windowArea)||0,
+        createdAt:new Date().toISOString()
+      });
+    });
+
+    localStorage.setItem('allround_weber_projects_migrated_v1','1');
+    changed=true;
+  }
+
+  if(changed) localStorage.setItem(DBKEY,JSON.stringify(db));
+}
+ensureDataModel();
+
 function saveDB(){localStorage.setItem(DBKEY,JSON.stringify(db))}
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
 function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();window.scrollTo(0,0)}
@@ -2075,7 +2197,6 @@ function saveCustomer() {
   const phone = document.getElementById('custPhone').value.trim();
   const email = document.getElementById('custEmail').value.trim();
   const notes = document.getElementById('custNotes').value.trim();
-  const projectType = document.getElementById('custProjectType').value;
   const editIndex = document.getElementById('custEditIndex').value;
 
   if (!name) {
@@ -2085,7 +2206,7 @@ function saveCustomer() {
   }
 
   if (editIndex === '') {
-    const customer = {name,contact,street,zip,place,phone,email,notes,projectType,photoIds:[]};
+    const customer = {id:makeStableId('cust'),name,contact,street,zip,place,phone,email,notes,photoIds:[]};
     db.customers.push(customer);
     selectedCustomerIndex=db.customers.length-1;
     toast('Kunde gespeichert');
@@ -2094,7 +2215,7 @@ function saveCustomer() {
     const previous=db.customers[idx]||{};
     db.customers[idx]={
       ...previous,
-      name,contact,street,zip,place,phone,email,notes,projectType,
+      name,contact,street,zip,place,phone,email,notes,
       photoIds:Array.isArray(previous.photoIds)?previous.photoIds:[]
     };
     selectedCustomerIndex=idx;
@@ -2122,7 +2243,6 @@ function editCustomer(index) {
   document.getElementById('custPhone').value = customer.phone || '';
   document.getElementById('custEmail').value = customer.email || '';
   document.getElementById('custNotes').value = customer.notes || '';
-  document.getElementById('custProjectType').value = customer.projectType || 'pv';
   document.getElementById('custEditIndex').value = index;
 
   document.getElementById('custSaveBtn').textContent = 'Änderungen speichern';
@@ -2151,7 +2271,6 @@ function resetCustomerForm() {
   document.getElementById('custPhone').value = '';
   document.getElementById('custEmail').value = '';
   document.getElementById('custNotes').value = '';
-  document.getElementById('custProjectType').value = 'pv';
   document.getElementById('custEditIndex').value = '';
 
   document.getElementById('custSaveBtn').textContent = '+ Kunde anlegen';
@@ -2179,7 +2298,14 @@ function deleteCustomer(index) {
     return;
   }
 
+  const deletedCustomerId=customer.id;
   db.customers.splice(index, 1);
+  (db.projects||[]).forEach(project=>{
+    if(project.customerId===deletedCustomerId){
+      project.customerId='';
+      project.customerName=project.customerName||customer.name||'';
+    }
+  });
 
   if(selectedCustomerIndex===index){
     selectedCustomerIndex=null;
@@ -2196,11 +2322,73 @@ function deleteCustomer(index) {
 
 
 
+
+function customerById(customerId){
+  return (db.customers||[]).find(c=>c.id===customerId)||null;
+}
+
+function customerAddress(customer){
+  if(!customer) return '';
+  return [
+    customer.street||'',
+    [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
+  ].filter(Boolean).join(', ');
+}
+
+function refreshProjectCustomerSelect(selectedId=''){
+  const select=document.getElementById('newProjectCustomer');
+  if(!select) return;
+
+  const customers=(db.customers||[])
+    .slice()
+    .sort((a,b)=>(a.name||'').localeCompare(b.name||'','de',{sensitivity:'base'}));
+
+  select.innerHTML='<option value="">Kunde auswählen …</option>'+
+    customers.map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.name||'Ohne Namen')}${c.place?' – '+escapeHtml(c.place):''}</option>`).join('');
+
+  if(selectedId && customers.some(c=>c.id===selectedId)) select.value=selectedId;
+}
+
+function projectCustomerChanged(){
+  const customer=customerById(document.getElementById('newProjectCustomer')?.value);
+  if(!customer) return;
+
+  const addressInput=document.getElementById('newProjectAddress');
+  if(addressInput && !addressInput.value.trim()) addressInput.value=customerAddress(customer);
+
+  const nameInput=document.getElementById('newProjectName');
+  if(nameInput && !nameInput.value.trim()) nameInput.value=customer.name||'';
+}
+
+function toggleInlineProjectCustomer(force){
+  const box=document.getElementById('inlineProjectCustomer');
+  if(!box) return;
+  const open=typeof force==='boolean'?force:box.hidden;
+  box.hidden=!open;
+  if(open) setTimeout(()=>document.getElementById('projectCustName')?.focus(),30);
+}
+
+function resetProjectForm(){
+  document.getElementById('projectEditId').value='';
+  document.getElementById('projectModalTitle').textContent='Neue Baustelle';
+  document.getElementById('projectModalHint').textContent='Kunde auswählen und Baustellendaten erfassen';
+  document.getElementById('projectSaveBtn').textContent='Baustelle speichern';
+
+  refreshProjectCustomerSelect('');
+  document.getElementById('newProjectType').value='pv';
+
+  ['newProjectName','newProjectAddress','newProjectPlan','newProjectInverter','newProjectStorage','newProjectModules','newProjectRoof','newProjectWindowArea',
+   'projectCustName','projectCustStreet','projectCustZip','projectCustPlace','projectCustPhone','projectCustEmail']
+    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+
+  toggleInlineProjectCustomer(false);
+  updateNewProjectFields();
+}
+
 function openNewProjectForm(){
+  resetProjectForm();
   document.getElementById('newProjectModal').hidden=false;
   document.body.classList.add('modal-open');
-  updateNewProjectFields();
-  setTimeout(()=>document.getElementById('newProjectName')?.focus(),50);
 }
 
 function closeNewProjectForm(){
@@ -2217,68 +2405,129 @@ function updateNewProjectFields(){
   if(win) win.hidden=type!=='fenster';
 }
 
-function splitProjectAddress(address){
-  const value=(address||'').trim();
-  // Keep the complete address reliably; try a simple split for existing customer fields.
-  const m=value.match(/^(.*?)(?:,\s*|\s+)(\d{5})\s+(.+)$/);
-  if(m) return {street:m[1].trim(),zip:m[2],place:m[3].trim()};
-  return {street:value,zip:'',place:''};
+function createInlineProjectCustomer(){
+  const name=document.getElementById('projectCustName').value.trim();
+  if(!name) return null;
+
+  const customer={
+    id:makeStableId('cust'),
+    name,
+    contact:'',
+    street:document.getElementById('projectCustStreet').value.trim(),
+    zip:document.getElementById('projectCustZip').value.trim(),
+    place:document.getElementById('projectCustPlace').value.trim(),
+    phone:document.getElementById('projectCustPhone').value.trim(),
+    email:document.getElementById('projectCustEmail').value.trim(),
+    notes:'',
+    photoIds:[]
+  };
+  db.customers.push(customer);
+  return customer;
 }
 
 function saveNewProject(){
+  const editId=document.getElementById('projectEditId').value;
+  let customerId=document.getElementById('newProjectCustomer').value;
+  let customer=customerById(customerId);
+
+  const inlineOpen=!document.getElementById('inlineProjectCustomer').hidden;
+  const inlineName=document.getElementById('projectCustName').value.trim();
+
+  if(!customer && inlineOpen && inlineName){
+    customer=createInlineProjectCustomer();
+    customerId=customer.id;
+  }
+
+  if(!customer){
+    toast('Bitte einen Kunden auswählen oder neu anlegen');
+    return;
+  }
+
   const type=document.getElementById('newProjectType').value;
   const name=document.getElementById('newProjectName').value.trim();
   const address=document.getElementById('newProjectAddress').value.trim();
   const plan=document.getElementById('newProjectPlan').value.trim();
 
   if(!name){
-    toast('Bitte einen Namen eingeben');
+    toast('Bitte einen Namen für die Baustelle eingeben');
     document.getElementById('newProjectName').focus();
     return;
   }
 
-  const a=splitProjectAddress(address);
-  const customer={
+  const payload={
+    customerId,
+    customerName:customer.name||'',
+    type,
     name,
-    contact:'',
-    street:a.street,
-    zip:a.zip,
-    place:a.place,
-    phone:'',
-    email:'',
-    notes:plan,
-    projectType:type,
-    projectAddress:address,
-    projectPlan:plan,
-    photoIds:[]
+    address,
+    plan,
+    inverter:type==='pv'?document.getElementById('newProjectInverter').value.trim():'',
+    storage:type==='pv'?document.getElementById('newProjectStorage').value.trim():'',
+    modules:type==='pv'?(Number(document.getElementById('newProjectModules').value)||0):0,
+    roofType:type==='pv'?document.getElementById('newProjectRoof').value.trim():'',
+    windowArea:type==='fenster'?(Number(String(document.getElementById('newProjectWindowArea').value||0).replace(',','.'))||0):0
   };
 
-  if(type==='pv'){
-    customer.inverter=document.getElementById('newProjectInverter').value.trim();
-    customer.storage=document.getElementById('newProjectStorage').value.trim();
-    customer.modules=Number(document.getElementById('newProjectModules').value)||0;
-    customer.roofType=document.getElementById('newProjectRoof').value.trim();
+  if(editId){
+    const idx=(db.projects||[]).findIndex(p=>p.id===editId);
+    if(idx>=0){
+      db.projects[idx]={...db.projects[idx],...payload,updatedAt:new Date().toISOString()};
+      toast('Baustelle geändert');
+    }
+  }else{
+    db.projects.push({
+      id:makeStableId('proj'),
+      ...payload,
+      createdAt:new Date().toISOString()
+    });
+    toast('Baustelle angelegt');
   }
 
-  if(type==='fenster'){
-    customer.windowArea=Number(String(document.getElementById('newProjectWindowArea').value||0).replace(',','.'))||0;
-  }
-
-  db.customers.push(customer);
-  selectedCustomerIndex=db.customers.length-1;
   saveDB();
   renderCustomers();
   renderProjectTab();
   refreshDiaryCustomerSelect();
   closeNewProjectForm();
-
-  ['newProjectName','newProjectAddress','newProjectPlan','newProjectInverter','newProjectStorage','newProjectModules','newProjectRoof','newProjectWindowArea']
-    .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('newProjectType').value='pv';
-  updateNewProjectFields();
-  toast('Baustelle angelegt');
   showProjectTab(type);
   show('projects');
+}
+
+function editProject(projectId){
+  const project=(db.projects||[]).find(p=>p.id===projectId);
+  if(!project) return;
+
+  resetProjectForm();
+  document.getElementById('projectEditId').value=project.id;
+  document.getElementById('projectModalTitle').textContent='Baustelle bearbeiten';
+  document.getElementById('projectModalHint').textContent=project.name||'Baustellendaten bearbeiten';
+  document.getElementById('projectSaveBtn').textContent='Änderungen speichern';
+
+  refreshProjectCustomerSelect(project.customerId||'');
+  document.getElementById('newProjectType').value=project.type||'pv';
+  document.getElementById('newProjectName').value=project.name||'';
+  document.getElementById('newProjectAddress').value=project.address||'';
+  document.getElementById('newProjectPlan').value=project.plan||'';
+  document.getElementById('newProjectInverter').value=project.inverter||'';
+  document.getElementById('newProjectStorage').value=project.storage||'';
+  document.getElementById('newProjectModules').value=project.modules||'';
+  document.getElementById('newProjectRoof').value=project.roofType||'';
+  document.getElementById('newProjectWindowArea').value=project.windowArea||'';
+  updateNewProjectFields();
+
+  document.getElementById('newProjectModal').hidden=false;
+  document.body.classList.add('modal-open');
+}
+
+function deleteProject(projectId){
+  const project=(db.projects||[]).find(p=>p.id===projectId);
+  if(!project) return;
+  if(!window.confirm(`Baustelle wirklich löschen?\n\n${project.name||'Baustelle'}\n\nDer Kunde bleibt erhalten.`)) return;
+
+  db.projects=db.projects.filter(p=>p.id!==projectId);
+  saveDB();
+  renderProjectTab();
+  renderCustomers();
+  toast('Baustelle gelöscht');
 }
 
 function projectTypeName(type){
@@ -2287,23 +2536,36 @@ function projectTypeName(type){
     fenster:'Fensterreinigung',
     renovierung:'Renovierung',
     sanierung:'Sanierung'
-  })[type]||'PV-Anlage';
+  })[type]||'Baustelle';
 }
 
 let activeProjectType='pv';
 
 function showProjectTab(type,button){
   activeProjectType=type;
-  document.querySelectorAll('.project-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.project-tab').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
   if(button) button.classList.add('active');
   renderProjectTab();
 }
 
-function ownHoursForCustomer(customerIndex,customer){
-  return db.diary.reduce((sum,entry)=>{
-    const sameIndex=Number.isInteger(entry.customerIndex) && entry.customerIndex===customerIndex;
-    const sameName=customer?.name && entry.customerName===customer.name;
-    return (sameIndex||sameName)?sum+(Number(entry.ownHours)||0):sum;
+function ownHoursForProject(project){
+  const customer=customerById(project.customerId);
+  const customerProjects=(db.projects||[]).filter(p=>p.customerId===project.customerId);
+  const norm=v=>String(v||'').trim().toLowerCase();
+
+  return (db.diary||[]).reduce((sum,entry)=>{
+    if(entry.projectId && entry.projectId===project.id){
+      return sum+(Number(entry.ownHours)||0);
+    }
+    if(norm(entry.site) && norm(entry.site)===norm(project.name)){
+      return sum+(Number(entry.ownHours)||0);
+    }
+    // Legacy: if this customer has only one Baustelle, older diary rows can still be assigned safely.
+    if(customer && customerProjects.length===1){
+      const sameName=norm(entry.customerName)===norm(customer.name);
+      if(sameName) return sum+(Number(entry.ownHours)||0);
+    }
+    return sum;
   },0);
 }
 
@@ -2311,49 +2573,56 @@ function renderProjectTab(){
   const el=document.getElementById('projectTabContent');
   if(!el) return;
 
-  const projects=db.customers
-    .map((customer,index)=>({customer,index}))
-    .filter(({customer})=>(customer.projectType||'pv')===activeProjectType)
-    .sort((a,b)=>(a.customer.name||'').localeCompare(b.customer.name||'','de',{sensitivity:'base'}));
+  const projects=(db.projects||[])
+    .filter(project=>(project.type||'pv')===activeProjectType)
+    .slice()
+    .sort((a,b)=>(a.name||'').localeCompare(b.name||'','de',{sensitivity:'base'}));
 
   if(!projects.length){
     el.innerHTML=`<div class="card"><div class="muted">Noch keine Baustellen in „${projectTypeName(activeProjectType)}“ angelegt.</div></div>`;
     return;
   }
 
-  el.innerHTML=projects.map(({customer,index})=>{
-    const ownTotal=ownHoursForCustomer(index,customer);
-    const address=[
-      customer.street||'',
-      [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
-    ].filter(Boolean).join(', ');
+  el.innerHTML=projects.map(project=>{
+    const customer=customerById(project.customerId);
+    const ownTotal=ownHoursForProject(project);
 
     return `
       <div class="card project-list-card">
-        <div class="project-type">${projectTypeName(customer.projectType||'pv')}</div>
-        <div class="hero" style="font-size:18px;">${escapeHtml(customer.name||'Ohne Namen')}</div>
-        <div class="muted">${escapeHtml(customer.projectAddress||address||'Keine Adresse hinterlegt')}</div>
-        ${customer.projectPlan?`<div class="project-plan">${escapeHtml(customer.projectPlan)}</div>`:''}
-        ${customer.phone?`<div class="blue">${escapeHtml(customer.phone)}</div>`:''}
-        ${(customer.projectType||'pv')==='pv'?`
+        <div class="project-type">${escapeHtml(projectTypeName(project.type||'pv'))}</div>
+        <div class="hero" style="font-size:18px;">${escapeHtml(project.name||'Ohne Namen')}</div>
+        <div class="blue" style="margin-top:3px;">${escapeHtml(customer?.name||project.customerName||'Kein Kunde zugeordnet')}</div>
+        <div class="muted">${escapeHtml(project.address||'Keine Adresse hinterlegt')}</div>
+        ${project.plan?`<div class="project-plan">${escapeHtml(project.plan)}</div>`:''}
+        ${(project.type||'pv')==='pv'?`
           <div class="project-specs">
-            <span>Wechselrichter<b>${escapeHtml(customer.inverter||'—')}</b></span>
-            <span>Speicher<b>${escapeHtml(customer.storage||'—')}</b></span>
-            <span>Module<b>${customer.modules||'—'}</b></span>
-            <span>Dachart<b>${escapeHtml(customer.roofType||'—')}</b></span>
+            <span>Wechselrichter<b>${escapeHtml(project.inverter||'—')}</b></span>
+            <span>Speicher<b>${escapeHtml(project.storage||'—')}</b></span>
+            <span>Module<b>${project.modules||'—'}</b></span>
+            <span>Dachart<b>${escapeHtml(project.roofType||'—')}</b></span>
           </div>`:''}
-        ${customer.projectType==='fenster'?`
+        ${project.type==='fenster'?`
           <div class="project-specs one">
-            <span>Fensterfläche<b>${customer.windowArea?String(customer.windowArea).replace('.',',')+' m²':'—'}</b></span>
+            <span>Fensterfläche<b>${project.windowArea?String(project.windowArea).replace('.',',')+' m²':'—'}</b></span>
           </div>`:''}
         <div class="project-own-hours"><span>Meine Stunden gesamt</span><b>${formatHoursNumber(ownTotal)}</b></div>
         <div class="actions" style="margin-top:10px;">
-          <button class="btn btn2" type="button" onclick="selectedCustomerIndex=${index};show('customers');renderCustomers()">Kunde öffnen</button>
-          <button class="btn btn2 diary-danger" type="button" onclick="deleteCustomer(${index})">🗑️ Löschen</button>
+          <button class="btn btn2" type="button" onclick="editProject('${escapeHtml(project.id)}')">✏️ Bearbeiten</button>
+          ${customer?`<button class="btn btn2" type="button" onclick="openCustomerById('${escapeHtml(customer.id)}')">Kunde öffnen</button>`:''}
+          <button class="btn btn2 diary-danger" type="button" onclick="deleteProject('${escapeHtml(project.id)}')">🗑️ Löschen</button>
         </div>
       </div>`;
   }).join('');
 }
+
+function openCustomerById(customerId){
+  const idx=(db.customers||[]).findIndex(c=>c.id===customerId);
+  if(idx<0) return;
+  selectedCustomerIndex=idx;
+  show('customers');
+  renderCustomers();
+}
+
 async function renderCustomers(){
 
   refreshDiaryCustomerSelect();
@@ -2410,20 +2679,19 @@ async function renderCustomers(){
     listEl.innerHTML='<div class="muted" style="padding:16px;">Keine passenden Kunden gefunden.</div>';
   }else{
     listEl.innerHTML=filteredCustomers.map(({customer,index})=>{
-      const customerAddress = customer.projectAddress || [
+      const customerAddress = [
         customer.street||'',
         [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
       ].filter(Boolean).join(', ');
-      const typeLabel = projectTypeName(customer.projectType||'pv');
+      const linkedProjectCount=(db.projects||[]).filter(p=>p.customerId===customer.id).length;
 
       return `
         <button class="customer-alpha-item ${index===selectedCustomerIndex?'active':''}" type="button" onclick="selectCustomer(${index})">
           <div class="customer-list-main">
             <b>${esc(customer.name||'Ohne Namen')}</b>
-            <span class="customer-list-type">${esc(typeLabel)}</span>
+            ${linkedProjectCount?`<span class="customer-list-type">${linkedProjectCount} Baust.${linkedProjectCount===1?'':' '}</span>`:''}
           </div>
           <small>${esc(customerAddress||customer.phone||'Keine Adresse')}</small>
-          ${customer.projectPlan?`<span class="customer-list-plan">${esc(customer.projectPlan)}</span>`:''}
         </button>
       `;
     }).join('');
@@ -2440,10 +2708,7 @@ async function renderCustomers(){
     [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
   ].filter(Boolean).join(', ');
 
-  const projectTypeLabel=projectTypeName(customer.projectType||'pv');
-
   const infoBoxes=[
-    ['Baustellenart',projectTypeLabel],
     ['Ansprechpartner',customer.contact||'—'],
     ['Adresse',address||'—'],
     ['Telefon',customer.phone||'—'],
@@ -2518,6 +2783,17 @@ async function renderCustomers(){
 
     <div class="customer-section-title"><b>Notizen</b></div>
     <div class="customer-info-box"><div class="v">${esc(customer.notes||'Keine Notizen hinterlegt.')}</div></div>
+
+    <div class="customer-section-title">
+      <b>Baustellen</b>
+      <span class="muted">${(db.projects||[]).filter(p=>p.customerId===customer.id).length}</span>
+    </div>
+    ${(()=>{
+      const linked=(db.projects||[]).filter(p=>p.customerId===customer.id);
+      return linked.length
+        ? linked.map(p=>`<button class="customer-project-link" type="button" onclick="showProjectTab('${esc(p.type||'pv')}');show('projects')"><b>${esc(p.name||'Baustelle')}</b><span>${esc(projectTypeName(p.type||'pv'))}</span></button>`).join('')
+        : '<div class="muted">Noch keine Baustelle für diesen Kunden angelegt.</div>';
+    })()}
 
     <div class="customer-section-title">
       <b>Baustellenfotos</b>
@@ -2613,10 +2889,11 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.31',
+      appVersion:'1.32',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
+        projects:Array.isArray(db.projects)?db.projects:[],
         diary:Array.isArray(db.diary)?db.diary:[],
         photos:exportPhotos
       }
@@ -2753,6 +3030,13 @@ async function buildMergePreview(backup){
 async function mergeBackupData(backup){
   const localCustomers=Array.isArray(db.customers)?db.customers:[];
   const localDiary=Array.isArray(db.diary)?db.diary:[];
+  if(!Array.isArray(db.projects)) db.projects=[];
+  const importedProjects=Array.isArray(backup.data.projects)?backup.data.projects:[];
+  const existingProjectIds=new Set(db.projects.map(p=>p.id).filter(Boolean));
+  importedProjects.forEach(project=>{
+    if(project.id && existingProjectIds.has(project.id)) return;
+    db.projects.push({...project,id:project.id||makeStableId('proj')});
+  });
 
   const existingPhotos=await getAllStoredPhotos();
   const existingPhotoIds=new Set(existingPhotos.map(p=>p.id));
