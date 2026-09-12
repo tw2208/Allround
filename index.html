@@ -148,6 +148,110 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .backup-box h3{margin:0 0 6px;font-size:18px}
 .backup-box p{margin:0 0 10px;color:var(--muted);line-height:1.45}
 .backup-status{margin-top:10px;font-size:13px;color:var(--blue2);min-height:18px}
+
+/* Kundenakte – Master/Detail-Ansicht */
+.customer-form-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:0 12px;
+}
+.customer-form-grid .full{grid-column:1/-1}
+.customer-workspace{
+  display:grid;
+  grid-template-columns:minmax(220px,30%) minmax(0,1fr);
+  gap:12px;
+  align-items:start;
+}
+.customer-sidebar,
+.customer-detail{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  overflow:hidden;
+}
+.customer-sidebar-head{
+  padding:14px;
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:84px;
+  background:var(--panel);
+  z-index:3;
+}
+.customer-sidebar-head label{margin-top:0}
+.customer-count{font-size:12px;color:var(--muted);margin-top:8px}
+.customer-alpha-list{max-height:68vh;overflow:auto}
+.customer-alpha-item{
+  width:100%;
+  border:0;
+  border-bottom:1px solid rgba(119,190,255,.14);
+  background:transparent;
+  color:var(--text);
+  text-align:left;
+  padding:13px 14px;
+  font:inherit;
+}
+.customer-alpha-item:last-child{border-bottom:0}
+.customer-alpha-item.active{
+  background:#123a5d;
+  box-shadow:inset 4px 0 0 var(--blue);
+}
+.customer-alpha-item b{display:block;font-size:15px}
+.customer-alpha-item small{display:block;color:var(--muted);margin-top:3px}
+.customer-detail{padding:16px;min-height:360px}
+.customer-detail-top{
+  display:flex;
+  gap:12px;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+.customer-detail-name{font-size:24px;font-weight:900}
+.customer-info-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:14px;
+}
+.customer-info-box{
+  background:#0a2943;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:11px;
+}
+.customer-info-box .k{font-size:11px;color:var(--blue2);font-weight:800;margin-bottom:4px}
+.customer-info-box .v{overflow-wrap:anywhere}
+.customer-section-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:18px;
+  margin-bottom:8px;
+}
+.customer-diary-entry{
+  background:#0a2943;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:9px;
+}
+.customer-empty{
+  min-height:310px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  color:var(--muted);
+  padding:30px;
+}
+@media(max-width:680px){
+  .customer-form-grid{grid-template-columns:1fr}
+  .customer-form-grid .full{grid-column:auto}
+  .customer-workspace{grid-template-columns:1fr}
+  .customer-alpha-list{max-height:34vh}
+  .customer-sidebar-head{position:static}
+  .customer-info-grid{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -202,17 +306,27 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
   </div>
 
   <div class="card">
+    <div class="item">
+      <span class="emoji">➕</span>
+      <div class="grow">
+        <b id="customerFormTitle">Kunde anlegen</b>
+        <div class="muted">Neue Kunden oben erfassen oder bestehende Kundendaten bearbeiten.</div>
+      </div>
+    </div>
 
-    <label>Name / Firma</label>
-    <input id="custName" placeholder="z. B. Max Mustermann oder Muster GmbH">
-
-    <label>Ansprechpartner</label>
-    <input id="custContact" placeholder="z. B. Max Mustermann">
-
-    <label>Straße & Hausnummer</label>
-    <input id="custStreet" placeholder="z. B. Hauptstraße 12">
-
-    <div class="row">
+    <div class="customer-form-grid">
+      <div>
+        <label>Name / Firma</label>
+        <input id="custName" placeholder="z. B. Max Mustermann oder Muster GmbH">
+      </div>
+      <div>
+        <label>Ansprechpartner</label>
+        <input id="custContact" placeholder="z. B. Max Mustermann">
+      </div>
+      <div class="full">
+        <label>Straße & Hausnummer</label>
+        <input id="custStreet" placeholder="z. B. Hauptstraße 12">
+      </div>
       <div>
         <label>PLZ</label>
         <input id="custZip" inputmode="numeric" placeholder="01689">
@@ -221,16 +335,19 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
         <label>Ort</label>
         <input id="custPlace" placeholder="Niederau">
       </div>
+      <div>
+        <label>Telefon</label>
+        <input id="custPhone" type="tel" placeholder="z. B. 0172 1234567">
+      </div>
+      <div>
+        <label>E-Mail</label>
+        <input id="custEmail" type="email" placeholder="z. B. kunde@beispiel.de">
+      </div>
+      <div class="full">
+        <label>Notizen</label>
+        <textarea id="custNotes" placeholder="z. B. bevorzugte Erreichbarkeit, Zugang zur Baustelle, Besonderheiten"></textarea>
+      </div>
     </div>
-
-    <label>Telefon</label>
-    <input id="custPhone" type="tel" placeholder="z. B. 0172 1234567">
-
-    <label>E-Mail</label>
-    <input id="custEmail" type="email" placeholder="z. B. kunde@beispiel.de">
-
-    <label>Notizen</label>
-    <textarea id="custNotes" placeholder="z. B. bevorzugte Erreichbarkeit, Zugang zur Baustelle, Besonderheiten"></textarea>
 
     <input type="hidden" id="custEditIndex" value="">
 
@@ -238,22 +355,22 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
       <button class="btn" id="custSaveBtn" onclick="saveCustomer()">+ Kunde anlegen</button>
       <button class="btn btn2" id="custCancelBtn" onclick="cancelCustomerEdit()" style="display:none;">Abbrechen</button>
     </div>
-
   </div>
 
-  
-  <div class="card">
-    <label>Kunden suchen</label>
-    <input
-      id="customerSearch"
-      type="search"
-      placeholder="Name, Ort, Telefon oder E-Mail"
-      oninput="renderCustomers()"
-    >
+  <div class="customer-workspace">
+    <aside class="customer-sidebar">
+      <div class="customer-sidebar-head">
+        <label>Kunden suchen</label>
+        <input id="customerSearch" type="search" placeholder="Name, Ort, Telefon oder E-Mail" oninput="renderCustomers()">
+        <div class="customer-count" id="customerCount"></div>
+      </div>
+      <div id="customerList" class="customer-alpha-list"></div>
+    </aside>
+
+    <div id="customerDetail" class="customer-detail">
+      <div class="customer-empty">Wähle links einen Kunden aus.</div>
+    </div>
   </div>
-
-  <div id="customerList"></div>
-
 
 </section>
 
@@ -268,7 +385,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.9</div>
+    <div class="blue" style="margin-top:6px;">Version 1.10</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -616,6 +733,8 @@ function renderDiary(){
   `).join('');
   loadStoredPhotos('img[data-photo-id]','photoId');
 }
+let selectedCustomerIndex=null;
+
 function saveCustomer() {
 
   const name = document.getElementById('custName').value.trim();
@@ -633,33 +752,34 @@ function saveCustomer() {
     return;
   }
 
-  const customer = {
-    name,
-    contact,
-    street,
-    zip,
-    place,
-    phone,
-    email,
-    notes
-  };
-
   if (editIndex === '') {
+    const customer = {name,contact,street,zip,place,phone,email,notes,photoIds:[]};
     db.customers.push(customer);
+    selectedCustomerIndex=db.customers.length-1;
     toast('Kunde gespeichert');
   } else {
-    db.customers[Number(editIndex)] = customer;
+    const idx=Number(editIndex);
+    const previous=db.customers[idx]||{};
+    db.customers[idx]={
+      ...previous,
+      name,contact,street,zip,place,phone,email,notes,
+      photoIds:Array.isArray(previous.photoIds)?previous.photoIds:[]
+    };
+    selectedCustomerIndex=idx;
     toast('Kundendaten geändert');
   }
 
   saveDB();
-  renderCustomers();
   resetCustomerForm();
+  renderCustomers();
 }
 
 function editCustomer(index) {
 
   const customer = db.customers[index];
+  if(!customer) return;
+
+  selectedCustomerIndex=index;
 
   document.getElementById('custName').value = customer.name || '';
   document.getElementById('custContact').value = customer.contact || '';
@@ -673,8 +793,11 @@ function editCustomer(index) {
 
   document.getElementById('custSaveBtn').textContent = 'Änderungen speichern';
   document.getElementById('custCancelBtn').style.display = 'inline-block';
+  const title=document.getElementById('customerFormTitle');
+  if(title) title.textContent='Kunde bearbeiten';
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderCustomers();
+  document.getElementById('customers').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 function cancelCustomerEdit() {
@@ -695,12 +818,13 @@ function resetCustomerForm() {
 
   document.getElementById('custSaveBtn').textContent = '+ Kunde anlegen';
   document.getElementById('custCancelBtn').style.display = 'none';
+  const title=document.getElementById('customerFormTitle');
+  if(title) title.textContent='Kunde anlegen';
 }
 
 function deleteCustomer(index) {
 
   const customer = db.customers[index];
-
   if (!customer) return;
 
   const name = customer.name || 'diesen Kunden';
@@ -716,17 +840,15 @@ function deleteCustomer(index) {
 
   db.customers.splice(index, 1);
 
-  saveDB();
-  renderCustomers();
-
-  // Falls gerade genau dieser Kunde bearbeitet wurde,
-  // Bearbeitungsformular sicher zurücksetzen.
-  const editIndex = document.getElementById('custEditIndex').value;
-
-  if (editIndex !== '') {
-    resetCustomerForm();
+  if(selectedCustomerIndex===index){
+    selectedCustomerIndex=null;
+  }else if(Number.isInteger(selectedCustomerIndex) && selectedCustomerIndex>index){
+    selectedCustomerIndex--;
   }
 
+  saveDB();
+  resetCustomerForm();
+  renderCustomers();
   toast('Kunde gelöscht');
 }
 
@@ -734,118 +856,173 @@ async function renderCustomers(){
 
   refreshDiaryCustomerSelect();
 
+  const listEl=document.getElementById('customerList');
+  const detailEl=document.getElementById('customerDetail');
+  const countEl=document.getElementById('customerCount');
+  if(!listEl||!detailEl) return;
+
+  const esc=(value)=>String(value??'')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+
   const searchInput=document.getElementById('customerSearch');
   const searchTerm=searchInput?searchInput.value.trim().toLowerCase():'';
 
-  const filteredCustomers=db.customers
+  const allSorted=db.customers
     .map((customer,index)=>({customer,index}))
-    .filter(({customer})=>{
-      if(!searchTerm)return true;
-      return [
-        customer.name||'',
-        customer.contact||'',
-        customer.street||'',
-        customer.zip||'',
-        customer.place||'',
-        customer.phone||'',
-        customer.email||'',
-        customer.notes||''
-      ].join(' ').toLowerCase().includes(searchTerm);
-    });
+    .sort((a,b)=>(a.customer.name||'').localeCompare(b.customer.name||'','de',{sensitivity:'base'}));
 
-  if(filteredCustomers.length===0){
-    document.getElementById('customerList').innerHTML=
-      '<div class="card"><div class="muted">Keine passenden Kunden gefunden.</div></div>';
+  const filteredCustomers=allSorted.filter(({customer})=>{
+    if(!searchTerm)return true;
+    return [
+      customer.name||'',
+      customer.contact||'',
+      customer.street||'',
+      customer.zip||'',
+      customer.place||'',
+      customer.phone||'',
+      customer.email||'',
+      customer.notes||''
+    ].join(' ').toLowerCase().includes(searchTerm);
+  });
+
+  if(countEl){
+    countEl.textContent=`${filteredCustomers.length} von ${db.customers.length} Kunden`;
+  }
+
+  if(!db.customers.length){
+    selectedCustomerIndex=null;
+    listEl.innerHTML='<div class="muted" style="padding:16px;">Noch keine Kunden angelegt.</div>';
+    detailEl.innerHTML='<div class="customer-empty">Lege oben deinen ersten Kunden an.</div>';
     return;
   }
 
-  const cards=[];
+  if(!Number.isInteger(selectedCustomerIndex) || !db.customers[selectedCustomerIndex]){
+    selectedCustomerIndex=allSorted[0].index;
+  }
 
-  for(const {customer,index} of filteredCustomers){
-    const address=[
-      customer.street||'',
-      [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
-    ].filter(Boolean).join('<br>');
+  if(filteredCustomers.length===0){
+    listEl.innerHTML='<div class="muted" style="padding:16px;">Keine passenden Kunden gefunden.</div>';
+  }else{
+    listEl.innerHTML=filteredCustomers.map(({customer,index})=>`
+      <button class="customer-alpha-item ${index===selectedCustomerIndex?'active':''}" type="button" onclick="selectCustomer(${index})">
+        <b>${esc(customer.name||'Ohne Namen')}</b>
+        <small>${esc([customer.zip||'',customer.place||''].filter(Boolean).join(' ')||customer.phone||'')}</small>
+      </button>
+    `).join('');
+  }
 
-    const contact=customer.contact
-      ?`<div class="muted">Ansprechpartner: ${customer.contact}</div>`:'';
+  const customer=db.customers[selectedCustomerIndex];
+  if(!customer){
+    detailEl.innerHTML='<div class="customer-empty">Wähle links einen Kunden aus.</div>';
+    return;
+  }
 
-    const phone=customer.phone
-      ?`<div><a href="tel:${customer.phone.replace(/\s/g,'')}" style="color:var(--blue2);text-decoration:none;">📞 ${customer.phone}</a></div>`:'';
+  const address=[
+    customer.street||'',
+    [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
+  ].filter(Boolean).join(', ');
 
-    const email=customer.email
-      ?`<div><a href="mailto:${customer.email}" style="color:var(--blue2);text-decoration:none;">✉️ ${customer.email}</a></div>`:'';
+  const infoBoxes=[
+    ['Ansprechpartner',customer.contact||'—'],
+    ['Adresse',address||'—'],
+    ['Telefon',customer.phone||'—'],
+    ['E-Mail',customer.email||'—']
+  ].map(([k,v])=>`
+    <div class="customer-info-box">
+      <div class="k">${esc(k)}</div>
+      <div class="v">${esc(v)}</div>
+    </div>
+  `).join('');
 
-    const notes=customer.notes
-      ?`<div class="rule"></div><div class="muted">${customer.notes}</div>`:'';
+  const photoIds=Array.isArray(customer.photoIds)?customer.photoIds:[];
+  const photoCards=[];
 
-    const photoIds=Array.isArray(customer.photoIds)?customer.photoIds:[];
-    let gallery='';
-
-    if(photoIds.length){
-      const photoCards=[];
-
-      for(const id of photoIds){
-        const record=await getPhotoMeta(id);
-        const dateText=record?formatPhotoDate(record.createdAt):'';
-
-        photoCards.push(`
-          <div class="photo-card">
-            <img
-              data-customer-photo-id="${id}"
-              alt="Baustellenfoto"
-              onclick="openPhotoLightbox('${id}',${index})"
-            >
-            <div class="photo-meta">
-              <div class="photo-date">${dateText||'Datum unbekannt'}</div>
-              <button
-                class="photo-delete"
-                type="button"
-                onclick="deleteCustomerPhoto(${index},'${id}')"
-              >
-                🗑️
-              </button>
-            </div>
-          </div>
-        `);
-      }
-
-      gallery=`
-        <div class="rule"></div>
-        <div class="gallery-head">
-          <b>Baustellenfotos</b>
-          <span class="muted">${photoIds.length} Foto${photoIds.length===1?'':'s'}</span>
-        </div>
-        <div class="photo-grid">${photoCards.join('')}</div>
-      `;
-    }
-
-    cards.push(`
-      <div class="card">
-        <div class="item">
-          <span class="emoji">👤</span>
-          <div class="grow">
-            <b>${customer.name}</b>
-            ${contact}
-            <div class="muted">${address}</div>
-          </div>
-        </div>
-
-        ${phone}
-        ${email}
-        ${notes}
-        ${gallery}
-
-        <div class="actions">
-          <button class="btn btn2" onclick="editCustomer(${index})">✏️ Bearbeiten</button>
-          <button class="btn" onclick="deleteCustomer(${index})" style="background:#8E2633;">🗑️ Löschen</button>
+  for(const id of photoIds){
+    const record=await getPhotoMeta(id);
+    const dateText=record?formatPhotoDate(record.createdAt):'Datum unbekannt';
+    photoCards.push(`
+      <div class="photo-card">
+        <img data-customer-photo-id="${esc(id)}" alt="Baustellenfoto" onclick="openPhotoLightbox('${esc(id)}',${selectedCustomerIndex})">
+        <div class="photo-meta">
+          <div class="photo-date">${esc(dateText)}</div>
+          <button class="photo-delete" type="button" onclick="deleteCustomerPhoto(${selectedCustomerIndex},'${esc(id)}')">🗑️</button>
         </div>
       </div>
     `);
   }
 
-  document.getElementById('customerList').innerHTML=cards.join('');
+  const customerNameNorm=String(customer.name||'').trim().toLowerCase();
+  const relatedDiary=(Array.isArray(db.diary)?db.diary:[])
+    .filter(entry=>
+      entry.customerIndex===selectedCustomerIndex ||
+      (customerNameNorm && String(entry.customerName||'').trim().toLowerCase()===customerNameNorm)
+    )
+    .slice()
+    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+
+  const diaryHtml=relatedDiary.length
+    ? relatedDiary.map(entry=>`
+        <div class="customer-diary-entry">
+          <div class="item">
+            <div class="grow">
+              <b>${esc(entry.site||'Baustelle')}</b>
+              <div class="blue">${esc(entry.date||'')} ${entry.start||entry.end?`· ${esc(entry.start||'')}–${esc(entry.end||'')}`:''}</div>
+            </div>
+            <span class="pill">${esc(entry.hours||'')}</span>
+          </div>
+          <div class="muted" style="margin-top:6px;">Pause: ${esc(entry.pause??0)} min</div>
+          <div class="rule"></div>
+          <div>${esc(entry.note||'Keine Notiz')}</div>
+          <div class="blue" style="margin-top:7px;">Material: ${esc(entry.mat||entry.material||'—')}</div>
+          ${entry.photoId?`<div class="photo-grid"><img class="photo-thumb" data-customer-diary-photo-id="${esc(entry.photoId)}" alt="Tagebuchfoto"></div>`:''}
+        </div>
+      `).join('')
+    : '<div class="muted">Noch kein Bautagebucheintrag für diesen Kunden vorhanden.</div>';
+
+  detailEl.innerHTML=`
+    <div class="customer-detail-top">
+      <div>
+        <div class="customer-detail-name">${esc(customer.name||'Ohne Namen')}</div>
+        <div class="muted">${esc(customer.place||'')}</div>
+      </div>
+      <div class="actions" style="margin-top:0;justify-content:flex-end;">
+        <button class="btn btn2" type="button" onclick="editCustomer(${selectedCustomerIndex})">✏️ Bearbeiten</button>
+        <button class="btn" type="button" onclick="deleteCustomer(${selectedCustomerIndex})" style="background:#8E2633;">🗑️</button>
+      </div>
+    </div>
+
+    <div class="customer-info-grid">${infoBoxes}</div>
+
+    ${customer.phone?`<div class="actions"><a class="btn btn2" href="tel:${esc(customer.phone.replace(/\s/g,''))}" style="text-decoration:none;">📞 Anrufen</a>${customer.email?`<a class="btn btn2" href="mailto:${esc(customer.email)}" style="text-decoration:none;">✉️ E-Mail</a>`:''}</div>`:''}
+
+    <div class="customer-section-title"><b>Notizen</b></div>
+    <div class="customer-info-box"><div class="v">${esc(customer.notes||'Keine Notizen hinterlegt.')}</div></div>
+
+    <div class="customer-section-title">
+      <b>Baustellenfotos</b>
+      <span class="muted">${photoIds.length} Foto${photoIds.length===1?'':'s'}</span>
+    </div>
+    ${photoCards.length?`<div class="photo-grid">${photoCards.join('')}</div>`:'<div class="muted">Noch keine Fotos gespeichert.</div>'}
+
+    <div class="customer-section-title">
+      <b>Bautagebuch</b>
+      <span class="muted">${relatedDiary.length} Eintrag${relatedDiary.length===1?'':'e'}</span>
+    </div>
+    ${diaryHtml}
+  `;
+
   loadStoredPhotos('img[data-customer-photo-id]','customerPhotoId');
+  loadStoredPhotos('img[data-customer-diary-photo-id]','customerDiaryPhotoId');
+}
+
+function selectCustomer(index){
+  if(!db.customers[index]) return;
+  selectedCustomerIndex=index;
+  renderCustomers();
 }
 
 
@@ -919,7 +1096,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.9',
+      appVersion:'1.10',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
