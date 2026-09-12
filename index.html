@@ -438,7 +438,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.25: kompaktere, dezentere Buttons */
+/* Version 1.26: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +446,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.25 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.26 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -514,7 +514,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
 
-/* Version 1.25 – schmale Kopfzeile und vollständige untere Navigation */
+/* Version 1.26 – schmale Kopfzeile und vollständige untere Navigation */
 header,.topbar,.header{
   min-height:42px!important;
   padding-top:5px!important;
@@ -556,7 +556,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-own-hours b{color:var(--green);font-size:14px}
 
 
-/* Version 1.25 – übersichtlicher Tagebucheintrag */
+/* Version 1.26 – übersichtlicher Tagebucheintrag */
 .diary-form-section{
   margin:10px 0;
   padding:11px;
@@ -583,7 +583,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 <header><img class="logo" src="icon-192.png"><div><div class="brand">Allround <span>Weber</span></div><div class="tag"></div></div></header>
 <main>
 <section id="home" class="screen active">
-<div class="card"><div class="muted">Alles für deine Baustellen an einem Ort.</div><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
+<div class="card"><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
 
 <div class="grid">
 <div class="tile" onclick="show('diary')"><span class="emoji">📝</span><b>Bautagebuch</b><small>Arbeitszeit, Pause, Notiz und Material</small><span class="arr">›</span></div>
@@ -895,7 +895,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.25</div>
+    <div class="blue" style="margin-top:6px;">Version 1.26</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -2294,7 +2294,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.25',
+      appVersion:'1.26',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
