@@ -397,6 +397,46 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
   .project-tabs{grid-template-columns:1fr 1fr}
 }
 
+
+.diary-calendar-card input[type="date"]{
+  font-size:18px;
+  font-weight:800;
+}
+.diary-date-nav{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+}
+.diary-entry-form-card{margin-top:12px}
+.diary-form-close{
+  width:36px;
+  height:36px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#142c44;
+  color:var(--text);
+  font-size:18px;
+}
+.diary-danger{
+  color:#ffaaaa;
+  border-color:#67343b;
+}
+.diary-empty{
+  text-align:center;
+  padding:26px 18px;
+}
+.diary-date-heading{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  margin-bottom:8px;
+}
+@media(max-width:560px){
+  .diary-date-nav{grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -449,28 +489,106 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 </section>
 
 <section id="diary" class="screen">
-<div class="head"><button class="back" onclick="show('home')">‹</button><h2>Bautagebuch</h2></div>
-<div class="card">
-<label>Datum</label><input id="date" type="date">
-<label>Kunde</label><select id="diaryCustomer"></select><label>Baustelle</label><input id="site" placeholder="z. B. Dressler – Oberottendorf" value="Dressler – Oberottendorf">
-<div class="row"><div><label>Beginn</label><input id="start" type="time" value="08:00"></div><div><label>Ende</label><input id="end" type="time" value="16:00"></div></div>
-<label>Pause in Minuten</label><input id="pause" type="number" value="0">
-<div class="hours"><span class="muted">Arbeitszeit</span><b class="green" id="hours">8,00 h</b></div>
-<label>Notiz / Tätigkeit</label><textarea id="note" placeholder="z. B. PV-Anlage auf Carport montiert"></textarea>
-<label>Material</label><textarea id="mat" placeholder="z. B. 12 Module, Schienen, Klemmen"></textarea>
-<label>Foto</label>
-<div class="photo-actions">
-  <button class="btn btn2" type="button" onclick="openCamera()">📷 Foto aufnehmen</button>
-  <input id="cameraInput" class="photo-hidden" type="file" accept="image/*" capture="environment" onchange="handlePhotoSelected(event)">
-</div>
-<div id="photoPreviewWrap" style="display:none;">
-  <div class="photo-grid"><img id="photoPreview" class="photo-thumb" alt="Foto-Vorschau"></div>
-  <div class="actions"><button class="btn btn2" type="button" onclick="removePendingPhoto()">Foto entfernen</button></div>
-</div>
+  <div class="head">
+    <button class="back" onclick="show('home')">‹</button>
+    <h2>Bautagebuch</h2>
+  </div>
 
-<div class="actions"><button class="btn" onclick="saveDiary()">Tag speichern</button><button class="btn btn2" onclick="clearDiary()">Felder leeren</button></div>
-</div>
-<div id="entries"></div>
+  <div class="card diary-calendar-card">
+    <div class="item">
+      <span class="emoji">📅</span>
+      <div class="grow">
+        <b>Kalender</b>
+        <div class="muted">Zuerst Datum auswählen – danach erscheinen die Einträge dieses Tages.</div>
+      </div>
+    </div>
+
+    <label>Datum auswählen</label>
+    <input id="diaryFilterDate" type="date" onchange="selectDiaryDate(this.value)">
+
+    <div class="diary-date-nav">
+      <button class="btn btn2" type="button" onclick="shiftDiaryDate(-1)">‹ Vortag</button>
+      <button class="btn btn2" type="button" onclick="selectDiaryToday()">Heute</button>
+      <button class="btn btn2" type="button" onclick="shiftDiaryDate(1)">Folgetag ›</button>
+    </div>
+
+    <div class="hours">
+      <span class="muted" id="diarySelectedDateLabel">Ausgewählter Tag</span>
+      <b class="green" id="diaryDayCount">0 Einträge</b>
+    </div>
+
+    <div class="actions">
+      <button class="btn" type="button" onclick="toggleDiaryForm(true)">+ Eintrag für diesen Tag</button>
+      <button class="btn btn2 diary-danger" id="deleteDiaryDayBtn" type="button" onclick="deleteDiaryDay()">🗑️ Tageseinträge löschen</button>
+    </div>
+  </div>
+
+  <div id="entries"></div>
+
+  <div class="card diary-entry-form-card" id="diaryEntryFormCard" hidden>
+    <div class="item">
+      <span class="emoji">📝</span>
+      <div class="grow">
+        <b>Neuer Tagebucheintrag</b>
+        <div class="muted" id="diaryFormDateLabel"></div>
+      </div>
+      <button class="diary-form-close" type="button" onclick="toggleDiaryForm(false)">✕</button>
+    </div>
+    <div class="rule"></div>
+
+    <input id="date" type="hidden">
+
+    <label>Kunde</label>
+    <select id="diaryCustomer"></select>
+
+    <label>Baustelle</label>
+    <input id="site" placeholder="z. B. Dressler – Oberottendorf" value="Dressler – Oberottendorf">
+
+    <div class="row">
+      <div>
+        <label>Beginn</label>
+        <input id="start" type="time" value="08:00">
+      </div>
+      <div>
+        <label>Ende</label>
+        <input id="end" type="time" value="16:00">
+      </div>
+    </div>
+
+    <label>Pause in Minuten</label>
+    <input id="pause" type="number" value="0">
+
+    <div class="hours">
+      <span class="muted">Arbeitszeit</span>
+      <b class="green" id="hours">8,00 h</b>
+    </div>
+
+    <label>Notiz / Tätigkeit</label>
+    <textarea id="note" placeholder="z. B. PV-Anlage auf Carport montiert"></textarea>
+
+    <label>Material</label>
+    <textarea id="mat" placeholder="z. B. 12 Module, Schienen, Klemmen"></textarea>
+
+    <label>Foto</label>
+    <div class="photo-actions">
+      <button class="btn btn2" type="button" onclick="openCamera()">📷 Foto aufnehmen</button>
+      <input id="cameraInput" class="photo-hidden" type="file" accept="image/*" capture="environment" onchange="handlePhotoSelected(event)">
+    </div>
+
+    <div id="photoPreviewWrap" style="display:none;">
+      <div class="photo-grid">
+        <img id="photoPreview" class="photo-thumb" alt="Foto-Vorschau">
+      </div>
+      <div class="actions">
+        <button class="btn btn2" type="button" onclick="removePendingPhoto()">Foto entfernen</button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" onclick="saveDiary()">Eintrag speichern</button>
+      <button class="btn btn2" onclick="clearDiary()">Felder leeren</button>
+    </div>
+  </div>
 </section>
 
 <section id="pv" class="screen"><div class="head"><button class="back" onclick="show('home')">‹</button><h2>PV-Anlagen</h2></div>
@@ -631,7 +749,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.17</div>
+    <div class="blue" style="margin-top:6px;">Version 1.18</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -725,7 +843,14 @@ function toast(t){let x=document.getElementById('toast');x.textContent=t;x.class
 function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+(id==='material'?'more':id));if(n)n.classList.add('active');window.scrollTo(0,0)}
 function calc(){let s=document.getElementById('start').value,e=document.getElementById('end').value,p=Number(document.getElementById('pause').value||0);let [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);let m=(eh*60+em)-(sh*60+sm)-p;document.getElementById('hours').textContent=m>=0?(m/60).toFixed(2).replace('.',',')+' h':'—'}
 ['start','end','pause'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
-document.getElementById('date').valueAsDate=new Date();
+const diaryToday=new Date();
+const diaryTodayISO=[
+  diaryToday.getFullYear(),
+  String(diaryToday.getMonth()+1).padStart(2,'0'),
+  String(diaryToday.getDate()).padStart(2,'0')
+].join('-');
+document.getElementById('date').value=diaryTodayISO;
+document.getElementById('diaryFilterDate').value=diaryTodayISO;
 
 let pendingPhotoBlob = null;
 let pendingPhotoPreviewUrl = null;
@@ -987,33 +1112,138 @@ async function saveDiary(){
   }
 
   saveDB();
-  renderDiary();
+  selectDiaryDate(x.date);
   renderCustomers();
   toast(photoId?'Tagebuch + Foto gespeichert':'Bautagebuch gespeichert');
   document.getElementById('note').value='';
   document.getElementById('mat').value='';
   removePendingPhoto();
+  toggleDiaryForm(false);
 }
 function clearDiary(){document.getElementById('note').value='';document.getElementById('mat').value=''}
+function diaryDateLabel(iso){
+  if(!iso) return '';
+  const [y,m,d]=iso.split('-').map(Number);
+  const date=new Date(y,m-1,d);
+  if(Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleDateString('de-DE',{
+    weekday:'long',
+    day:'2-digit',
+    month:'long',
+    year:'numeric'
+  });
+}
+
+function getSelectedDiaryDate(){
+  return document.getElementById('diaryFilterDate')?.value || '';
+}
+
+function selectDiaryDate(value){
+  if(!value) return;
+  const filter=document.getElementById('diaryFilterDate');
+  const hidden=document.getElementById('date');
+  if(filter) filter.value=value;
+  if(hidden) hidden.value=value;
+
+  const label=document.getElementById('diarySelectedDateLabel');
+  if(label) label.textContent=diaryDateLabel(value);
+
+  const formLabel=document.getElementById('diaryFormDateLabel');
+  if(formLabel) formLabel.textContent=diaryDateLabel(value);
+
+  renderDiary();
+}
+
+function selectDiaryToday(){
+  selectDiaryDate(diaryTodayISO);
+}
+
+function shiftDiaryDate(days){
+  const current=getSelectedDiaryDate()||diaryTodayISO;
+  const [y,m,d]=current.split('-').map(Number);
+  const date=new Date(y,m-1,d);
+  date.setDate(date.getDate()+days);
+  const next=[
+    date.getFullYear(),
+    String(date.getMonth()+1).padStart(2,'0'),
+    String(date.getDate()).padStart(2,'0')
+  ].join('-');
+  selectDiaryDate(next);
+}
+
+function toggleDiaryForm(open){
+  const card=document.getElementById('diaryEntryFormCard');
+  if(!card) return;
+  if(open){
+    const selected=getSelectedDiaryDate()||diaryTodayISO;
+    document.getElementById('date').value=selected;
+    const lbl=document.getElementById('diaryFormDateLabel');
+    if(lbl) lbl.textContent=diaryDateLabel(selected);
+    card.hidden=false;
+    refreshDiaryCustomerSelect();
+    setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'start'}),30);
+  }else{
+    card.hidden=true;
+  }
+}
+
 function renderDiary(){
   const el=document.getElementById('entries');
-  el.innerHTML=db.diary.map((x,index)=>`
-    <div class="card">
-      <div class="item">
-        <div class="grow">
-          <b>${x.site}</b>
-          ${x.customerName?`<div class="muted">Kunde: ${x.customerName}</div>`:''}
-        </div>
-        <button class="diary-delete-btn" type="button" onclick="deleteDiaryEntry(${index})" title="Tagebucheintrag löschen">🗑️</button>
-      </div>
-      <div class="blue">${x.date} · ${x.start}–${x.end} · ${x.hours}</div>
-      <div class="muted">Pause: ${x.pause} min</div>
-      <div class="rule"></div>
-      <div>${x.note||'Keine Notiz'}</div>
-      <div class="blue">Material: ${x.mat||'—'}</div>
-      ${x.photoId?`<div class="photo-grid"><img class="photo-thumb" data-photo-id="${x.photoId}" alt="Tagebuchfoto"></div>`:''}
+  if(!el) return;
+
+  const selectedDate=getSelectedDiaryDate();
+  const label=document.getElementById('diarySelectedDateLabel');
+  if(label) label.textContent=selectedDate?diaryDateLabel(selectedDate):'Datum auswählen';
+
+  if(!selectedDate){
+    el.innerHTML='<div class="card diary-empty"><b>Bitte zuerst ein Datum auswählen.</b></div>';
+    return;
+  }
+
+  const rows=db.diary
+    .map((entry,index)=>({entry,index}))
+    .filter(({entry})=>entry.date===selectedDate)
+    .sort((a,b)=>(a.entry.start||'').localeCompare(b.entry.start||''));
+
+  const count=document.getElementById('diaryDayCount');
+  if(count) count.textContent=`${rows.length} ${rows.length===1?'Eintrag':'Einträge'}`;
+
+  const delDay=document.getElementById('deleteDiaryDayBtn');
+  if(delDay) delDay.style.display=rows.length?'inline-flex':'none';
+
+  if(!rows.length){
+    el.innerHTML=`
+      <div class="card diary-empty">
+        <div class="emoji" style="font-size:30px;">📭</div>
+        <b>Keine Einträge für diesen Tag</b>
+        <div class="muted" style="margin-top:6px;">Lege über „+ Eintrag für diesen Tag“ einen neuen Eintrag an.</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML=`
+    <div class="diary-date-heading">
+      <b>${diaryDateLabel(selectedDate)}</b>
+      <span class="pill">${rows.length}</span>
     </div>
-  `).join('');
+    ${rows.map(({entry:x,index})=>`
+      <div class="card">
+        <div class="item">
+          <div class="grow">
+            <b>${x.site||'Baustelle'}</b>
+            ${x.customerName?`<div class="muted">Kunde: ${x.customerName}</div>`:''}
+          </div>
+          <button class="diary-delete-btn" type="button" onclick="deleteDiaryEntry(${index})" title="Tagebucheintrag löschen">🗑️</button>
+        </div>
+        <div class="blue">${x.start||'—'}–${x.end||'—'} · ${x.hours||'—'}</div>
+        <div class="muted">Pause: ${x.pause||0} min</div>
+        <div class="rule"></div>
+        <div>${x.note||'Keine Notiz'}</div>
+        <div class="blue">Material: ${x.mat||'—'}</div>
+        ${x.photoId?`<div class="photo-grid"><img class="photo-thumb" data-photo-id="${x.photoId}" alt="Tagebuchfoto"></div>`:''}
+      </div>
+    `).join('')}`;
+
   loadStoredPhotos('img[data-photo-id]','photoId');
 }
 
@@ -1038,9 +1268,9 @@ async function deleteDiaryEntry(index){
       }
     }
     try{
-      await deletePhoto(photoId);
+      await deleteStoredPhoto(photoId);
     }catch(e){
-      console.warn('Tagebuchfoto konnte nicht aus IndexedDB gelöscht werden',e);
+      console.warn('Tagebuchfoto konnte nicht gelöscht werden',e);
     }
   }
 
@@ -1050,6 +1280,47 @@ async function deleteDiaryEntry(index){
   renderCustomers();
   toast('Tagebucheintrag gelöscht');
 }
+
+async function deleteDiaryDay(){
+  const selectedDate=getSelectedDiaryDate();
+  if(!selectedDate) return;
+
+  const matches=db.diary
+    .map((entry,index)=>({entry,index}))
+    .filter(({entry})=>entry.date===selectedDate);
+
+  if(!matches.length){
+    toast('Keine Einträge an diesem Tag');
+    return;
+  }
+
+  const confirmed=window.confirm(
+    `Alle ${matches.length} Tagebucheinträge vom ${diaryDateLabel(selectedDate)} wirklich löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.`
+  );
+  if(!confirmed) return;
+
+  const photoIds=matches.map(x=>x.entry.photoId).filter(Boolean);
+
+  for(const photoId of photoIds){
+    for(const customer of db.customers){
+      if(Array.isArray(customer.photoIds)){
+        customer.photoIds=customer.photoIds.filter(id=>id!==photoId);
+      }
+    }
+    try{
+      await deleteStoredPhoto(photoId);
+    }catch(e){}
+  }
+
+  const removeIndexes=new Set(matches.map(x=>x.index));
+  db.diary=db.diary.filter((_,index)=>!removeIndexes.has(index));
+
+  saveDB();
+  renderDiary();
+  renderCustomers();
+  toast('Tageseinträge gelöscht');
+}
+
 let selectedCustomerIndex=null;
 
 
@@ -1245,6 +1516,7 @@ function renderProjectTab(){
         ${customer.phone?`<div class="blue">${escapeHtml(customer.phone)}</div>`:''}
         <div class="actions" style="margin-top:10px;">
           <button class="btn btn2" type="button" onclick="selectedCustomerIndex=${index};show('customers');renderCustomers()">Kunde öffnen</button>
+          <button class="btn btn2 diary-danger" type="button" onclick="deleteCustomer(${index})">🗑️ Löschen</button>
         </div>
       </div>`;
   }).join('');
@@ -1497,7 +1769,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.17',
+      appVersion:'1.18',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -2263,6 +2535,7 @@ window.addEventListener('load',()=>{
   loadEvccSettingsIntoForm();
   startEvccAutoRefresh();
   renderProjectTab();
+  selectDiaryDate(diaryTodayISO);
 });
 
 </script>
