@@ -438,7 +438,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.22: kompaktere, dezentere Buttons */
+/* Version 1.23: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +446,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.22 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.23 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -513,14 +513,52 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row{opacity:.72}
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
+
+/* Version 1.23 – schmale Kopfzeile und vollständige untere Navigation */
+header,.topbar,.header{
+  min-height:42px!important;
+  padding-top:5px!important;
+  padding-bottom:5px!important;
+}
+header h1,.topbar h1,.header h1{
+  font-size:17px!important;
+  line-height:1.05!important;
+  margin:0!important;
+}
+header .logo,.topbar .logo,.header .logo{
+  max-height:27px!important;
+  width:auto!important;
+}
+header small,header .tagline,.topbar small,.topbar .tagline,.header small,.header .tagline{
+  display:none!important;
+}
+.navin.nav-scroll{
+  display:flex!important;
+  overflow-x:auto;
+  overflow-y:hidden;
+  justify-content:flex-start!important;
+  gap:0;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.navin.nav-scroll::-webkit-scrollbar{display:none}
+.navin.nav-scroll button{
+  flex:0 0 74px!important;
+  min-width:74px;
+  padding:6px 3px!important;
+  font-size:9px!important;
+  white-space:nowrap;
+}
+.navin.nav-scroll .ni{font-size:17px!important}
+
 </style>
 </head>
 <body>
 <div class="app">
-<header><img class="logo" src="icon-192.png"><div><div class="brand">Allround <span>Weber</span></div><div class="tag">PV • Dach • Gerüst • Hausservice</div></div></header>
+<header><img class="logo" src="icon-192.png"><div><div class="brand">Allround <span>Weber</span></div><div class="tag"></div></div></header>
 <main>
 <section id="home" class="screen active">
-<div class="card"><div class="hero">Guten Morgen Thomas</div><div class="muted">Alles für deine Baustellen an einem Ort.</div><div class="rule"></div><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
+<div class="card"><div class="muted">Alles für deine Baustellen an einem Ort.</div><div class="rule"></div><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
 
 <div class="grid">
 <div class="tile" onclick="show('diary')"><span class="emoji">📝</span><b>Bautagebuch</b><small>Arbeitszeit, Pause, Notiz und Material</small><span class="arr">›</span></div>
@@ -821,7 +859,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.22</div>
+    <div class="blue" style="margin-top:6px;">Version 1.23</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -867,11 +905,14 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
   </div>
 </div>
 
-<div class="nav"><div class="navin">
+<div class="nav"><div class="navin nav-scroll">
 <button id="n-home" class="active" onclick="show('home')"><span class="ni">⌂</span>Start</button>
 <button id="n-diary" onclick="show('diary')"><span class="ni">📝</span>Bautagebuch</button>
-<button id="n-projects" onclick="show('projects')"><span class="ni">🏗️</span>Baustellen</button>
+<button id="n-pv" onclick="show('pv')"><span class="ni">☀️</span>PV-Anlagen</button>
 <button id="n-customers" onclick="show('customers')"><span class="ni">👥</span>Kunden</button>
+<button id="n-projects" onclick="show('projects')"><span class="ni">🏗️</span>Baustellen</button>
+<button id="n-hoursAccounts" onclick="show('hoursAccounts')"><span class="ni">⏱️</span>Stundenkonten</button>
+<button id="n-material" onclick="show('material')"><span class="ni">📦</span>Material</button>
 <button id="n-more" onclick="show('more')"><span class="ni">•••</span>Mehr</button>
 </div></div>
 <div class="toast" id="toast"></div>
@@ -882,7 +923,7 @@ let db={diary:[],customers:[{name:'Dressler',place:'Oberottendorf'},{name:'Famil
 try{const x=localStorage.getItem(DBKEY);if(x)db=JSON.parse(x)}catch(e){}
 function saveDB(){localStorage.setItem(DBKEY,JSON.stringify(db))}
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+(id==='material'||id==='hoursAccounts'?'more':id));if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();window.scrollTo(0,0)}
 function calc(){let s=document.getElementById('start').value,e=document.getElementById('end').value,p=Number(document.getElementById('pause').value||0);let [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);let m=(eh*60+em)-(sh*60+sm)-p;document.getElementById('hours').textContent=m>=0?(m/60).toFixed(2).replace('.',',')+' h':'—'}
 ['start','end','pause'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
 const diaryToday=new Date();
@@ -2201,7 +2242,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.22',
+      appVersion:'1.23',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
