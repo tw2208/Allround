@@ -268,7 +268,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.8</div>
+    <div class="blue" style="margin-top:6px;">Version 1.9</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -284,7 +284,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
     <div class="backup-box">
       <h3>Backup importieren</h3>
-      <p>Wähle eine Allround-Weber-Backup-Datei aus. Vor dem Import werden die enthaltenen Daten angezeigt und du musst das Ersetzen ausdrücklich bestätigen.</p>
+      <p>Wähle eine Allround-Weber-Backup-Datei aus. Vor dem Import werden die enthaltenen Daten geprüft. Neue Daten werden ergänzt; vorhandene Daten werden nicht automatisch überschrieben.</p>
       <button class="btn btn2" type="button" onclick="chooseBackupFile()">⬇️ Backup-Datei auswählen</button>
       <input id="backupFileInput" type="file" accept=".awbackup,.json,application/json" style="display:none" onchange="handleBackupFile(event)">
       <div class="backup-status" id="backupStatus"></div>
@@ -919,7 +919,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.8',
+      appVersion:'1.9',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -970,6 +970,223 @@ function chooseBackupFile(){
   input.click();
 }
 
+
+function normalizeMergeValue(value){
+  return String(value??'').trim().toLowerCase().replace(/\s+/g,' ');
+}
+
+function customerMergeKey(customer){
+  return [
+    customer.name,
+    customer.contact,
+    customer.street,
+    customer.zip,
+    customer.place,
+    customer.phone,
+    customer.email
+  ].map(normalizeMergeValue).join('|');
+}
+
+function diaryMergeKey(entry){
+  return [
+    entry.date,
+    entry.customerName,
+    entry.site,
+    entry.start,
+    entry.end,
+    entry.pause,
+    entry.hours,
+    entry.note,
+    entry.material,
+    entry.photoId
+  ].map(normalizeMergeValue).join('|');
+}
+
+async function buildMergePreview(backup){
+  const existingPhotos=await getAllStoredPhotos();
+  const existingPhotoIds=new Set(existingPhotos.map(p=>p.id));
+
+  const existingCustomerKeys=new Set(
+    (Array.isArray(db.customers)?db.customers:[]).map(customerMergeKey)
+  );
+
+  const existingDiaryKeys=new Set(
+    (Array.isArray(db.diary)?db.diary:[]).map(diaryMergeKey)
+  );
+
+  let newCustomers=0, existingCustomers=0;
+  for(const customer of backup.data.customers){
+    const key=customerMergeKey(customer);
+    if(existingCustomerKeys.has(key)){
+      existingCustomers++;
+    }else{
+      existingCustomerKeys.add(key);
+      newCustomers++;
+    }
+  }
+
+  let newDiary=0, existingDiary=0;
+  for(const entry of backup.data.diary){
+    const key=diaryMergeKey(entry);
+    if(existingDiaryKeys.has(key)){
+      existingDiary++;
+    }else{
+      existingDiaryKeys.add(key);
+      newDiary++;
+    }
+  }
+
+  let newPhotos=0, existingPhotosCount=0;
+  for(const photo of backup.data.photos){
+    if(photo.id && existingPhotoIds.has(photo.id)){
+      existingPhotosCount++;
+    }else if(photo.id){
+      existingPhotoIds.add(photo.id);
+      newPhotos++;
+    }
+  }
+
+  return {
+    newCustomers,
+    existingCustomers,
+    newDiary,
+    existingDiary,
+    newPhotos,
+    existingPhotosCount
+  };
+}
+
+async function mergeBackupData(backup){
+  const localCustomers=Array.isArray(db.customers)?db.customers:[];
+  const localDiary=Array.isArray(db.diary)?db.diary:[];
+
+  const existingPhotos=await getAllStoredPhotos();
+  const existingPhotoIds=new Set(existingPhotos.map(p=>p.id));
+
+  // 1) Kunden zusammenführen und importierte Indizes auf lokale Indizes abbilden.
+  const customerKeyToIndex=new Map();
+  localCustomers.forEach((customer,index)=>{
+    customerKeyToIndex.set(customerMergeKey(customer),index);
+    if(!Array.isArray(customer.photoIds)) customer.photoIds=[];
+  });
+
+  const importedIndexToLocalIndex=new Map();
+  let addedCustomers=0;
+  let matchedCustomers=0;
+
+  backup.data.customers.forEach((importedCustomer,importedIndex)=>{
+    const key=customerMergeKey(importedCustomer);
+
+    if(customerKeyToIndex.has(key)){
+      const localIndex=customerKeyToIndex.get(key);
+      importedIndexToLocalIndex.set(importedIndex,localIndex);
+      matchedCustomers++;
+
+      // Bestehende Kundendaten nicht überschreiben, nur Fotoreferenzen ergänzen.
+      const localCustomer=localCustomers[localIndex];
+      const mergedPhotoIds=new Set([
+        ...(Array.isArray(localCustomer.photoIds)?localCustomer.photoIds:[]),
+        ...(Array.isArray(importedCustomer.photoIds)?importedCustomer.photoIds:[])
+      ]);
+      localCustomer.photoIds=[...mergedPhotoIds];
+    }else{
+      const newCustomer={
+        ...importedCustomer,
+        photoIds:Array.isArray(importedCustomer.photoIds)
+          ? [...new Set(importedCustomer.photoIds)]
+          : []
+      };
+
+      localCustomers.push(newCustomer);
+      const localIndex=localCustomers.length-1;
+      customerKeyToIndex.set(key,localIndex);
+      importedIndexToLocalIndex.set(importedIndex,localIndex);
+      addedCustomers++;
+    }
+  });
+
+  // 2) Fotos ergänzen; identische IDs bleiben unverändert.
+  const newPhotoRecords=[];
+  let addedPhotos=0;
+  let skippedPhotos=0;
+
+  for(const photo of backup.data.photos){
+    if(!photo.id || !photo.dataUrl) continue;
+
+    if(existingPhotoIds.has(photo.id)){
+      skippedPhotos++;
+      continue;
+    }
+
+    let localCustomerIndex=null;
+    if(Number.isInteger(photo.customerIndex) && importedIndexToLocalIndex.has(photo.customerIndex)){
+      localCustomerIndex=importedIndexToLocalIndex.get(photo.customerIndex);
+    }
+
+    newPhotoRecords.push({
+      id:photo.id,
+      blob:dataUrlToBlob(photo.dataUrl),
+      createdAt:photo.createdAt||new Date().toISOString(),
+      customerIndex:localCustomerIndex,
+      customerName:photo.customerName||'',
+      site:photo.site||'',
+      date:photo.date||''
+    });
+
+    existingPhotoIds.add(photo.id);
+    addedPhotos++;
+  }
+
+  if(newPhotoRecords.length){
+    const dbx=await openPhotoDB();
+    await new Promise((resolve,reject)=>{
+      const tx=dbx.transaction(PHOTO_STORE,'readwrite');
+      const store=tx.objectStore(PHOTO_STORE);
+      newPhotoRecords.forEach(record=>store.add(record));
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error);
+    });
+  }
+
+  // 3) Tagebuch zusammenführen; bestehende Einträge bleiben unverändert.
+  const diaryKeys=new Set(localDiary.map(diaryMergeKey));
+  let addedDiary=0;
+  let skippedDiary=0;
+
+  for(const importedEntry of backup.data.diary){
+    const entry={...importedEntry};
+
+    if(Number.isInteger(entry.customerIndex) && importedIndexToLocalIndex.has(entry.customerIndex)){
+      entry.customerIndex=importedIndexToLocalIndex.get(entry.customerIndex);
+    }else{
+      entry.customerIndex=null;
+    }
+
+    const key=diaryMergeKey(entry);
+    if(diaryKeys.has(key)){
+      skippedDiary++;
+      continue;
+    }
+
+    localDiary.push(entry);
+    diaryKeys.add(key);
+    addedDiary++;
+  }
+
+  db.customers=localCustomers;
+  db.diary=localDiary;
+  saveDB();
+
+  return {
+    addedCustomers,
+    matchedCustomers,
+    addedDiary,
+    skippedDiary,
+    addedPhotos,
+    skippedPhotos
+  };
+}
+
 async function handleBackupFile(event){
   const file=event.target.files&&event.target.files[0];
   if(!file) return;
@@ -990,21 +1207,23 @@ async function handleBackupFile(event){
       throw new Error('Ungültiges Backup');
     }
 
-    const customerCount=backup.data.customers.length;
-    const diaryCount=backup.data.diary.length;
-    const photoCount=backup.data.photos.length;
+    const preview=await buildMergePreview(backup);
     const backupDate=backup.createdAt
       ? new Date(backup.createdAt).toLocaleString('de-DE')
       : 'unbekannt';
 
     const ok=window.confirm(
-      `Backup importieren?\n\n`+
-      `Erstellt: ${backupDate}\n`+
-      `Kunden: ${customerCount}\n`+
-      `Tagebucheinträge: ${diaryCount}\n`+
-      `Fotos: ${photoCount}\n\n`+
-      `ACHTUNG: Die aktuell auf diesem Gerät gespeicherten Kunden, Tagebucheinträge und Fotos werden vollständig durch dieses Backup ersetzt.\n\n`+
-      `Möchtest du wirklich fortfahren?`
+      `Backup zusammenführen?\n\n`+
+      `Erstellt: ${backupDate}\n\n`+
+      `Neue Kunden: ${preview.newCustomers}\n`+
+      `Bereits vorhanden: ${preview.existingCustomers}\n\n`+
+      `Neue Tagebucheinträge: ${preview.newDiary}\n`+
+      `Bereits vorhanden: ${preview.existingDiary}\n\n`+
+      `Neue Fotos: ${preview.newPhotos}\n`+
+      `Bereits vorhanden: ${preview.existingPhotosCount}\n\n`+
+      `Vorhandene Daten werden nicht automatisch überschrieben. `+
+      `Neue Inhalte werden nur ergänzt.\n\n`+
+      `Möchtest du den Import starten?`
     );
 
     if(!ok){
@@ -1013,47 +1232,35 @@ async function handleBackupFile(event){
       return;
     }
 
-    setBackupStatus('Backup wird importiert …');
+    setBackupStatus('Backup wird zusammengeführt …');
 
-    const importedPhotos=[];
-    for(const photo of backup.data.photos){
-      if(!photo.id || !photo.dataUrl) continue;
-      importedPhotos.push({
-        id:photo.id,
-        blob:dataUrlToBlob(photo.dataUrl),
-        createdAt:photo.createdAt||new Date().toISOString(),
-        customerIndex:photo.customerIndex,
-        customerName:photo.customerName||'',
-        site:photo.site||'',
-        date:photo.date||''
-      });
-    }
+    const result=await mergeBackupData(backup);
 
-    await replaceAllStoredPhotos(importedPhotos);
-
-    db={
-      customers:backup.data.customers,
-      diary:backup.data.diary
-    };
-
-    saveDB();
     resetCustomerForm();
     removePendingPhoto();
     refreshDiaryCustomerSelect();
     await renderCustomers();
     renderDiary();
 
-    setBackupStatus(`Import abgeschlossen: ${customerCount} Kunden, ${diaryCount} Tagebucheinträge, ${photoCount} Fotos.`);
-    toast('Backup importiert');
+    setBackupStatus(
+      `Import abgeschlossen: `+
+      `${result.addedCustomers} neue Kunden, `+
+      `${result.addedDiary} neue Tagebucheinträge, `+
+      `${result.addedPhotos} neue Fotos. `+
+      `Vorhandene Daten blieben erhalten.`
+    );
+
+    toast('Backup zusammengeführt');
 
   }catch(error){
     console.error(error);
-    setBackupStatus('Die ausgewählte Datei ist kein gültiges Allround-Weber-Backup.');
+    setBackupStatus('Die ausgewählte Datei ist kein gültiges Allround-Weber-Backup oder konnte nicht importiert werden.');
     toast('Import fehlgeschlagen');
   }finally{
     event.target.value='';
   }
 }
+
 
 renderDiary();renderCustomers();calc();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
