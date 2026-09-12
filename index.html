@@ -438,7 +438,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.32: kompaktere, dezentere Buttons */
+/* Version 1.33: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +446,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.32 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.33 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -514,7 +514,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
 
-/* Version 1.32 – schmale Kopfzeile und vollständige untere Navigation */
+/* Version 1.33 – schmale Kopfzeile und vollständige untere Navigation */
 header,.topbar,.header{
   min-height:42px!important;
   padding-top:5px!important;
@@ -556,7 +556,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-own-hours b{color:var(--green);font-size:14px}
 
 
-/* Version 1.32 – übersichtlicher Tagebucheintrag */
+/* Version 1.33 – übersichtlicher Tagebucheintrag */
 .diary-form-section{
   margin:10px 0;
   padding:11px;
@@ -577,7 +577,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .diary-form-section .hours{margin:8px 0}
 
 
-/* Version 1.32 – schnelle Baustellenerfassung */
+/* Version 1.33 – schnelle Baustellenerfassung */
 .new-project-tile{
   border:1px solid rgba(92,190,255,.65)!important;
   background:rgba(65,169,238,.10)!important;
@@ -616,7 +616,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:430px){.project-form-grid{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.32 – Kundenliste links sauber und lesbar */
+/* Version 1.33 – Kundenliste links sauber und lesbar */
 .customer-alpha-item{
   width:100%;
   display:block;
@@ -693,7 +693,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.32 – Suchfeld und Kundenliste sauber getrennt */
+/* Version 1.33 – Suchfeld und Kundenliste sauber getrennt */
 .customer-list-pane{
   display:flex!important;
   flex-direction:column;
@@ -723,7 +723,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.32 – tatsächliche Kunden-Seitenleiste korrigiert */
+/* Version 1.33 – tatsächliche Kunden-Seitenleiste korrigiert */
 .customer-sidebar{
   display:flex!important;
   flex-direction:column!important;
@@ -764,7 +764,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.32 – Kunden und Baustellen sauber getrennt */
+/* Version 1.33 – Kunden und Baustellen sauber getrennt */
 .project-customer-box{
   margin-bottom:12px;
   padding:11px;
@@ -793,6 +793,90 @@ body.modal-open{overflow:hidden}
   flex:0 0 auto;
   color:var(--blue2);
   font-size:10px;
+}
+
+
+/* Version 1.33 – Feldgrößen, Schriften und Tagebuch-Layout vereinheitlicht */
+:root{
+  --control-h:40px;
+  --control-radius:9px;
+}
+body{font-size:14px}
+h2{font-size:18px;line-height:1.2}
+label{
+  display:block;
+  font-size:11px!important;
+  font-weight:700;
+  line-height:1.25;
+  margin:10px 0 5px!important;
+}
+input:not([type="hidden"]),select,textarea{
+  width:100%;
+  box-sizing:border-box;
+  font-family:inherit;
+  font-size:14px!important;
+  line-height:1.25;
+  border-radius:var(--control-radius)!important;
+}
+input:not([type="hidden"]),select{
+  height:var(--control-h)!important;
+  min-height:var(--control-h)!important;
+  padding:8px 10px!important;
+}
+textarea{
+  min-height:72px!important;
+  padding:9px 10px!important;
+  resize:vertical;
+}
+.btn{
+  min-height:36px!important;
+  padding:7px 10px!important;
+  font-size:12px!important;
+  line-height:1.15!important;
+  border-radius:8px!important;
+}
+.muted{font-size:11px;line-height:1.35}
+.diary-entry-form-card{overflow:hidden}
+.diary-form-section{
+  padding:11px!important;
+  margin:10px 0!important;
+}
+.diary-section-title{
+  font-size:11px!important;
+  line-height:1.2;
+  margin-bottom:8px!important;
+}
+.diary-time-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:10px;
+  width:100%;
+  align-items:end;
+}
+.diary-time-grid>div{min-width:0}
+.diary-time-grid input[type="time"]{
+  display:block;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.diary-work-hours{margin-top:10px!important}
+.diary-new-project-btn{width:100%;margin-top:8px!important}
+.field-help{margin:0 0 8px}
+.diary-save-actions{margin-top:10px}
+.employee-hour-row input{min-width:0}
+.customer-form-grid,.project-form-grid{align-items:start}
+.customer-alpha-item b{font-size:13px!important}
+.customer-alpha-item small,.customer-list-plan{font-size:10.5px!important}
+.project-specs b{font-size:12px!important}
+.project-specs span{font-size:10px!important}
+@media(max-width:430px){
+  body{font-size:13px}
+  .diary-time-grid{gap:8px}
+  input:not([type="hidden"]),select,textarea{font-size:16px!important} /* verhindert iOS-Zoom */
+  .btn{font-size:12px!important}
 }
 
 </style>
@@ -830,15 +914,12 @@ body.modal-open{overflow:hidden}
       <span class="emoji">📅</span>
       <div class="grow">
         <b>Kalender</b>
-        <div class="muted">Zuerst Datum auswählen – danach erscheinen die Einträge dieses Tages.</div>
+        <div class="muted">Datum auswählen – danach erscheinen die Einträge dieses Tages.</div>
       </div>
     </div>
 
     <label>Datum auswählen</label>
     <input id="diaryFilterDate" type="date" onchange="selectDiaryDate(this.value)">
-
-    <div class="diary-date-nav">
-    </div>
 
     <div class="hours">
       <span class="muted" id="diarySelectedDateLabel">Ausgewählter Tag</span>
@@ -867,73 +948,76 @@ body.modal-open{overflow:hidden}
     <input id="date" type="hidden">
     <input id="diaryEditIndex" type="hidden" value="">
 
-    <div class="diary-form-section"><div class="diary-section-title">Baustelle</div>
-    <label>Kunde</label>
-    <select id="diaryCustomer"></select>
+    <div class="diary-form-section">
+      <div class="diary-section-title">Baustelle</div>
+      <label>Baustelle auswählen</label>
+      <select id="diaryProject" onchange="diaryProjectChanged()"></select>
+      <button class="btn btn2 diary-new-project-btn" type="button" onclick="openNewProjectFromDiary()">＋ Neue Baustelle anlegen</button>
+      <input id="diaryCustomer" type="hidden">
+      <input id="site" type="hidden">
+    </div>
 
-    <label>Baustelle</label>
-    <input id="site" placeholder="z. B. Dressler – Oberottendorf" value="Dressler – Oberottendorf">
-
-    <div class="row">
-      <div>
+    <div class="diary-form-section">
+      <div class="diary-section-title">Arbeitszeit</div>
+      <div class="diary-time-grid">
+        <div>
+          <label>Startzeit</label>
+          <input id="start" type="time" value="08:00">
         </div>
-    <div class="diary-form-section"><div class="diary-section-title">Arbeitszeit</div>
-    <label>Beginn</label>
-        <input id="start" type="time" value="08:00">
+        <div>
+          <label>Endzeit</label>
+          <input id="end" type="time" value="16:00">
+        </div>
       </div>
-      <div>
-        <label>Ende</label>
-        <input id="end" type="time" value="16:00">
-      </div>
-    </div>
 
-    <label>Pause in Minuten</label>
-    <input id="pause" type="number" value="0">
+      <label>Pause in Minuten</label>
+      <input id="pause" type="number" value="0" min="0" step="5" inputmode="numeric">
 
-    <div class="hours">
-      <span class="muted">Arbeitszeit</span>
-      <b class="green" id="hours">8,00 h</b>
-    </div>
-    <label>Meine Stunden</label>
-    <input id="ownHours" type="number" min="0" step="0.25" inputmode="decimal" placeholder="z. B. 8">
-    <div class="muted" style="margin-top:-5px;margin-bottom:10px;">Werden automatisch zur Baustelle addiert.</div>
-
-    <label>Notiz / Tätigkeit</label>
-    <textarea id="note" placeholder="z. B. PV-Anlage auf Carport montiert"></textarea>
-
-    <label>Material</label>
-    <textarea id="mat" placeholder="z. B. 12 Module, Schienen, Klemmen"></textarea>
-
-    </div>
-    <div class="diary-form-section"><div class="diary-section-title">Mitarbeiter</div>
-    <label>Mitarbeiterstunden</label>
-    <div class="muted" style="margin-bottom:8px;">Name und Stunden erfassen. Die Stunden werden automatisch zum Stundenkonto addiert.</div>
-    <div id="employeeHoursRows"></div>
-    <button class="btn btn2" type="button" onclick="addEmployeeHourRow()">+ Mitarbeiter hinzufügen</button>
-    <div class="hours" style="margin-top:10px;">
-      <span class="muted">Mitarbeiterstunden gesamt</span>
-      <b class="green" id="employeeHoursTotal">0,00 h</b>
-    </div>
-
-    </div>
-    <div class="diary-form-section"><div class="diary-section-title">Foto</div>
-    <label>Foto</label>
-    <div class="photo-actions">
-      <button class="btn btn2" type="button" onclick="openCamera()">📷 Foto aufnehmen</button>
-      <input id="cameraInput" class="photo-hidden" type="file" accept="image/*" capture="environment" onchange="handlePhotoSelected(event)">
-    </div>
-
-    <div id="photoPreviewWrap" style="display:none;">
-      <div class="photo-grid">
-        <img id="photoPreview" class="photo-thumb" alt="Foto-Vorschau">
-      </div>
-      <div class="actions">
-        <button class="btn btn2" type="button" onclick="removePendingPhoto()">Foto entfernen</button>
+      <div class="hours diary-work-hours">
+        <span class="muted">Meine Arbeitszeit</span>
+        <b class="green" id="hours">8,00 h</b>
       </div>
     </div>
 
+    <div class="diary-form-section">
+      <div class="diary-section-title">Dokumentation</div>
+      <label>Notiz / Tätigkeit</label>
+      <textarea id="note" placeholder="z. B. PV-Anlage auf Carport montiert"></textarea>
+
+      <label>Material</label>
+      <textarea id="mat" placeholder="z. B. 12 Module, Schienen, Klemmen"></textarea>
     </div>
-    <div class="actions">
+
+    <div class="diary-form-section">
+      <div class="diary-section-title">Mitarbeiter</div>
+      <label>Mitarbeiterstunden</label>
+      <div class="muted field-help">Name und Stunden erfassen. Die Stunden werden automatisch zum Stundenkonto addiert.</div>
+      <div id="employeeHoursRows"></div>
+      <button class="btn btn2" type="button" onclick="addEmployeeHourRow()">+ Mitarbeiter hinzufügen</button>
+      <div class="hours" style="margin-top:10px;">
+        <span class="muted">Mitarbeiterstunden gesamt</span>
+        <b class="green" id="employeeHoursTotal">0,00 h</b>
+      </div>
+    </div>
+
+    <div class="diary-form-section">
+      <div class="diary-section-title">Foto</div>
+      <div class="photo-actions">
+        <button class="btn btn2" type="button" onclick="openCamera()">📷 Foto aufnehmen</button>
+        <input id="cameraInput" class="photo-hidden" type="file" accept="image/*" capture="environment" onchange="handlePhotoSelected(event)">
+      </div>
+
+      <div id="photoPreviewWrap" style="display:none;">
+        <div class="photo-grid">
+          <img id="photoPreview" class="photo-thumb" alt="Foto-Vorschau">
+        </div>
+        <div class="actions">
+          <button class="btn btn2" type="button" onclick="removePendingPhoto()">Foto entfernen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions diary-save-actions">
       <button class="btn" id="diarySaveBtn" onclick="saveDiary()">Eintrag speichern</button>
       <button class="btn btn2" onclick="clearDiary()">Felder leeren</button>
     </div>
@@ -1168,7 +1252,7 @@ body.modal-open{overflow:hidden}
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.32</div>
+    <div class="blue" style="margin-top:6px;">Version 1.33</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1291,7 +1375,22 @@ ensureDataModel();
 function saveDB(){localStorage.setItem(DBKEY,JSON.stringify(db))}
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
 function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();window.scrollTo(0,0)}
-function calc(){let s=document.getElementById('start').value,e=document.getElementById('end').value,p=Number(document.getElementById('pause').value||0);let [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);let m=(eh*60+em)-(sh*60+sm)-p;document.getElementById('hours').textContent=m>=0?(m/60).toFixed(2).replace('.',',')+' h':'—'}
+function calculatedWorkHoursNumber(){
+  const s=document.getElementById('start')?.value||'';
+  const e=document.getElementById('end')?.value||'';
+  const p=Number(document.getElementById('pause')?.value||0);
+  if(!s||!e) return 0;
+  const [sh,sm]=s.split(':').map(Number);
+  const [eh,em]=e.split(':').map(Number);
+  let minutes=(eh*60+em)-(sh*60+sm)-p;
+  if(minutes<0) minutes+=24*60;
+  return Math.max(0,minutes/60);
+}
+
+function calc(){
+  const hours=calculatedWorkHoursNumber();
+  document.getElementById('hours').textContent=formatHoursNumber(hours);
+}
 ['start','end','pause'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
 const diaryToday=new Date();
 const diaryTodayISO=[
@@ -1374,14 +1473,54 @@ function removePendingPhoto(){
   document.getElementById('photoPreviewWrap').style.display='none';
 }
 
-function refreshDiaryCustomerSelect(){
-  const select=document.getElementById('diaryCustomer');
+function refreshDiaryProjectSelect(selectedProjectId=''){
+  const select=document.getElementById('diaryProject');
   if(!select)return;
-  const oldValue=select.value;
-  select.innerHTML=db.customers.map((customer,index)=>
-    `<option value="${index}">${customer.name}${customer.place?' – '+customer.place:''}</option>`
-  ).join('');
-  if(oldValue!==''&&[...select.options].some(o=>o.value===oldValue))select.value=oldValue;
+
+  const projects=(db.projects||[]).slice().sort((a,b)=>
+    (a.name||'').localeCompare(b.name||'','de',{sensitivity:'base'})
+  );
+
+  select.innerHTML='<option value="">Baustelle auswählen …</option>'+
+    projects.map(project=>{
+      const customer=customerById(project.customerId);
+      const suffix=customer?.name ? ` – ${escapeHtml(customer.name)}` : '';
+      return `<option value="${escapeHtml(project.id)}">${escapeHtml(project.name||'Baustelle')}${suffix}</option>`;
+    }).join('');
+
+  if(selectedProjectId && projects.some(p=>p.id===selectedProjectId)){
+    select.value=selectedProjectId;
+  }
+  diaryProjectChanged();
+}
+
+function refreshDiaryCustomerSelect(){
+  // Rückwärtskompatibler Alias für bestehende Aufrufe.
+  refreshDiaryProjectSelect(document.getElementById('diaryProject')?.value||'');
+}
+
+function diaryProjectChanged(){
+  const projectId=document.getElementById('diaryProject')?.value||'';
+  const project=(db.projects||[]).find(p=>p.id===projectId);
+  const hiddenCustomer=document.getElementById('diaryCustomer');
+  const hiddenSite=document.getElementById('site');
+
+  if(!project){
+    if(hiddenCustomer) hiddenCustomer.value='';
+    if(hiddenSite) hiddenSite.value='';
+    return;
+  }
+
+  const customerIndex=(db.customers||[]).findIndex(c=>c.id===project.customerId);
+  if(hiddenCustomer) hiddenCustomer.value=customerIndex>=0?String(customerIndex):'';
+  if(hiddenSite) hiddenSite.value=project.name||'';
+}
+
+let projectCreationContext='normal';
+
+function openNewProjectFromDiary(){
+  projectCreationContext='diary';
+  openNewProjectForm();
 }
 
 
@@ -1783,8 +1922,14 @@ function renderHoursAccounts(){
 }
 
 async function saveDiary(){
-  const customerIndex=Number(document.getElementById('diaryCustomer').value||0);
-  const customer=db.customers[customerIndex];
+  const projectId=document.getElementById('diaryProject').value;
+  const project=(db.projects||[]).find(p=>p.id===projectId);
+  if(!project){
+    toast('Bitte eine Baustelle auswählen');
+    return;
+  }
+  const customerIndex=(db.customers||[]).findIndex(c=>c.id===project.customerId);
+  const customer=customerIndex>=0?db.customers[customerIndex]:null;
   const editIndexRaw=document.getElementById('diaryEditIndex')?.value ?? '';
   const editIndex=editIndexRaw==='' ? null : Number(editIndexRaw);
   const previous=editIndex!==null ? db.diary[editIndex] : null;
@@ -1795,7 +1940,7 @@ async function saveDiary(){
       const newPhotoId=await storePhoto(pendingPhotoBlob,{
         customerIndex,
         customerName:customer?customer.name:'',
-        site:document.getElementById('site').value,
+        site:project.name||'Baustelle',
         date:document.getElementById('date').value
       });
 
@@ -1817,16 +1962,17 @@ async function saveDiary(){
 
   const x={
     date:document.getElementById('date').value,
+    projectId,
     customerIndex,
-    customerName:customer?customer.name:'',
-    site:document.getElementById('site').value,
+    customerName:customer?customer.name:(project.customerName||''),
+    site:project.name||'Baustelle',
     start:document.getElementById('start').value,
     end:document.getElementById('end').value,
     pause:document.getElementById('pause').value,
     hours:document.getElementById('hours').textContent,
     note:document.getElementById('note').value,
     mat:document.getElementById('mat').value,
-    ownHours:Number(String(document.getElementById('ownHours').value||0).replace(',','.'))||0,
+    ownHours:calculatedWorkHoursNumber(),
     employeeHours:getEmployeeHours().map(row=>{
       if(previous && Array.isArray(previous.employeeHours)){
         const oldRow=previous.employeeHours.find(old=>employeeKey(old.name)===employeeKey(row.name));
@@ -1908,7 +2054,18 @@ async function editDiaryEntry(index){
   document.getElementById('start').value=entry.start||'08:00';
   document.getElementById('end').value=entry.end||'16:00';
   document.getElementById('pause').value=entry.pause||0;
-  document.getElementById('ownHours').value=entry.ownHours??'';
+
+  let editProjectId=entry.projectId||'';
+  if(!editProjectId){
+    const norm=v=>String(v||'').trim().toLowerCase();
+    const match=(db.projects||[]).find(p=>
+      norm(p.name)===norm(entry.site) ||
+      (norm(p.customerName)===norm(entry.customerName) && (db.projects||[]).filter(x=>norm(x.customerName)===norm(entry.customerName)).length===1)
+    );
+    editProjectId=match?.id||'';
+  }
+  refreshDiaryProjectSelect(editProjectId);
+
   document.getElementById('note').value=entry.note||'';
   document.getElementById('mat').value=entry.mat||'';
   setEmployeeHours(entry.employeeHours||[]);
@@ -1982,7 +2139,7 @@ function openNewDiaryEntry(){
   document.getElementById('start').value='08:00';
   document.getElementById('end').value='16:00';
   document.getElementById('pause').value='0';
-  document.getElementById('ownHours').value='8';
+  refreshDiaryProjectSelect('');
   document.getElementById('note').value='';
   document.getElementById('mat').value='';
   setEmployeeHours([]);
@@ -2060,7 +2217,6 @@ function renderDiary(){
         <div class="diary-detail" id="diaryDetail-${index}" hidden>
           <div class="rule"></div>
           <div class="muted">Pause: ${x.pause||0} min</div>
-          ${Number(x.ownHours)>0?`<div class="blue" style="margin-top:6px;"><b>Meine Stunden: ${formatHoursNumber(x.ownHours)}</b></div>`:''}
           <div style="margin-top:8px;">${escapeHtml(x.note||'Keine Notiz')}</div>
           <div class="blue" style="margin-top:8px;">Material: ${escapeHtml(x.mat||'—')}</div>
           ${Array.isArray(x.employeeHours)&&x.employeeHours.length?`
@@ -2386,6 +2542,7 @@ function resetProjectForm(){
 }
 
 function openNewProjectForm(){
+  if(projectCreationContext!=='diary') projectCreationContext='normal';
   resetProjectForm();
   document.getElementById('newProjectModal').hidden=false;
   document.body.classList.add('modal-open');
@@ -2468,18 +2625,22 @@ function saveNewProject(){
     windowArea:type==='fenster'?(Number(String(document.getElementById('newProjectWindowArea').value||0).replace(',','.'))||0):0
   };
 
+  let savedProjectId=editId;
   if(editId){
     const idx=(db.projects||[]).findIndex(p=>p.id===editId);
     if(idx>=0){
       db.projects[idx]={...db.projects[idx],...payload,updatedAt:new Date().toISOString()};
+      savedProjectId=db.projects[idx].id;
       toast('Baustelle geändert');
     }
   }else{
-    db.projects.push({
+    const newProject={
       id:makeStableId('proj'),
       ...payload,
       createdAt:new Date().toISOString()
-    });
+    };
+    db.projects.push(newProject);
+    savedProjectId=newProject.id;
     toast('Baustelle angelegt');
   }
 
@@ -2488,6 +2649,14 @@ function saveNewProject(){
   renderProjectTab();
   refreshDiaryCustomerSelect();
   closeNewProjectForm();
+
+  if(projectCreationContext==='diary'){
+    projectCreationContext='normal';
+    refreshDiaryProjectSelect(savedProjectId);
+    diaryProjectChanged();
+    return;
+  }
+
   showProjectTab(type);
   show('projects');
 }
@@ -2555,15 +2724,15 @@ function ownHoursForProject(project){
 
   return (db.diary||[]).reduce((sum,entry)=>{
     if(entry.projectId && entry.projectId===project.id){
-      return sum+(Number(entry.ownHours)||0);
+      return sum+(Number(entry.ownHours)||Number(String(entry.hours||'').replace(' h','').replace(',','.'))||0);
     }
     if(norm(entry.site) && norm(entry.site)===norm(project.name)){
-      return sum+(Number(entry.ownHours)||0);
+      return sum+(Number(entry.ownHours)||Number(String(entry.hours||'').replace(' h','').replace(',','.'))||0);
     }
     // Legacy: if this customer has only one Baustelle, older diary rows can still be assigned safely.
     if(customer && customerProjects.length===1){
       const sameName=norm(entry.customerName)===norm(customer.name);
-      if(sameName) return sum+(Number(entry.ownHours)||0);
+      if(sameName) return sum+(Number(entry.ownHours)||Number(String(entry.hours||'').replace(' h','').replace(',','.'))||0);
     }
     return sum;
   },0);
@@ -2889,7 +3058,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.32',
+      appVersion:'1.33',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
