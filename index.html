@@ -438,7 +438,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.23: kompaktere, dezentere Buttons */
+/* Version 1.25: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +446,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.23 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.25 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -514,7 +514,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
 
-/* Version 1.23 – schmale Kopfzeile und vollständige untere Navigation */
+/* Version 1.25 – schmale Kopfzeile und vollständige untere Navigation */
 header,.topbar,.header{
   min-height:42px!important;
   padding-top:5px!important;
@@ -551,6 +551,31 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 }
 .navin.nav-scroll .ni{font-size:17px!important}
 
+
+.project-own-hours{display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding:7px 9px;border-radius:9px;background:rgba(255,255,255,.025);font-size:12px;color:var(--muted)}
+.project-own-hours b{color:var(--green);font-size:14px}
+
+
+/* Version 1.25 – übersichtlicher Tagebucheintrag */
+.diary-form-section{
+  margin:10px 0;
+  padding:11px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.018);
+}
+.diary-section-title{
+  font-size:12px;
+  font-weight:900;
+  color:var(--blue2);
+  text-transform:uppercase;
+  letter-spacing:.45px;
+  margin-bottom:9px;
+}
+.diary-form-section label:first-of-type{margin-top:0}
+.diary-form-section textarea{min-height:72px}
+.diary-form-section .hours{margin:8px 0}
+
 </style>
 </head>
 <body>
@@ -558,11 +583,11 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 <header><img class="logo" src="icon-192.png"><div><div class="brand">Allround <span>Weber</span></div><div class="tag"></div></div></header>
 <main>
 <section id="home" class="screen active">
-<div class="card"><div class="muted">Alles für deine Baustellen an einem Ort.</div><div class="rule"></div><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
+<div class="card"><div class="muted">Alles für deine Baustellen an einem Ort.</div><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
 
 <div class="grid">
 <div class="tile" onclick="show('diary')"><span class="emoji">📝</span><b>Bautagebuch</b><small>Arbeitszeit, Pause, Notiz und Material</small><span class="arr">›</span></div>
-<div class="tile" onclick="show('pv')"><span class="emoji">☀️</span><b>PV-Anlagen</b><small>Projekte und Anlagendaten</small><span class="arr">›</span></div>
+
 <div class="tile" onclick="show('customers')"><span class="emoji">👥</span><b>Kunden</b><small>Kundenverwaltung</small><span class="arr">›</span></div>
 <div class="tile" onclick="show('projects')"><span class="big">🏗️</span><b>Baustellen</b><small>Nach Art sortiert</small></div>
 <div class="tile" onclick="show('hoursAccounts')"><span class="big">⏱️</span><b>Stundenkonten</b><small>Mitarbeiterstunden</small></div>
@@ -621,6 +646,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
     <input id="date" type="hidden">
     <input id="diaryEditIndex" type="hidden" value="">
 
+    <div class="diary-form-section"><div class="diary-section-title">Baustelle</div>
     <label>Kunde</label>
     <select id="diaryCustomer"></select>
 
@@ -629,7 +655,9 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 
     <div class="row">
       <div>
-        <label>Beginn</label>
+        </div>
+    <div class="diary-form-section"><div class="diary-section-title">Arbeitszeit</div>
+    <label>Beginn</label>
         <input id="start" type="time" value="08:00">
       </div>
       <div>
@@ -645,6 +673,9 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
       <span class="muted">Arbeitszeit</span>
       <b class="green" id="hours">8,00 h</b>
     </div>
+    <label>Meine Stunden</label>
+    <input id="ownHours" type="number" min="0" step="0.25" inputmode="decimal" placeholder="z. B. 8">
+    <div class="muted" style="margin-top:-5px;margin-bottom:10px;">Werden automatisch zur Baustelle addiert.</div>
 
     <label>Notiz / Tätigkeit</label>
     <textarea id="note" placeholder="z. B. PV-Anlage auf Carport montiert"></textarea>
@@ -652,6 +683,8 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
     <label>Material</label>
     <textarea id="mat" placeholder="z. B. 12 Module, Schienen, Klemmen"></textarea>
 
+    </div>
+    <div class="diary-form-section"><div class="diary-section-title">Mitarbeiter</div>
     <label>Mitarbeiterstunden</label>
     <div class="muted" style="margin-bottom:8px;">Name und Stunden erfassen. Die Stunden werden automatisch zum Stundenkonto addiert.</div>
     <div id="employeeHoursRows"></div>
@@ -661,6 +694,8 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
       <b class="green" id="employeeHoursTotal">0,00 h</b>
     </div>
 
+    </div>
+    <div class="diary-form-section"><div class="diary-section-title">Foto</div>
     <label>Foto</label>
     <div class="photo-actions">
       <button class="btn btn2" type="button" onclick="openCamera()">📷 Foto aufnehmen</button>
@@ -676,6 +711,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
       </div>
     </div>
 
+    </div>
     <div class="actions">
       <button class="btn" id="diarySaveBtn" onclick="saveDiary()">Eintrag speichern</button>
       <button class="btn btn2" onclick="clearDiary()">Felder leeren</button>
@@ -859,7 +895,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.23</div>
+    <div class="blue" style="margin-top:6px;">Version 1.25</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -908,7 +944,6 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 <div class="nav"><div class="navin nav-scroll">
 <button id="n-home" class="active" onclick="show('home')"><span class="ni">⌂</span>Start</button>
 <button id="n-diary" onclick="show('diary')"><span class="ni">📝</span>Bautagebuch</button>
-<button id="n-pv" onclick="show('pv')"><span class="ni">☀️</span>PV-Anlagen</button>
 <button id="n-customers" onclick="show('customers')"><span class="ni">👥</span>Kunden</button>
 <button id="n-projects" onclick="show('projects')"><span class="ni">🏗️</span>Baustellen</button>
 <button id="n-hoursAccounts" onclick="show('hoursAccounts')"><span class="ni">⏱️</span>Stundenkonten</button>
@@ -1459,6 +1494,7 @@ async function saveDiary(){
     hours:document.getElementById('hours').textContent,
     note:document.getElementById('note').value,
     mat:document.getElementById('mat').value,
+    ownHours:Number(String(document.getElementById('ownHours').value||0).replace(',','.'))||0,
     employeeHours:getEmployeeHours().map(row=>{
       if(previous && Array.isArray(previous.employeeHours)){
         const oldRow=previous.employeeHours.find(old=>employeeKey(old.name)===employeeKey(row.name));
@@ -1493,6 +1529,7 @@ async function saveDiary(){
   selectDiaryDate(x.date);
   renderCustomers();
   renderHoursAccounts();
+  renderProjectTab();
   toast(editIndex!==null ? 'Tagebucheintrag aktualisiert' : (photoId?'Tagebuch + Foto gespeichert':'Bautagebuch gespeichert'));
   document.getElementById('note').value='';
   document.getElementById('mat').value='';
@@ -1539,6 +1576,7 @@ async function editDiaryEntry(index){
   document.getElementById('start').value=entry.start||'08:00';
   document.getElementById('end').value=entry.end||'16:00';
   document.getElementById('pause').value=entry.pause||0;
+  document.getElementById('ownHours').value=entry.ownHours??'';
   document.getElementById('note').value=entry.note||'';
   document.getElementById('mat').value=entry.mat||'';
   setEmployeeHours(entry.employeeHours||[]);
@@ -1612,6 +1650,7 @@ function openNewDiaryEntry(){
   document.getElementById('start').value='08:00';
   document.getElementById('end').value='16:00';
   document.getElementById('pause').value='0';
+  document.getElementById('ownHours').value='8';
   document.getElementById('note').value='';
   document.getElementById('mat').value='';
   setEmployeeHours([]);
@@ -1689,6 +1728,7 @@ function renderDiary(){
         <div class="diary-detail" id="diaryDetail-${index}" hidden>
           <div class="rule"></div>
           <div class="muted">Pause: ${x.pause||0} min</div>
+          ${Number(x.ownHours)>0?`<div class="blue" style="margin-top:6px;"><b>Meine Stunden: ${formatHoursNumber(x.ownHours)}</b></div>`:''}
           <div style="margin-top:8px;">${escapeHtml(x.note||'Keine Notiz')}</div>
           <div class="blue" style="margin-top:8px;">Material: ${escapeHtml(x.mat||'—')}</div>
           ${Array.isArray(x.employeeHours)&&x.employeeHours.length?`
@@ -1750,6 +1790,7 @@ async function deleteDiaryEntry(index){
   renderDiary();
   renderCustomers();
   renderHoursAccounts();
+  renderProjectTab();
   toast('Tagebucheintrag gelöscht');
 }
 
@@ -1791,6 +1832,7 @@ async function deleteDiaryDay(){
   renderDiary();
   renderCustomers();
   renderHoursAccounts();
+  renderProjectTab();
   toast('Tageseinträge gelöscht');
 }
 
@@ -1961,6 +2003,14 @@ function showProjectTab(type,button){
   renderProjectTab();
 }
 
+function ownHoursForCustomer(customerIndex,customer){
+  return db.diary.reduce((sum,entry)=>{
+    const sameIndex=Number.isInteger(entry.customerIndex) && entry.customerIndex===customerIndex;
+    const sameName=customer?.name && entry.customerName===customer.name;
+    return (sameIndex||sameName)?sum+(Number(entry.ownHours)||0):sum;
+  },0);
+}
+
 function renderProjectTab(){
   const el=document.getElementById('projectTabContent');
   if(!el) return;
@@ -1976,6 +2026,7 @@ function renderProjectTab(){
   }
 
   el.innerHTML=projects.map(({customer,index})=>{
+    const ownTotal=ownHoursForCustomer(index,customer);
     const address=[
       customer.street||'',
       [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
@@ -1987,6 +2038,7 @@ function renderProjectTab(){
         <div class="hero" style="font-size:18px;">${escapeHtml(customer.name||'Ohne Namen')}</div>
         <div class="muted">${escapeHtml(address||'Keine Adresse hinterlegt')}</div>
         ${customer.phone?`<div class="blue">${escapeHtml(customer.phone)}</div>`:''}
+        <div class="project-own-hours"><span>Meine Stunden gesamt</span><b>${formatHoursNumber(ownTotal)}</b></div>
         <div class="actions" style="margin-top:10px;">
           <button class="btn btn2" type="button" onclick="selectedCustomerIndex=${index};show('customers');renderCustomers()">Kunde öffnen</button>
           <button class="btn btn2 diary-danger" type="button" onclick="deleteCustomer(${index})">🗑️ Löschen</button>
@@ -2242,7 +2294,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.23',
+      appVersion:'1.25',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
