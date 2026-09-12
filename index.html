@@ -2296,6 +2296,19 @@ async function deleteStoredPhoto(photoId){
   });
 }
 
+async function replaceStoredPhotos(records){
+  const dbx=await openPhotoDB();
+  return new Promise((resolve,reject)=>{
+    const tx=dbx.transaction(PHOTO_STORE,'readwrite');
+    const store=tx.objectStore(PHOTO_STORE);
+    store.clear();
+    (records||[]).forEach(record=>store.put(record));
+    tx.oncomplete=()=>{try{dbx.close()}catch(e){}resolve()};
+    tx.onerror=()=>{const err=tx.error;try{dbx.close()}catch(e){}reject(err)};
+    tx.onabort=()=>{const err=tx.error||new Error('Foto-Wiederherstellung abgebrochen');try{dbx.close()}catch(e){}reject(err)};
+  });
+}
+
 async function deleteCustomerPhoto(customerIndex, photoId){
   const customer=db.customers[customerIndex];
   if(!customer)return;
@@ -5160,6 +5173,8 @@ window.addEventListener('load',()=>{
   renderProjectTab();
   renderHoursAccounts();
   selectDiaryDate(diaryTodayISO);
+  // v1.38: täglich mindestens einen lokalen Sicherungsstand anlegen/aktualisieren.
+  createOrUpdateDailySnapshot(false);
 });
 
 </script>
