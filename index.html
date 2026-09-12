@@ -1070,6 +1070,21 @@ textarea{
 }
 
 
+/* Version 1.39 – Baustellenakte mit Material, Fotos und Bautagebuch */
+.project-detail-section{margin-top:12px;border:1px solid rgba(255,255,255,.10);border-radius:12px;background:rgba(255,255,255,.025);overflow:hidden}
+.project-detail-section>summary{list-style:none;cursor:pointer;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700;color:#f5f8fb}
+.project-detail-section>summary::-webkit-details-marker{display:none}
+.project-detail-section>summary:after{content:'▾';color:#149cff;font-size:14px;transition:transform .18s ease}
+.project-detail-section[open]>summary:after{transform:rotate(180deg)}
+.project-detail-inner{padding:0 12px 12px}
+.project-detail-count{font-size:12px;color:#91a7b8;font-weight:600;margin-left:auto;margin-right:6px}
+.project-diary-entry{border-top:1px solid rgba(255,255,255,.08);padding:10px 0}
+.project-diary-entry:first-child{border-top:0;padding-top:2px}
+.project-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.project-photo-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;background:#071522;cursor:pointer}
+.project-material-note{display:flex;justify-content:space-between;gap:10px;align-items:center;color:#91a7b8;font-size:12px;margin:0 0 8px}
+@media(max-width:560px){.project-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 /* Version 1.38 – direkte WebRTC-Gerätesynchronisierung */
 .sync-card{background:#0a2943;border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
 .sync-card h3{margin:0 0 6px;font-size:17px}
@@ -1501,7 +1516,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.38</div>
+    <div class="blue" style="margin-top:6px;">Version 1.39</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1850,7 +1865,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.38'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.39'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -2228,6 +2243,7 @@ function openNewProjectFromDiary(){
 
 let currentLightboxPhotoId = null;
 let currentLightboxCustomerIndex = null;
+let currentLightboxProjectId = null;
 let currentLightboxObjectUrl = null;
 
 function formatPhotoDate(iso){
@@ -2255,15 +2271,31 @@ async function openPhotoLightbox(photoId, customerIndex){
   }
 
   currentLightboxPhotoId=photoId;
-  currentLightboxCustomerIndex=Number(customerIndex);
+  currentLightboxCustomerIndex=Number.isFinite(Number(customerIndex))?Number(customerIndex):null;
+  currentLightboxProjectId=null;
   currentLightboxObjectUrl=URL.createObjectURL(record.blob);
 
   document.getElementById('lightboxImage').src=currentLightboxObjectUrl;
-  document.getElementById('lightboxTitle').textContent=
-    record.customerName || 'Baustellenfoto';
-  document.getElementById('lightboxDate').textContent=
-    formatPhotoDate(record.createdAt);
+  document.getElementById('lightboxTitle').textContent=record.customerName || 'Baustellenfoto';
+  document.getElementById('lightboxDate').textContent=formatPhotoDate(record.createdAt);
+  document.getElementById('photoLightbox').classList.add('show');
+}
 
+async function openProjectPhotoLightbox(photoId, projectId){
+  const record=await getPhoto(photoId);
+  if(!record||!record.blob){
+    toast('Foto nicht gefunden');
+    return;
+  }
+  if(currentLightboxObjectUrl) URL.revokeObjectURL(currentLightboxObjectUrl);
+  const project=(db.projects||[]).find(p=>p.id===projectId);
+  currentLightboxPhotoId=photoId;
+  currentLightboxCustomerIndex=null;
+  currentLightboxProjectId=projectId||null;
+  currentLightboxObjectUrl=URL.createObjectURL(record.blob);
+  document.getElementById('lightboxImage').src=currentLightboxObjectUrl;
+  document.getElementById('lightboxTitle').textContent=project?.name||record.customerName||'Baustellenfoto';
+  document.getElementById('lightboxDate').textContent=formatPhotoDate(record.createdAt);
   document.getElementById('photoLightbox').classList.add('show');
 }
 
@@ -2277,6 +2309,7 @@ function closePhotoLightbox(){
 
   currentLightboxPhotoId=null;
   currentLightboxCustomerIndex=null;
+  currentLightboxProjectId=null;
 }
 
 function lightboxBackdropClose(event){
@@ -2341,14 +2374,38 @@ async function deleteCustomerPhoto(customerIndex, photoId){
   }
 }
 
-async function deletePhotoFromLightbox(){
-  if(currentLightboxPhotoId===null||currentLightboxCustomerIndex===null)return;
+async function deleteProjectPhoto(projectId,photoId){
+  if(!photoId)return;
+  const project=(db.projects||[]).find(p=>p.id===projectId);
+  if(!project)return;
+  const confirmed=window.confirm('Foto wirklich löschen?\n\nDas Foto wird aus dem zugehörigen Bautagebucheintrag entfernt.');
+  if(!confirmed)return;
+  try{
+    await deleteStoredPhoto(photoId);
+    (db.customers||[]).forEach(customer=>{
+      if(Array.isArray(customer.photoIds)) customer.photoIds=customer.photoIds.filter(id=>id!==photoId);
+    });
+    (db.diary||[]).forEach(entry=>{if(entry.photoId===photoId)entry.photoId=null});
+    saveDB();
+    renderProjectTab();
+    renderDiary();
+    toast('Foto gelöscht');
+  }catch(e){
+    toast('Foto konnte nicht gelöscht werden');
+  }
+}
 
+async function deletePhotoFromLightbox(){
+  if(currentLightboxPhotoId===null)return;
   const photoId=currentLightboxPhotoId;
   const customerIndex=currentLightboxCustomerIndex;
-
+  const projectId=currentLightboxProjectId;
   closePhotoLightbox();
-  await deleteCustomerPhoto(customerIndex,photoId);
+  if(projectId){
+    await deleteProjectPhoto(projectId,photoId);
+    return;
+  }
+  if(customerIndex!==null) await deleteCustomerPhoto(customerIndex,photoId);
 }
 
 async function getPhotoMeta(id){
@@ -3637,6 +3694,84 @@ function ownHoursForProject(project){
   },0);
 }
 
+function diaryEntriesForProject(project){
+  const norm=v=>String(v||'').trim().toLowerCase();
+  const customer=customerById(project.customerId);
+  const customerIndex=customer?(db.customers||[]).findIndex(c=>c.id===customer.id):-1;
+  const customerProjects=(db.projects||[]).filter(p=>p.customerId===project.customerId);
+  return (db.diary||[]).filter(entry=>{
+    if(entry.projectId) return entry.projectId===project.id;
+    const sameSite=norm(entry.site) && norm(entry.site)===norm(project.name);
+    const hasCustomerRef=entry.customerIndex!==undefined || norm(entry.customerName);
+    const sameCustomer=customer && (
+      Number(entry.customerIndex)===customerIndex ||
+      norm(entry.customerName)===norm(customer.name)
+    );
+    if(sameSite && (!hasCustomerRef || sameCustomer)) return true;
+    if(customer && customerProjects.length===1 && sameCustomer) return true;
+    return false;
+  }).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+}
+
+function projectMaterialHtml(project){
+  if((project.type||'pv')!=='pv')return '';
+  const targetKey=`project:${project.id}`;
+  const list=getMaterialList(targetKey);
+  return `
+    <details class="project-detail-section">
+      <summary><span>PV-Materialliste</span><span class="project-detail-count">Bestell- und Baustellencheckliste</span></summary>
+      <div class="project-detail-inner">
+        <div class="project-material-note"><span>Benötigte Menge frei eintragen</span><span data-material-status-key="${escapeHtml(targetKey)}">Automatisch gespeichert</span></div>
+        ${PV_MATERIAL_GROUPS.map(group=>`
+          <div class="pv-mat-group">
+            <div class="pv-mat-group-title">${escapeHtml(group.name)}</div>
+            <div class="pv-mat-table-head"><span>Material</span><span>Menge</span><span>Best.</span><span>Verl.</span><span>Verb.</span></div>
+            ${group.items.map(([id,name,unit])=>{
+              const row=list.items[id]||{};
+              return `<div class="pv-mat-row">
+                <div class="pv-mat-name"><b>${escapeHtml(name)}</b><span>${escapeHtml(unit)}</span></div>
+                <input class="pv-mat-qty" type="number" min="0" step="any" inputmode="decimal" aria-label="Benötigte Menge ${escapeHtml(name)}" value="${escapeHtml(row.qty??'')}" oninput="saveMaterialField('${escapeHtml(targetKey)}','${id}','qty',this.value)">
+                <label class="pv-mat-check" aria-label="${escapeHtml(name)} bestellt"><input type="checkbox" ${row.ordered?'checked':''} onchange="saveMaterialField('${escapeHtml(targetKey)}','${id}','ordered',this.checked)"><span></span></label>
+                <label class="pv-mat-check" aria-label="${escapeHtml(name)} verladen"><input type="checkbox" ${row.loaded?'checked':''} onchange="saveMaterialField('${escapeHtml(targetKey)}','${id}','loaded',this.checked)"><span></span></label>
+                <label class="pv-mat-check" aria-label="${escapeHtml(name)} verbaut"><input type="checkbox" ${row.installed?'checked':''} onchange="saveMaterialField('${escapeHtml(targetKey)}','${id}','installed',this.checked)"><span></span></label>
+              </div>`;
+            }).join('')}
+          </div>`).join('')}
+      </div>
+    </details>`;
+}
+
+function projectDiaryHtml(project,entries){
+  return `
+    <details class="project-detail-section">
+      <summary><span>Bautagebuch</span><span class="project-detail-count">${entries.length} Eintrag${entries.length===1?'':'e'}</span></summary>
+      <div class="project-detail-inner">
+        ${entries.length?entries.map(entry=>`
+          <div class="project-diary-entry">
+            <div class="item">
+              <div class="grow"><b>${escapeHtml(entry.date||'Ohne Datum')}</b><div class="blue">${entry.start||entry.end?`${escapeHtml(entry.start||'')}–${escapeHtml(entry.end||'')}`:''}</div></div>
+              <span class="pill">${escapeHtml(entry.hours||formatHoursNumber(Number(entry.ownHours)||0))}</span>
+            </div>
+            <div class="muted" style="margin-top:6px;">Pause: ${escapeHtml(entry.pause??0)} min</div>
+            <div class="rule"></div>
+            <div>${escapeHtml(entry.note||'Keine Notiz')}</div>
+            <div class="blue" style="margin-top:7px;">Material: ${escapeHtml(entry.mat||entry.material||'—')}</div>
+          </div>`).join(''):'<div class="muted">Noch kein Bautagebucheintrag für diese Baustelle vorhanden.</div>'}
+      </div>
+    </details>`;
+}
+
+function projectPhotosHtml(project,entries){
+  const ids=[...new Set(entries.map(e=>e.photoId).filter(Boolean))];
+  return `
+    <details class="project-detail-section">
+      <summary><span>Baustellenfotos</span><span class="project-detail-count">${ids.length} Foto${ids.length===1?'':'s'}</span></summary>
+      <div class="project-detail-inner">
+        ${ids.length?`<div class="project-photo-grid">${ids.map(id=>`<img data-project-photo-id="${escapeHtml(id)}" alt="Baustellenfoto" onclick="openProjectPhotoLightbox('${escapeHtml(id)}','${escapeHtml(project.id)}')">`).join('')}</div>`:'<div class="muted">Noch keine Fotos für diese Baustelle gespeichert.</div>'}
+      </div>
+    </details>`;
+}
+
 function renderProjectTab(){
   const el=document.getElementById('projectTabContent');
   if(!el) return;
@@ -3654,6 +3789,7 @@ function renderProjectTab(){
   el.innerHTML=projects.map(project=>{
     const customer=customerById(project.customerId);
     const ownTotal=ownHoursForProject(project);
+    const diaryEntries=diaryEntriesForProject(project);
 
     return `
       <div class="card project-list-card">
@@ -3670,10 +3806,13 @@ function renderProjectTab(){
             <span>Dachart<b>${escapeHtml(project.roofType||'—')}</b></span>
           </div>`:''}
         ${project.type==='fenster'?`
-          <div class="project-specs one">
-            <span>Fensterfläche<b>${project.windowArea?String(project.windowArea).replace('.',',')+' m²':'—'}</b></span>
-          </div>`:''}
+          <div class="project-specs one"><span>Fensterfläche<b>${project.windowArea?String(project.windowArea).replace('.',',')+' m²':'—'}</b></span></div>`:''}
         <div class="project-own-hours"><span>Meine Stunden gesamt</span><b>${formatHoursNumber(ownTotal)}</b></div>
+
+        ${projectMaterialHtml(project)}
+        ${projectPhotosHtml(project,diaryEntries)}
+        ${projectDiaryHtml(project,diaryEntries)}
+
         <div class="actions" style="margin-top:10px;">
           <button class="btn btn2" type="button" onclick="editProject('${escapeHtml(project.id)}')">✏️ Bearbeiten</button>
           ${customer?`<button class="btn btn2" type="button" onclick="openCustomerById('${escapeHtml(customer.id)}')">Kunde öffnen</button>`:''}
@@ -3681,6 +3820,7 @@ function renderProjectTab(){
         </div>
       </div>`;
   }).join('');
+  loadStoredPhotos('img[data-project-photo-id]','projectPhotoId');
 }
 
 function openCustomerById(customerId){
@@ -3868,11 +4008,13 @@ function saveMaterialField(targetKey,itemId,field,value){
   clearTimeout(materialSaveTimer);
   materialSaveTimer=setTimeout(()=>{
     saveDB();
-    const status=document.getElementById('pvMaterialSaveStatus');
-    if(status){
+    const statuses=[...document.querySelectorAll('[data-material-status-key]')].filter(el=>el.dataset.materialStatusKey===targetKey);
+    const legacyStatus=document.getElementById('pvMaterialSaveStatus');
+    if(legacyStatus)statuses.push(legacyStatus);
+    statuses.forEach(status=>{
       status.textContent='Gespeichert';
       setTimeout(()=>{if(status.textContent==='Gespeichert')status.textContent='Automatisch gespeichert';},1200);
-    }
+    });
   },180);
 }
 
@@ -3991,50 +4133,6 @@ async function renderCustomers(){
     </div>
   `).join('');
 
-  const photoIds=Array.isArray(customer.photoIds)?customer.photoIds:[];
-  const photoCards=[];
-
-  for(const id of photoIds){
-    const record=await getPhotoMeta(id);
-    const dateText=record?formatPhotoDate(record.createdAt):'Datum unbekannt';
-    photoCards.push(`
-      <div class="photo-card">
-        <img data-customer-photo-id="${esc(id)}" alt="Baustellenfoto" onclick="openPhotoLightbox('${esc(id)}',${selectedCustomerIndex})">
-        <div class="photo-meta">
-          <div class="photo-date">${esc(dateText)}</div>
-          <button class="photo-delete" type="button" onclick="deleteCustomerPhoto(${selectedCustomerIndex},'${esc(id)}')">🗑️</button>
-        </div>
-      </div>
-    `);
-  }
-
-  const customerNameNorm=String(customer.name||'').trim().toLowerCase();
-  const relatedDiary=(Array.isArray(db.diary)?db.diary:[])
-    .filter(entry=>
-      entry.customerIndex===selectedCustomerIndex ||
-      (customerNameNorm && String(entry.customerName||'').trim().toLowerCase()===customerNameNorm)
-    )
-    .slice()
-    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-
-  const diaryHtml=relatedDiary.length
-    ? relatedDiary.map(entry=>`
-        <div class="customer-diary-entry">
-          <div class="item">
-            <div class="grow">
-              <b>${esc(entry.site||'Baustelle')}</b>
-              <div class="blue">${esc(entry.date||'')} ${entry.start||entry.end?`· ${esc(entry.start||'')}–${esc(entry.end||'')}`:''}</div>
-            </div>
-            <span class="pill">${esc(entry.hours||'')}</span>
-          </div>
-          <div class="muted" style="margin-top:6px;">Pause: ${esc(entry.pause??0)} min</div>
-          <div class="rule"></div>
-          <div>${esc(entry.note||'Keine Notiz')}</div>
-          <div class="blue" style="margin-top:7px;">Material: ${esc(entry.mat||entry.material||'—')}</div>
-          ${entry.photoId?`<div class="photo-grid"><img class="photo-thumb" data-customer-diary-photo-id="${esc(entry.photoId)}" alt="Tagebuchfoto"></div>`:''}
-        </div>
-      `).join('')
-    : '<div class="muted">Noch kein Bautagebucheintrag für diesen Kunden vorhanden.</div>';
 
   detailEl.innerHTML=`
     <div class="customer-detail-top">
@@ -4066,38 +4164,9 @@ async function renderCustomers(){
         : '<div class="muted">Noch keine Baustelle für diesen Kunden angelegt.</div>';
     })()}
 
-    <div class="customer-section-title pv-material-section-title">
-      <div>
-        <b>PV-Materialliste</b>
-        <div class="muted">Bestell- und Baustellencheckliste</div>
-      </div>
-      <button class="btn btn2" id="pvMaterialToggle" type="button" onclick="toggleCustomerMaterialList()">Öffnen</button>
-    </div>
-    <div id="pvMaterialSectionBody" class="pv-material-section-body" hidden>
-      <label>Liste für</label>
-      <select id="pvMaterialTarget" onchange="changeCustomerMaterialTarget()"></select>
-      <div class="pv-material-legend">
-        <span>Benötigte Menge frei eintragen</span>
-        <span id="pvMaterialSaveStatus">Automatisch gespeichert</span>
-      </div>
-      <div id="pvMaterialListBody"></div>
-    </div>
 
-    <div class="customer-section-title">
-      <b>Baustellenfotos</b>
-      <span class="muted">${photoIds.length} Foto${photoIds.length===1?'':'s'}</span>
-    </div>
-    ${photoCards.length?`<div class="photo-grid">${photoCards.join('')}</div>`:'<div class="muted">Noch keine Fotos gespeichert.</div>'}
-
-    <div class="customer-section-title">
-      <b>Bautagebuch</b>
-      <span class="muted">${relatedDiary.length} Eintrag${relatedDiary.length===1?'':'e'}</span>
-    </div>
-    ${diaryHtml}
   `;
 
-  loadStoredPhotos('img[data-customer-photo-id]','customerPhotoId');
-  loadStoredPhotos('img[data-customer-diary-photo-id]','customerDiaryPhotoId');
 }
 
 function selectCustomer(index){
@@ -4167,7 +4236,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.38',db:syncClone(db)
+      appVersion:'1.39',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -4182,7 +4251,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.38',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.39',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -4354,7 +4423,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.38',
+      appVersion:'1.39',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
