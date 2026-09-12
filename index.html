@@ -438,7 +438,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.30: kompaktere, dezentere Buttons */
+/* Version 1.31: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +446,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.30 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.31 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -514,7 +514,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
 
-/* Version 1.30 – schmale Kopfzeile und vollständige untere Navigation */
+/* Version 1.31 – schmale Kopfzeile und vollständige untere Navigation */
 header,.topbar,.header{
   min-height:42px!important;
   padding-top:5px!important;
@@ -556,7 +556,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-own-hours b{color:var(--green);font-size:14px}
 
 
-/* Version 1.30 – übersichtlicher Tagebucheintrag */
+/* Version 1.31 – übersichtlicher Tagebucheintrag */
 .diary-form-section{
   margin:10px 0;
   padding:11px;
@@ -577,7 +577,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .diary-form-section .hours{margin:8px 0}
 
 
-/* Version 1.30 – schnelle Baustellenerfassung */
+/* Version 1.31 – schnelle Baustellenerfassung */
 .new-project-tile{
   border:1px solid rgba(92,190,255,.65)!important;
   background:rgba(65,169,238,.10)!important;
@@ -616,7 +616,7 @@ body.modal-open{overflow:hidden}
 @media(max-width:430px){.project-form-grid{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.30 – Kundenliste links sauber und lesbar */
+/* Version 1.31 – Kundenliste links sauber und lesbar */
 .customer-alpha-item{
   width:100%;
   display:block;
@@ -693,7 +693,7 @@ body.modal-open{overflow:hidden}
 }
 
 
-/* Version 1.30 – Suchfeld und Kundenliste sauber getrennt */
+/* Version 1.31 – Suchfeld und Kundenliste sauber getrennt */
 .customer-list-pane{
   display:flex!important;
   flex-direction:column;
@@ -720,6 +720,47 @@ body.modal-open{overflow:hidden}
   overflow-x:hidden!important;
   padding-top:0!important;
   scroll-padding-top:8px;
+}
+
+
+/* Version 1.31 – tatsächliche Kunden-Seitenleiste korrigiert */
+.customer-sidebar{
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  min-height:0;
+}
+.customer-sidebar-head{
+  position:static!important;
+  top:auto!important;
+  z-index:auto!important;
+  flex:0 0 auto;
+  padding:12px!important;
+  background:var(--panel)!important;
+}
+.customer-sidebar-head label{
+  display:block;
+  margin:0 0 6px 0!important;
+}
+#customerSearch{
+  display:block!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  position:static!important;
+}
+#customerList.customer-alpha-list{
+  flex:1 1 auto;
+  min-height:0;
+  max-height:68vh!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  position:static!important;
+  padding:0!important;
+  margin:0!important;
+}
+@media(max-width:680px){
+  #customerList.customer-alpha-list{max-height:34vh!important}
 }
 
 </style>
@@ -1065,7 +1106,7 @@ body.modal-open{overflow:hidden}
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.30</div>
+    <div class="blue" style="margin-top:6px;">Version 1.31</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -2572,7 +2613,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.30',
+      appVersion:'1.31',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
