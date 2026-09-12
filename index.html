@@ -438,7 +438,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 }
 
 
-/* Version 1.26: kompaktere, dezentere Buttons */
+/* Version 1.27: kompaktere, dezentere Buttons */
 .btn{min-height:36px;padding:7px 11px;border-radius:10px;font-size:13px;font-weight:700}
 .btn2{min-height:36px;padding:7px 10px}
 .actions{gap:7px}
@@ -446,7 +446,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn,.diary-form-close{width:33px;height:33px;border-radius:9px;font-size:15px}
 
 
-/* Version 1.26 – kompakte Tagesübersicht im Bautagebuch */
+/* Version 1.27 – kompakte Tagesübersicht im Bautagebuch */
 .diary-summary-card{padding:0;overflow:hidden}
 .diary-summary-main{
   width:100%;
@@ -514,7 +514,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .paid-row small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 
 
-/* Version 1.26 – schmale Kopfzeile und vollständige untere Navigation */
+/* Version 1.27 – schmale Kopfzeile und vollständige untere Navigation */
 header,.topbar,.header{
   min-height:42px!important;
   padding-top:5px!important;
@@ -556,7 +556,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-own-hours b{color:var(--green);font-size:14px}
 
 
-/* Version 1.26 – übersichtlicher Tagebucheintrag */
+/* Version 1.27 – übersichtlicher Tagebucheintrag */
 .diary-form-section{
   margin:10px 0;
   padding:11px;
@@ -583,10 +583,10 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 <header><img class="logo" src="icon-192.png"><div><div class="brand">Allround <span>Weber</span></div><div class="tag"></div></div></header>
 <main>
 <section id="home" class="screen active">
-<div class="card"><b>Aktuelles Projekt</b><div class="blue">Dressler – Oberottendorf</div></div>
+
 
 <div class="grid">
-<div class="tile" onclick="show('diary')"><span class="emoji">📝</span><b>Bautagebuch</b><small>Arbeitszeit, Pause, Notiz und Material</small><span class="arr">›</span></div>
+
 
 <div class="tile" onclick="show('customers')"><span class="emoji">👥</span><b>Kunden</b><small>Kundenverwaltung</small><span class="arr">›</span></div>
 <div class="tile" onclick="show('projects')"><span class="big">🏗️</span><b>Baustellen</b><small>Nach Art sortiert</small></div>
@@ -614,9 +614,6 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
     <input id="diaryFilterDate" type="date" onchange="selectDiaryDate(this.value)">
 
     <div class="diary-date-nav">
-      <button class="btn btn2" type="button" onclick="shiftDiaryDate(-1)">‹ Vortag</button>
-      <button class="btn btn2" type="button" onclick="selectDiaryToday()">Heute</button>
-      <button class="btn btn2" type="button" onclick="shiftDiaryDate(1)">Folgetag ›</button>
     </div>
 
     <div class="hours">
@@ -849,45 +846,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 </section>
 
 
-<section id="material" class="screen">
-  <div class="head">
-    <button class="back" onclick="show('home')">‹</button>
-    <h2>Material</h2>
-  </div>
 
-  <div class="card">
-    <div class="item">
-      <span class="emoji">🔩</span>
-      <div class="grow">
-        <b>Schletter PV-Materialkatalog 2026</b>
-        <div class="muted">Vollständiger Katalog mit Artikelnummer, Bezeichnung und Mengenauswahl.</div>
-      </div>
-      <span class="pill" id="schletterCount"></span>
-    </div>
-
-    <label>Artikel suchen</label>
-    <input id="schletterSearch" type="search" placeholder="Artikelnummer oder Bezeichnung" oninput="renderSchletterCatalog()">
-
-    <label>Kategorie</label>
-    <select id="schletterCategory" onchange="renderSchletterCatalog()">
-      <option value="">Alle Kategorien</option>
-    </select>
-
-    <div class="actions">
-      <button class="btn btn2" type="button" onclick="resetSchletterFilters()">Alle Artikel anzeigen</button>
-      <button class="btn" type="button" onclick="exportSchletterMaterialList()">📄 Materialliste für Pages exportieren</button>
-      <button class="btn btn2" type="button" onclick="clearSchletterQuantities()">Mengen leeren</button>
-    </div>
-
-    <div class="hours" style="margin-top:12px;">
-      <span class="muted">Ausgewählte Positionen</span>
-      <b class="green" id="schletterSelectedCount">0</b>
-    </div>
-  </div>
-
-  <div id="schletterSelectionPreview"></div>
-  <div id="schletterCatalog"></div>
-</section>
 
 
 <section id="more" class="screen">
@@ -895,7 +854,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.26</div>
+    <div class="blue" style="margin-top:6px;">Version 1.27</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -947,7 +906,6 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 <button id="n-customers" onclick="show('customers')"><span class="ni">👥</span>Kunden</button>
 <button id="n-projects" onclick="show('projects')"><span class="ni">🏗️</span>Baustellen</button>
 <button id="n-hoursAccounts" onclick="show('hoursAccounts')"><span class="ni">⏱️</span>Stundenkonten</button>
-<button id="n-material" onclick="show('material')"><span class="ni">📦</span>Material</button>
 <button id="n-more" onclick="show('more')"><span class="ni">•••</span>Mehr</button>
 </div></div>
 <div class="toast" id="toast"></div>
@@ -958,7 +916,7 @@ let db={diary:[],customers:[{name:'Dressler',place:'Oberottendorf'},{name:'Famil
 try{const x=localStorage.getItem(DBKEY);if(x)db=JSON.parse(x)}catch(e){}
 function saveDB(){localStorage.setItem(DBKEY,JSON.stringify(db))}
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();window.scrollTo(0,0)}
 function calc(){let s=document.getElementById('start').value,e=document.getElementById('end').value,p=Number(document.getElementById('pause').value||0);let [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);let m=(eh*60+em)-(sh*60+sm)-p;document.getElementById('hours').textContent=m>=0?(m/60).toFixed(2).replace('.',',')+' h':'—'}
 ['start','end','pause'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
 const diaryToday=new Date();
@@ -2049,7 +2007,6 @@ function renderProjectTab(){
 async function renderCustomers(){
 
   refreshDiaryCustomerSelect();
-  initSchletterCatalog();
 
   const listEl=document.getElementById('customerList');
   const detailEl=document.getElementById('customerDetail');
@@ -2294,7 +2251,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.26',
+      appVersion:'1.27',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
