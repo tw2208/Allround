@@ -349,6 +349,54 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .customer-form-body{padding:0 16px 16px}
 .customer-form-body[hidden]{display:none!important}
 
+
+.diary-delete-btn{
+  width:38px;
+  height:38px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#2b1720;
+  color:#ff9c9c;
+  font-size:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 auto;
+}
+.diary-delete-btn:active{transform:scale(.96)}
+
+
+.project-tabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:12px;
+}
+.project-tab{
+  border:1px solid var(--line);
+  background:#102a43;
+  color:var(--text);
+  border-radius:14px;
+  padding:10px 8px;
+  font-weight:800;
+  font-size:12px;
+}
+.project-tab.active{
+  background:var(--blue);
+  color:white;
+  border-color:var(--blue);
+}
+.project-list-card .project-type{
+  font-size:11px;
+  color:var(--blue2);
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+@media(max-width:700px){
+  .project-tabs{grid-template-columns:1fr 1fr}
+}
+
 </style>
 </head>
 <body>
@@ -395,6 +443,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 <div class="tile" onclick="show('diary')"><span class="emoji">📝</span><b>Bautagebuch</b><small>Arbeitszeit, Pause, Notiz und Material</small><span class="arr">›</span></div>
 <div class="tile" onclick="show('pv')"><span class="emoji">☀️</span><b>PV-Anlagen</b><small>Projekte und Anlagendaten</small><span class="arr">›</span></div>
 <div class="tile" onclick="show('customers')"><span class="emoji">👥</span><b>Kunden</b><small>Kundenverwaltung</small><span class="arr">›</span></div>
+<div class="tile" onclick="show('projects')"><span class="big">🏗️</span><b>Baustellen</b><small>Nach Art sortiert</small></div>
 <div class="tile" onclick="show('material')"><span class="emoji">🧰</span><b>Material</b><small>Bestand und Verbrauch</small><span class="arr">›</span></div>
 </div>
 </section>
@@ -482,6 +531,15 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
           <label>Notizen</label>
           <textarea id="custNotes" placeholder="z. B. bevorzugte Erreichbarkeit, Zugang zur Baustelle, Besonderheiten"></textarea>
         </div>
+        <div class="full">
+          <label>Art der Baustelle</label>
+          <select id="custProjectType">
+            <option value="pv">PV-Anlage</option>
+            <option value="fenster">Fensterreinigung</option>
+            <option value="renovierung">Renovierung</option>
+            <option value="sanierung">Sanierung</option>
+          </select>
+        </div>
       </div>
 
       <input type="hidden" id="custEditIndex" value="">
@@ -509,6 +567,23 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
   </div>
 
 </section>
+
+<section id="projects" class="screen">
+  <div class="head">
+    <button class="back" onclick="show('home')">‹</button>
+    <h2>Baustellen</h2>
+  </div>
+
+  <div class="project-tabs">
+    <button class="project-tab active" data-type="pv" onclick="showProjectTab('pv',this)">PV-Anlagen</button>
+    <button class="project-tab" data-type="fenster" onclick="showProjectTab('fenster',this)">Fensterreinigung</button>
+    <button class="project-tab" data-type="renovierung" onclick="showProjectTab('renovierung',this)">Renovierung</button>
+    <button class="project-tab" data-type="sanierung" onclick="showProjectTab('sanierung',this)">Sanierung</button>
+  </div>
+
+  <div id="projectTabContent"></div>
+</section>
+
 
 <section id="material" class="screen">
   <div class="head">
@@ -556,7 +631,7 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.15</div>
+    <div class="blue" style="margin-top:6px;">Version 1.17</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -922,10 +997,15 @@ async function saveDiary(){
 function clearDiary(){document.getElementById('note').value='';document.getElementById('mat').value=''}
 function renderDiary(){
   const el=document.getElementById('entries');
-  el.innerHTML=db.diary.map(x=>`
+  el.innerHTML=db.diary.map((x,index)=>`
     <div class="card">
-      <b>${x.site}</b>
-      ${x.customerName?`<div class="muted">Kunde: ${x.customerName}</div>`:''}
+      <div class="item">
+        <div class="grow">
+          <b>${x.site}</b>
+          ${x.customerName?`<div class="muted">Kunde: ${x.customerName}</div>`:''}
+        </div>
+        <button class="diary-delete-btn" type="button" onclick="deleteDiaryEntry(${index})" title="Tagebucheintrag löschen">🗑️</button>
+      </div>
       <div class="blue">${x.date} · ${x.start}–${x.end} · ${x.hours}</div>
       <div class="muted">Pause: ${x.pause} min</div>
       <div class="rule"></div>
@@ -935,6 +1015,40 @@ function renderDiary(){
     </div>
   `).join('');
   loadStoredPhotos('img[data-photo-id]','photoId');
+}
+
+async function deleteDiaryEntry(index){
+  const entry=db.diary[index];
+  if(!entry) return;
+
+  const label=[entry.date||'',entry.customerName||'',entry.site||'']
+    .filter(Boolean).join(' · ');
+
+  const confirmed=window.confirm(
+    `Tagebucheintrag wirklich löschen?\n\n${label}\n\nDiese Aktion kann nicht rückgängig gemacht werden.`
+  );
+  if(!confirmed) return;
+
+  const photoId=entry.photoId||null;
+
+  if(photoId){
+    for(const customer of db.customers){
+      if(Array.isArray(customer.photoIds)){
+        customer.photoIds=customer.photoIds.filter(id=>id!==photoId);
+      }
+    }
+    try{
+      await deletePhoto(photoId);
+    }catch(e){
+      console.warn('Tagebuchfoto konnte nicht aus IndexedDB gelöscht werden',e);
+    }
+  }
+
+  db.diary.splice(index,1);
+  saveDB();
+  renderDiary();
+  renderCustomers();
+  toast('Tagebucheintrag gelöscht');
 }
 let selectedCustomerIndex=null;
 
@@ -965,6 +1079,7 @@ function saveCustomer() {
   const phone = document.getElementById('custPhone').value.trim();
   const email = document.getElementById('custEmail').value.trim();
   const notes = document.getElementById('custNotes').value.trim();
+  const projectType = document.getElementById('custProjectType').value;
   const editIndex = document.getElementById('custEditIndex').value;
 
   if (!name) {
@@ -974,7 +1089,7 @@ function saveCustomer() {
   }
 
   if (editIndex === '') {
-    const customer = {name,contact,street,zip,place,phone,email,notes,photoIds:[]};
+    const customer = {name,contact,street,zip,place,phone,email,notes,projectType,photoIds:[]};
     db.customers.push(customer);
     selectedCustomerIndex=db.customers.length-1;
     toast('Kunde gespeichert');
@@ -983,7 +1098,7 @@ function saveCustomer() {
     const previous=db.customers[idx]||{};
     db.customers[idx]={
       ...previous,
-      name,contact,street,zip,place,phone,email,notes,
+      name,contact,street,zip,place,phone,email,notes,projectType,
       photoIds:Array.isArray(previous.photoIds)?previous.photoIds:[]
     };
     selectedCustomerIndex=idx;
@@ -993,6 +1108,7 @@ function saveCustomer() {
   saveDB();
   resetCustomerForm();
   renderCustomers();
+  renderProjectTab();
 }
 
 function editCustomer(index) {
@@ -1010,6 +1126,7 @@ function editCustomer(index) {
   document.getElementById('custPhone').value = customer.phone || '';
   document.getElementById('custEmail').value = customer.email || '';
   document.getElementById('custNotes').value = customer.notes || '';
+  document.getElementById('custProjectType').value = customer.projectType || 'pv';
   document.getElementById('custEditIndex').value = index;
 
   document.getElementById('custSaveBtn').textContent = 'Änderungen speichern';
@@ -1038,6 +1155,7 @@ function resetCustomerForm() {
   document.getElementById('custPhone').value = '';
   document.getElementById('custEmail').value = '';
   document.getElementById('custNotes').value = '';
+  document.getElementById('custProjectType').value = 'pv';
   document.getElementById('custEditIndex').value = '';
 
   document.getElementById('custSaveBtn').textContent = '+ Kunde anlegen';
@@ -1076,9 +1194,61 @@ function deleteCustomer(index) {
   saveDB();
   resetCustomerForm();
   renderCustomers();
+  renderProjectTab();
   toast('Kunde gelöscht');
 }
 
+
+function projectTypeName(type){
+  return ({
+    pv:'PV-Anlage',
+    fenster:'Fensterreinigung',
+    renovierung:'Renovierung',
+    sanierung:'Sanierung'
+  })[type]||'PV-Anlage';
+}
+
+let activeProjectType='pv';
+
+function showProjectTab(type,button){
+  activeProjectType=type;
+  document.querySelectorAll('.project-tab').forEach(b=>b.classList.remove('active'));
+  if(button) button.classList.add('active');
+  renderProjectTab();
+}
+
+function renderProjectTab(){
+  const el=document.getElementById('projectTabContent');
+  if(!el) return;
+
+  const projects=db.customers
+    .map((customer,index)=>({customer,index}))
+    .filter(({customer})=>(customer.projectType||'pv')===activeProjectType)
+    .sort((a,b)=>(a.customer.name||'').localeCompare(b.customer.name||'','de',{sensitivity:'base'}));
+
+  if(!projects.length){
+    el.innerHTML=`<div class="card"><div class="muted">Noch keine Baustellen in „${projectTypeName(activeProjectType)}“ angelegt.</div></div>`;
+    return;
+  }
+
+  el.innerHTML=projects.map(({customer,index})=>{
+    const address=[
+      customer.street||'',
+      [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
+    ].filter(Boolean).join(', ');
+
+    return `
+      <div class="card project-list-card">
+        <div class="project-type">${projectTypeName(customer.projectType||'pv')}</div>
+        <div class="hero" style="font-size:18px;">${escapeHtml(customer.name||'Ohne Namen')}</div>
+        <div class="muted">${escapeHtml(address||'Keine Adresse hinterlegt')}</div>
+        ${customer.phone?`<div class="blue">${escapeHtml(customer.phone)}</div>`:''}
+        <div class="actions" style="margin-top:10px;">
+          <button class="btn btn2" type="button" onclick="selectedCustomerIndex=${index};show('customers');renderCustomers()">Kunde öffnen</button>
+        </div>
+      </div>`;
+  }).join('');
+}
 async function renderCustomers(){
 
   refreshDiaryCustomerSelect();
@@ -1154,7 +1324,10 @@ async function renderCustomers(){
     [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
   ].filter(Boolean).join(', ');
 
+  const projectTypeLabel=projectTypeName(customer.projectType||'pv');
+
   const infoBoxes=[
+    ['Baustellenart',projectTypeLabel],
     ['Ansprechpartner',customer.contact||'—'],
     ['Adresse',address||'—'],
     ['Telefon',customer.phone||'—'],
@@ -1324,7 +1497,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.15',
+      appVersion:'1.17',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -2089,6 +2262,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('load',()=>{
   loadEvccSettingsIntoForm();
   startEvccAutoRefresh();
+  renderProjectTab();
 });
 
 </script>
