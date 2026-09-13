@@ -1054,6 +1054,27 @@ textarea{
   font-size:16px;
   font-weight:900;
 }
+
+/* Version 1.41 – Einzelpreise & Rechnungsgrundlagen */
+.pv-mat-table-head,.pv-mat-row{
+  grid-template-columns:minmax(145px,1fr) 68px 76px 42px 42px 42px;
+}
+.pv-mat-price{
+  height:34px!important;
+  min-height:34px!important;
+  padding:5px 6px!important;
+  text-align:right;
+  font-size:12px!important;
+}
+.billing-settings-grid{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px;align-items:end;margin-top:12px}
+.billing-settings-grid label{margin:0}
+.invoice-preview{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.invoice-row{display:grid;grid-template-columns:minmax(0,1fr) 70px 88px 92px;gap:8px;align-items:center;padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.055);font-size:11px}
+.invoice-row:last-child{border-bottom:0}.invoice-row.head{font-size:9px;font-weight:800;color:var(--muted);background:rgba(31,157,255,.06)}
+.invoice-row .num{text-align:right}.invoice-total{display:flex;justify-content:space-between;gap:10px;padding:10px 9px;font-weight:800;border-top:1px solid var(--line);background:rgba(31,157,255,.05)}
+.invoice-warning{margin-top:8px;padding:8px 9px;border-radius:8px;background:rgba(255,180,0,.08);color:#ffd27a;font-size:10.5px}
+@media(max-width:680px){.billing-settings-grid{grid-template-columns:1fr}.invoice-preview{overflow-x:auto}.invoice-row{min-width:460px}}
+
 @media(max-width:680px){
   .pv-material-section-body{
     margin-left:-2px;
@@ -1062,8 +1083,8 @@ textarea{
   }
   .pv-mat-group{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .pv-mat-table-head,.pv-mat-row{
-    min-width:390px;
-    grid-template-columns:minmax(150px,1fr) 68px 42px 42px 42px;
+    min-width:485px;
+    grid-template-columns:minmax(150px,1fr) 64px 72px 42px 42px 42px;
   }
   .pv-mat-name b{font-size:11px}
   .pv-material-legend{flex-direction:column;gap:2px}
@@ -1523,8 +1544,19 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.40</div>
+    <div class="blue" style="margin-top:6px;">Version 1.41</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Rechnungsgrundlagen</h3>
+    <div class="muted">Der Standard-Stundensatz wird für die Rechnungsposition „Arbeitsleistung“ verwendet. Materialpreise trägst du direkt in der PV-Materialliste ein.</div>
+    <div class="billing-settings-grid">
+      <label>Standard-Stundensatz (€ / Std.)
+        <input id="standardHourlyRate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="z. B. 55,00" onchange="saveStandardHourlyRate(this.value)">
+      </label>
+      <button class="btn btn2" type="button" onclick="saveStandardHourlyRate(document.getElementById('standardHourlyRate').value)">Speichern</button>
+    </div>
   </div>
 
   <div class="card">
@@ -1549,7 +1581,7 @@ textarea{
 
     <div class="backup-box">
       <h3>Externes Komplett-Backup</h3>
-      <p>Enthält Kunden, Baustellen, Bautagebuch, Stunden, Materiallisten und Fotos. Im iOS-Teilen-Menü kannst du „In Dateien sichern“ und danach iCloud Drive auswählen.</p>
+      <p>Enthält Kunden, Baustellen, Bautagebuch, Stunden, Materiallisten, Einzelpreise, Rechnungsgrundlagen und Fotos. Im iOS-Teilen-Menü kannst du „In Dateien sichern“ und danach iCloud Drive auswählen.</p>
       <button class="btn" type="button" onclick="exportBackup()">☁️ Externes Backup sichern</button>
     </div>
 
@@ -1707,6 +1739,12 @@ function ensureMaterialLists(){
 
 ensureMaterialLists();
 
+function ensureInvoiceSettings(){
+  if(!db.invoiceSettings || typeof db.invoiceSettings!=='object' || Array.isArray(db.invoiceSettings)) db.invoiceSettings={};
+  if(!('standardHourlyRate' in db.invoiceSettings)) db.invoiceSettings.standardHourlyRate='';
+}
+ensureInvoiceSettings();
+
 const SYNC_PROTOCOL='AWRTC-SYNC-1';
 const SYNC_ROLLBACK_KEY='allround_weber_sync_rollback_v1';
 const SYNC_PENDING_KEY='allround_weber_sync_pending_v1';
@@ -1715,7 +1753,8 @@ const SYNC_FIELDS={
   projects:['customerId','customerName','type','name','address','plan','inverter','storage','modules','roofType','windowArea'],
   diary:['projectId','customerIndex','customerName','site','date','start','end','pause','hours','note','mat','ownHours','employeeHours'],
   customProjectTypes:['name'],
-  hourPayments:['name','paid','paidDate','paidHours','entries']
+  hourPayments:['name','paid','paidDate','paidHours','entries'],
+  invoiceSettings:['standardHourlyRate']
 };
 
 function syncNow(){return new Date().toISOString()}
@@ -1740,7 +1779,7 @@ function syncEnsureSettings(){
   if(!('lastSuccessfulSyncId' in db.sync)) db.sync.lastSuccessfulSyncId=null;
   if(!('lastSuccessfulSyncAt' in db.sync)) db.sync.lastSuccessfulSyncAt=null;
   if(!db.sync.deleted || typeof db.sync.deleted!=='object') db.sync.deleted={};
-  ['customers','projects','diary','customProjectTypes','hourPayments','materialItems'].forEach(k=>{
+  ['customers','projects','diary','customProjectTypes','hourPayments','materialItems','invoiceSettings'].forEach(k=>{
     if(!Array.isArray(db.sync.deleted[k])) db.sync.deleted[k]=[];
   });
   if(!Array.isArray(db.hourPayments)) db.hourPayments=[];
@@ -1806,7 +1845,7 @@ function syncMaterialRecord(targetKey,itemKey,row){
   const rec=row||{};
   if(!rec.id) rec.id='mat_'+btoa(unescape(encodeURIComponent(targetKey+'|'+itemKey))).replace(/[^a-zA-Z0-9]/g,'').slice(0,70);
   rec.targetKey=targetKey; rec.itemKey=itemKey;
-  syncEnsureRecord(rec,'materialItems',['qty','ordered','loaded','installed'],'mat');
+  syncEnsureRecord(rec,'materialItems',['qty','unitPrice','ordered','loaded','installed'],'mat');
   return rec;
 }
 function syncEnsureDataModel(){
@@ -1817,6 +1856,9 @@ function syncEnsureDataModel(){
   if(!Array.isArray(db.customProjectTypes))db.customProjectTypes=[];
   db.customProjectTypes.forEach(r=>syncEnsureRecord(r,'customProjectTypes',SYNC_FIELDS.customProjectTypes,'ctype'));
   db.hourPayments.forEach(r=>syncEnsureRecord(r,'hourPayments',SYNC_FIELDS.hourPayments,'pay'));
+  ensureInvoiceSettings();
+  if(!db.invoiceSettings.id) db.invoiceSettings.id='billing_settings';
+  syncEnsureRecord(db.invoiceSettings,'invoiceSettings',SYNC_FIELDS.invoiceSettings,'bill');
   ensureMaterialLists();
   Object.entries(db.materialLists).forEach(([targetKey,list])=>{
     if(!list.items)return;
@@ -1872,7 +1914,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.40'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.41'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -1934,6 +1976,7 @@ function syncBuildDataset(){
     diary:addTombstones('diary',db.diary.map(cleanDiary)),
     customProjectTypes:addTombstones('customProjectTypes',syncClone(db.customProjectTypes||[])),
     hourPayments:addTombstones('hourPayments',syncClone(db.hourPayments||[])),
+    invoiceSettings:[syncClone(db.invoiceSettings)],
     materialItems:addTombstones('materialItems',materialItems)
   };
 }
@@ -1985,7 +2028,7 @@ function syncEntityMap(arr){const m=new Map();(arr||[]).forEach(r=>{if(r?.id)m.s
 function syncVersionChanged(v,base){return !!v && (v.baseSyncId||null)!==(base||null)}
 function syncMergeEntity(type,a,b,baseSyncId,conflicts){
   if(!a)return syncClone(b);if(!b)return syncClone(a);
-  const fields= type==='materialItems'?['targetKey','itemKey','qty','ordered','loaded','installed']:(SYNC_FIELDS[type]||[]);
+  const fields= type==='materialItems'?['targetKey','itemKey','qty','unitPrice','ordered','loaded','installed']:(SYNC_FIELDS[type]||[]);
   const result=syncClone(a);syncEnsureRecord(result,type,fields,type.slice(0,4));
   const delA=a.deletedAt?true:false,delB=b.deletedAt?true:false;
   const vdA=a.fieldVersions?.__deleted,vdB=b.fieldVersions?.__deleted;
@@ -2018,14 +2061,14 @@ function syncCoordinatorBuildPlan(){
   const base=(syncLocalDataset.baseSyncId&&syncLocalDataset.baseSyncId===syncRemoteDataset.baseSyncId)?syncLocalDataset.baseSyncId:null;
   const conflicts=[];const syncId=makeStableId('sync');
   const merged={syncId,baseSyncId:base,createdAt:syncNow(),conflicts,entities:{}};
-  ['customers','projects','diary','customProjectTypes','hourPayments','materialItems'].forEach(type=>merged.entities[type]=syncMergeType(type,syncLocalDataset[type],syncRemoteDataset[type],base,conflicts));
+  ['customers','projects','diary','customProjectTypes','hourPayments','invoiceSettings','materialItems'].forEach(type=>merged.entities[type]=syncMergeType(type,syncLocalDataset[type],syncRemoteDataset[type],base,conflicts));
   syncMergePlan=merged;syncRenderPlan(true);
   if(conflicts.length){syncStatus(`${conflicts.length} Konflikt${conflicts.length===1?'':'e'} müssen auf Gerät A entschieden werden.`, 'warn');}
   else{syncStatus('Keine Konflikte. Zusammenführung ist bereit.','ok');const a=document.getElementById('syncCommitActions');if(a)a.hidden=false;}
 }
 function syncRecordLabel(type,id){
   const all=[...(syncLocalDataset?.[type]||[]),...(syncRemoteDataset?.[type]||[])];const r=all.find(x=>x.id===id)||{};
-  if(type==='customers')return r.name||'Kunde';if(type==='projects')return r.name||'Baustelle';if(type==='diary')return [r.date,r.site].filter(Boolean).join(' · ')||'Bautagebuch';if(type==='customProjectTypes')return r.name||'Baustellenart';if(type==='hourPayments')return r.name||'Stundenkonto';if(type==='materialItems')return `${r.targetKey||'Material'} · ${r.itemKey||''}`;return id;
+  if(type==='customers')return r.name||'Kunde';if(type==='projects')return r.name||'Baustelle';if(type==='diary')return [r.date,r.site].filter(Boolean).join(' · ')||'Bautagebuch';if(type==='customProjectTypes')return r.name||'Baustellenart';if(type==='hourPayments')return r.name||'Stundenkonto';if(type==='invoiceSettings')return 'Rechnungsgrundlagen';if(type==='materialItems')return `${r.targetKey||'Material'} · ${r.itemKey||''}`;return id;
 }
 function syncHumanValue(v){if(v===undefined)return '—';if(v===null)return 'leer';if(typeof v==='object')return JSON.stringify(v);return String(v)}
 function syncRenderPlan(coordinator){
@@ -2072,7 +2115,8 @@ function syncMergeIntoDb(plan){
   const localDiaryPhotos=new Map((db.diary||[]).map(r=>[r.id,r.photoId||null]));
   db.customers=active(ent.customers).map(r=>{const x=syncClone(r);x.photoIds=localCustomerPhotos.get(x.id)||[];return x});
   db.projects=active(ent.projects).map(syncClone);db.diary=active(ent.diary).map(r=>{const x=syncClone(r);const pid=localDiaryPhotos.get(x.id);if(pid)x.photoId=pid;return x});db.customProjectTypes=active(ent.customProjectTypes).map(syncClone);db.hourPayments=active(ent.hourPayments).map(syncClone);
-  syncEnsureSettings();['customers','projects','diary','customProjectTypes','hourPayments','materialItems'].forEach(t=>db.sync.deleted[t]=deleted(ent[t]||[]).map(syncClone));
+  const mergedBilling=active(ent.invoiceSettings||[])[0]; if(mergedBilling) db.invoiceSettings=syncClone(mergedBilling); ensureInvoiceSettings();
+  syncEnsureSettings();['customers','projects','diary','customProjectTypes','hourPayments','materialItems','invoiceSettings'].forEach(t=>db.sync.deleted[t]=deleted(ent[t]||[]).map(syncClone));
   ensureMaterialLists();
   const oldTargets=new Set(Object.keys(db.materialLists));
   active(ent.materialItems).forEach(r=>{if(!db.materialLists[r.targetKey])db.materialLists[r.targetKey]={version:1,items:{},updatedAt:syncNow()};const row=syncClone(r);delete row.targetKey;delete row.itemKey;db.materialLists[r.targetKey].items[r.itemKey]=row;db.materialLists[r.targetKey].updatedAt=syncNow();oldTargets.delete(r.targetKey)});
@@ -2085,7 +2129,7 @@ function syncCommitMerged(plan){
 function syncFinalizeSuccess(syncId){
   db.sync.lastSuccessfulSyncId=syncId;db.sync.lastSuccessfulSyncAt=syncNow();
   const mark=(r)=>{r.lastSyncId=syncId;if(r.fieldVersions)Object.values(r.fieldVersions).forEach(v=>{if(v&&typeof v==='object')v.baseSyncId=syncId})};
-  [db.customers,db.projects,db.diary,db.customProjectTypes,db.hourPayments].forEach(arr=>(arr||[]).forEach(mark));Object.values(db.materialLists||{}).forEach(l=>Object.values(l.items||{}).forEach(mark));Object.values(db.sync.deleted||{}).forEach(arr=>(arr||[]).forEach(mark));
+  [db.customers,db.projects,db.diary,db.customProjectTypes,db.hourPayments].forEach(arr=>(arr||[]).forEach(mark));mark(db.invoiceSettings);Object.values(db.materialLists||{}).forEach(l=>Object.values(l.items||{}).forEach(mark));Object.values(db.sync.deleted||{}).forEach(arr=>(arr||[]).forEach(mark));
   saveDB();localStorage.removeItem(SYNC_ROLLBACK_KEY);localStorage.removeItem(SYNC_PENDING_KEY);syncPeerInfo();
 }
 function syncRollbackLocal(){
@@ -2098,7 +2142,7 @@ function syncRecoveryCheck(){
 syncRecoveryCheck();
 
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more')renderBackupCenter();window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderBackupCenter();renderInvoiceSettings()}window.scrollTo(0,0)}
 function calculatedWorkHoursNumber(){
   const s=document.getElementById('start')?.value||'';
   const e=document.getElementById('end')?.value||'';
@@ -3735,12 +3779,13 @@ function projectMaterialHtml(project){
         ${PV_MATERIAL_GROUPS.map(group=>`
           <div class="pv-mat-group">
             <div class="pv-mat-group-title">${escapeHtml(group.name)}</div>
-            <div class="pv-mat-table-head"><span>Material</span><span>Menge</span><span>Best.</span><span>Verl.</span><span>Verb.</span></div>
+            <div class="pv-mat-table-head"><span>Material</span><span>Menge</span><span>Einzelpreis €</span><span>Best.</span><span>Verl.</span><span>Verb.</span></div>
             ${group.items.map(([id,name,unit])=>{
               const row=list.items[id]||{};
               return `<div class="pv-mat-row">
                 <div class="pv-mat-name"><b>${escapeHtml(name)}</b><span>${escapeHtml(unit)}</span></div>
                 <input class="pv-mat-qty" type="number" min="0" step="any" inputmode="decimal" aria-label="Benötigte Menge ${escapeHtml(name)}" value="${escapeHtml(row.qty??'')}" oninput="saveMaterialField('${escapeHtml(targetKey)}','${id}','qty',this.value)">
+                <input class="pv-mat-price" type="number" min="0" step="0.01" inputmode="decimal" aria-label="Einzelpreis ${escapeHtml(name)}" value="${escapeHtml(row.unitPrice??'')}" oninput="saveMaterialField('${escapeHtml(targetKey)}','${id}','unitPrice',this.value)">
                 <label class="pv-mat-check" aria-label="${escapeHtml(name)} bestellt"><input type="checkbox" ${row.ordered?'checked':''} onchange="saveMaterialField('${escapeHtml(targetKey)}','${id}','ordered',this.checked)"><span></span></label>
                 <label class="pv-mat-check" aria-label="${escapeHtml(name)} verladen"><input type="checkbox" ${row.loaded?'checked':''} onchange="saveMaterialField('${escapeHtml(targetKey)}','${id}','loaded',this.checked)"><span></span></label>
                 <label class="pv-mat-check" aria-label="${escapeHtml(name)} verbaut"><input type="checkbox" ${row.installed?'checked':''} onchange="saveMaterialField('${escapeHtml(targetKey)}','${id}','installed',this.checked)"><span></span></label>
@@ -3955,6 +4000,66 @@ async function exportProjectMaterialPdf(projectId){
   }
 }
 
+function parseMoneyNumber(value){
+  const n=Number(String(value??'').replace(',','.'));
+  return Number.isFinite(n)?n:0;
+}
+function formatMoney(value){
+  return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(Number(value)||0);
+}
+function renderInvoiceSettings(){
+  ensureInvoiceSettings();
+  const input=document.getElementById('standardHourlyRate');
+  if(input)input.value=db.invoiceSettings.standardHourlyRate??'';
+}
+function saveStandardHourlyRate(value){
+  ensureInvoiceSettings();
+  const old=syncClone(db.invoiceSettings.standardHourlyRate);
+  db.invoiceSettings.standardHourlyRate=String(value??'');
+  syncEnsureRecord(db.invoiceSettings,'invoiceSettings',SYNC_FIELDS.invoiceSettings,'bill');
+  if(!syncValuesEqual(old,db.invoiceSettings.standardHourlyRate))syncTouchRecord(db.invoiceSettings,['standardHourlyRate']);
+  saveDB();renderInvoiceSettings();renderProjectTab();toast('Stundensatz gespeichert');
+}
+function invoicePositionsForProject(project){
+  ensureInvoiceSettings();
+  const positions=[];
+  const warnings=[];
+  const hours=ownHoursForProject(project);
+  const hourlyRate=parseMoneyNumber(db.invoiceSettings.standardHourlyRate);
+  if(hours>0){
+    if(hourlyRate>0)positions.push({label:'Arbeitsleistung',unit:'Std.',qty:hours,unitPrice:hourlyRate,total:hours*hourlyRate});
+    else warnings.push('Für die Arbeitsstunden ist noch kein Standard-Stundensatz hinterlegt.');
+  }
+  if((project.type||'pv')==='pv'){
+    const list=getMaterialList(`project:${project.id}`);
+    PV_MATERIAL_GROUPS.forEach(group=>group.items.forEach(([id,name,unit])=>{
+      const row=list.items[id]||{};
+      if(!row.installed)return;
+      const qty=parseMoneyNumber(row.qty);
+      const price=parseMoneyNumber(row.unitPrice);
+      if(qty>0 && price>0)positions.push({label:name,unit,qty,unitPrice:price,total:qty*price});
+      else if(row.installed)warnings.push(`${name}: für eine Rechnungsposition fehlen Menge oder Einzelpreis.`);
+    }));
+  }
+  return {positions,warnings};
+}
+function projectInvoicePreviewHtml(project){
+  const {positions,warnings}=invoicePositionsForProject(project);
+  const total=positions.reduce((s,p)=>s+p.total,0);
+  return `<details class="project-detail-section">
+    <summary><span>Rechnungspositionen</span><span class="project-detail-count">${positions.length} Position${positions.length===1?'':'en'}</span></summary>
+    <div class="project-detail-inner">
+      ${positions.length?`<div class="invoice-preview">
+        <div class="invoice-row head"><span>Position</span><span class="num">Menge</span><span class="num">Einzelpreis</span><span class="num">Gesamt</span></div>
+        ${positions.map(p=>`<div class="invoice-row"><span>${escapeHtml(p.label)} <span class="muted">(${escapeHtml(p.unit)})</span></span><span class="num">${escapeHtml(String(Number(p.qty.toFixed(2))).replace('.',','))}</span><span class="num">${escapeHtml(formatMoney(p.unitPrice))}</span><span class="num"><b>${escapeHtml(formatMoney(p.total))}</b></span></div>`).join('')}
+        <div class="invoice-total"><span>Summe Positionen</span><span>${escapeHtml(formatMoney(total))}</span></div>
+      </div>`:'<div class="muted">Noch keine vollständigen Rechnungspositionen vorhanden.</div>'}
+      ${warnings.length?`<div class="invoice-warning">${warnings.map(w=>escapeHtml(w)).join('<br>')}</div>`:''}
+      <div class="muted" style="margin-top:8px;">Arbeitsleistung = erfasste eigene Stunden × Standard-Stundensatz. Material wird übernommen, sobald „verbaut“ aktiviert ist und Menge sowie Einzelpreis eingetragen sind.</div>
+    </div>
+  </details>`;
+}
+
 function projectDiaryHtml(project,entries){
   return `
     <details class="project-detail-section">
@@ -4023,6 +4128,7 @@ function renderProjectTab(){
           <div class="project-specs one"><span>Fensterfläche<b>${project.windowArea?String(project.windowArea).replace('.',',')+' m²':'—'}</b></span></div>`:''}
         <div class="project-own-hours"><span>Meine Stunden gesamt</span><b>${formatHoursNumber(ownTotal)}</b></div>
 
+        ${projectInvoicePreviewHtml(project)}
         ${projectMaterialHtml(project)}
         ${projectPhotosHtml(project,diaryEntries)}
         ${projectDiaryHtml(project,diaryEntries)}
@@ -4121,7 +4227,7 @@ function materialTargetKey(customerId,projectId=''){
 function emptyMaterialList(){
   const items={};
   PV_MATERIAL_GROUPS.forEach(group=>group.items.forEach(([id])=>{
-    items[id]={qty:'',ordered:false,loaded:false,installed:false};
+    items[id]={qty:'',unitPrice:'',ordered:false,loaded:false,installed:false};
   }));
   return {version:1,items,updatedAt:new Date().toISOString()};
 }
@@ -4134,7 +4240,7 @@ function getMaterialList(targetKey){
   const list=db.materialLists[targetKey];
   if(!list.items || typeof list.items!=='object') list.items={};
   PV_MATERIAL_GROUPS.forEach(group=>group.items.forEach(([id])=>{
-    if(!list.items[id]) list.items[id]={qty:'',ordered:false,loaded:false,installed:false};
+    if(!list.items[id]) list.items[id]={qty:'',unitPrice:'',ordered:false,loaded:false,installed:false};
     syncMaterialRecord(targetKey,id,list.items[id]);
   }));
   return list;
@@ -4177,7 +4283,7 @@ function renderCustomerMaterialList(customer,targetKey=''){
     <div class="pv-mat-group">
       <div class="pv-mat-group-title">${escapeHtml(group.name)}</div>
       <div class="pv-mat-table-head">
-        <span>Material</span><span>Menge</span><span>Best.</span><span>Verl.</span><span>Verb.</span>
+        <span>Material</span><span>Menge</span><span>Einzelpreis €</span><span>Best.</span><span>Verl.</span><span>Verb.</span>
       </div>
       ${group.items.map(([id,name,unit])=>{
         const row=list.items[id]||{};
@@ -4191,6 +4297,7 @@ function renderCustomerMaterialList(customer,targetKey=''){
               aria-label="Benötigte Menge ${escapeHtml(name)}"
               value="${escapeHtml(row.qty??'')}"
               oninput="saveMaterialField('${escapeHtml(key)}','${id}','qty',this.value)">
+            <input class="pv-mat-price" type="number" min="0" step="0.01" inputmode="decimal" aria-label="Einzelpreis ${escapeHtml(name)}" value="${escapeHtml(row.unitPrice??'')}" oninput="saveMaterialField('${escapeHtml(key)}','${id}','unitPrice',this.value)">
             <label class="pv-mat-check" aria-label="${escapeHtml(name)} bestellt">
               <input type="checkbox" ${row.ordered?'checked':''}
                 onchange="saveMaterialField('${escapeHtml(key)}','${id}','ordered',this.checked)"><span></span>
@@ -4212,10 +4319,10 @@ function renderCustomerMaterialList(customer,targetKey=''){
 let materialSaveTimer=null;
 function saveMaterialField(targetKey,itemId,field,value){
   const list=getMaterialList(targetKey);
-  const row=list.items[itemId]||(list.items[itemId]={qty:'',ordered:false,loaded:false,installed:false});
+  const row=list.items[itemId]||(list.items[itemId]={qty:'',unitPrice:'',ordered:false,loaded:false,installed:false});
   syncMaterialRecord(targetKey,itemId,row);
   const oldValue=syncClone(row[field]);
-  row[field]=field==='qty'?String(value??''):Boolean(value);
+  row[field]=(field==='qty'||field==='unitPrice')?String(value??''):Boolean(value);
   if(!syncValuesEqual(oldValue,row[field])) syncTouchRecord(row,[field]);
   list.updatedAt=syncNow();
 
@@ -4450,7 +4557,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.40',db:syncClone(db)
+      appVersion:'1.41',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -4465,7 +4572,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.40',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.41',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -4637,7 +4744,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.40',
+      appVersion:'1.41',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
