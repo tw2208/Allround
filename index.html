@@ -1055,7 +1055,7 @@ textarea{
   font-weight:900;
 }
 
-/* Version 1.41 – Einzelpreise & Rechnungsgrundlagen */
+/* Version 1.42 – Einzelpreise & Rechnungsgrundlagen */
 .pv-mat-table-head,.pv-mat-row{
   grid-template-columns:minmax(145px,1fr) 68px 76px 42px 42px 42px;
 }
@@ -1074,6 +1074,17 @@ textarea{
 .invoice-row .num{text-align:right}.invoice-total{display:flex;justify-content:space-between;gap:10px;padding:10px 9px;font-weight:800;border-top:1px solid var(--line);background:rgba(31,157,255,.05)}
 .invoice-warning{margin-top:8px;padding:8px 9px;border-radius:8px;background:rgba(255,180,0,.08);color:#ffd27a;font-size:10.5px}
 @media(max-width:680px){.billing-settings-grid{grid-template-columns:1fr}.invoice-preview{overflow-x:auto}.invoice-row{min-width:460px}}
+.invoice-catalog-form{display:grid;grid-template-columns:minmax(0,1fr) 90px 110px auto;gap:8px;align-items:end;margin-top:12px}
+.invoice-catalog-form label,.invoice-add-grid label{margin:0}
+.invoice-catalog-list{display:grid;gap:7px;margin-top:10px}
+.invoice-catalog-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:8px 9px;border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.02)}
+.invoice-add-box{margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:rgba(31,157,255,.035)}
+.invoice-add-grid{display:grid;grid-template-columns:minmax(0,1fr) 80px 95px 95px auto;gap:7px;align-items:end;margin-top:8px}
+.invoice-add-saved{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:7px;align-items:end}
+.invoice-row.with-action{grid-template-columns:minmax(0,1fr) 70px 88px 92px 34px}
+.invoice-delete-mini{border:0;background:transparent;color:#ff8f8f;font-size:16px;padding:4px;cursor:pointer}
+@media(max-width:680px){.invoice-catalog-form,.invoice-add-grid,.invoice-add-saved{grid-template-columns:1fr 1fr}.invoice-catalog-form label:first-child,.invoice-add-grid label:first-child,.invoice-add-saved label:first-child{grid-column:1/-1}.invoice-catalog-form button,.invoice-add-grid button,.invoice-add-saved button{grid-column:1/-1}.invoice-catalog-item{grid-template-columns:minmax(0,1fr) auto}.invoice-catalog-item .cat-price{grid-column:1/2}.invoice-row.with-action{min-width:500px}}
+
 
 @media(max-width:680px){
   .pv-material-section-body{
@@ -1544,7 +1555,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.41</div>
+    <div class="blue" style="margin-top:6px;">Version 1.42</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1557,6 +1568,18 @@ textarea{
       </label>
       <button class="btn btn2" type="button" onclick="saveStandardHourlyRate(document.getElementById('standardHourlyRate').value)">Speichern</button>
     </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;">Gespeicherte Rechnungspositionen</h3>
+    <div class="muted">Eigene Leistungen oder Artikel einmal anlegen und später bei jeder Baustelle wiederverwenden. Die Liste erweitert sich dauerhaft.</div>
+    <div class="invoice-catalog-form">
+      <label>Bezeichnung<input id="invoiceCatalogLabel" type="text" placeholder="z. B. Anfahrt"></label>
+      <label>Einheit<input id="invoiceCatalogUnit" type="text" placeholder="Stk."></label>
+      <label>Einzelpreis €<input id="invoiceCatalogPrice" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></label>
+      <button class="btn btn2" type="button" onclick="addInvoiceCatalogItemFromSettings()">＋ Speichern</button>
+    </div>
+    <div id="invoiceCatalogList" class="invoice-catalog-list"></div>
   </div>
 
   <div class="card">
@@ -1745,6 +1768,12 @@ function ensureInvoiceSettings(){
 }
 ensureInvoiceSettings();
 
+function ensureInvoiceCatalog(){
+  if(!Array.isArray(db.invoiceCatalog)) db.invoiceCatalog=[];
+  if(!Array.isArray(db.manualInvoiceItems)) db.manualInvoiceItems=[];
+}
+ensureInvoiceCatalog();
+
 const SYNC_PROTOCOL='AWRTC-SYNC-1';
 const SYNC_ROLLBACK_KEY='allround_weber_sync_rollback_v1';
 const SYNC_PENDING_KEY='allround_weber_sync_pending_v1';
@@ -1754,7 +1783,9 @@ const SYNC_FIELDS={
   diary:['projectId','customerIndex','customerName','site','date','start','end','pause','hours','note','mat','ownHours','employeeHours'],
   customProjectTypes:['name'],
   hourPayments:['name','paid','paidDate','paidHours','entries'],
-  invoiceSettings:['standardHourlyRate']
+  invoiceSettings:['standardHourlyRate'],
+  invoiceCatalog:['label','unit','unitPrice'],
+  manualInvoiceItems:['projectId','catalogId','label','unit','qty','unitPrice']
 };
 
 function syncNow(){return new Date().toISOString()}
@@ -1779,7 +1810,7 @@ function syncEnsureSettings(){
   if(!('lastSuccessfulSyncId' in db.sync)) db.sync.lastSuccessfulSyncId=null;
   if(!('lastSuccessfulSyncAt' in db.sync)) db.sync.lastSuccessfulSyncAt=null;
   if(!db.sync.deleted || typeof db.sync.deleted!=='object') db.sync.deleted={};
-  ['customers','projects','diary','customProjectTypes','hourPayments','materialItems','invoiceSettings'].forEach(k=>{
+  ['customers','projects','diary','customProjectTypes','hourPayments','materialItems','invoiceSettings','invoiceCatalog','manualInvoiceItems'].forEach(k=>{
     if(!Array.isArray(db.sync.deleted[k])) db.sync.deleted[k]=[];
   });
   if(!Array.isArray(db.hourPayments)) db.hourPayments=[];
@@ -1856,6 +1887,9 @@ function syncEnsureDataModel(){
   if(!Array.isArray(db.customProjectTypes))db.customProjectTypes=[];
   db.customProjectTypes.forEach(r=>syncEnsureRecord(r,'customProjectTypes',SYNC_FIELDS.customProjectTypes,'ctype'));
   db.hourPayments.forEach(r=>syncEnsureRecord(r,'hourPayments',SYNC_FIELDS.hourPayments,'pay'));
+  ensureInvoiceCatalog();
+  db.invoiceCatalog.forEach(r=>syncEnsureRecord(r,'invoiceCatalog',SYNC_FIELDS.invoiceCatalog,'icat'));
+  db.manualInvoiceItems.forEach(r=>syncEnsureRecord(r,'manualInvoiceItems',SYNC_FIELDS.manualInvoiceItems,'irow'));
   ensureInvoiceSettings();
   if(!db.invoiceSettings.id) db.invoiceSettings.id='billing_settings';
   syncEnsureRecord(db.invoiceSettings,'invoiceSettings',SYNC_FIELDS.invoiceSettings,'bill');
@@ -1914,7 +1948,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.41'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.42'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -1976,6 +2010,8 @@ function syncBuildDataset(){
     diary:addTombstones('diary',db.diary.map(cleanDiary)),
     customProjectTypes:addTombstones('customProjectTypes',syncClone(db.customProjectTypes||[])),
     hourPayments:addTombstones('hourPayments',syncClone(db.hourPayments||[])),
+    invoiceCatalog:addTombstones('invoiceCatalog',syncClone(db.invoiceCatalog||[])),
+    manualInvoiceItems:addTombstones('manualInvoiceItems',syncClone(db.manualInvoiceItems||[])),
     invoiceSettings:[syncClone(db.invoiceSettings)],
     materialItems:addTombstones('materialItems',materialItems)
   };
@@ -2061,14 +2097,14 @@ function syncCoordinatorBuildPlan(){
   const base=(syncLocalDataset.baseSyncId&&syncLocalDataset.baseSyncId===syncRemoteDataset.baseSyncId)?syncLocalDataset.baseSyncId:null;
   const conflicts=[];const syncId=makeStableId('sync');
   const merged={syncId,baseSyncId:base,createdAt:syncNow(),conflicts,entities:{}};
-  ['customers','projects','diary','customProjectTypes','hourPayments','invoiceSettings','materialItems'].forEach(type=>merged.entities[type]=syncMergeType(type,syncLocalDataset[type],syncRemoteDataset[type],base,conflicts));
+  ['customers','projects','diary','customProjectTypes','hourPayments','invoiceCatalog','manualInvoiceItems','invoiceSettings','materialItems'].forEach(type=>merged.entities[type]=syncMergeType(type,syncLocalDataset[type],syncRemoteDataset[type],base,conflicts));
   syncMergePlan=merged;syncRenderPlan(true);
   if(conflicts.length){syncStatus(`${conflicts.length} Konflikt${conflicts.length===1?'':'e'} müssen auf Gerät A entschieden werden.`, 'warn');}
   else{syncStatus('Keine Konflikte. Zusammenführung ist bereit.','ok');const a=document.getElementById('syncCommitActions');if(a)a.hidden=false;}
 }
 function syncRecordLabel(type,id){
   const all=[...(syncLocalDataset?.[type]||[]),...(syncRemoteDataset?.[type]||[])];const r=all.find(x=>x.id===id)||{};
-  if(type==='customers')return r.name||'Kunde';if(type==='projects')return r.name||'Baustelle';if(type==='diary')return [r.date,r.site].filter(Boolean).join(' · ')||'Bautagebuch';if(type==='customProjectTypes')return r.name||'Baustellenart';if(type==='hourPayments')return r.name||'Stundenkonto';if(type==='invoiceSettings')return 'Rechnungsgrundlagen';if(type==='materialItems')return `${r.targetKey||'Material'} · ${r.itemKey||''}`;return id;
+  if(type==='customers')return r.name||'Kunde';if(type==='projects')return r.name||'Baustelle';if(type==='diary')return [r.date,r.site].filter(Boolean).join(' · ')||'Bautagebuch';if(type==='customProjectTypes')return r.name||'Baustellenart';if(type==='hourPayments')return r.name||'Stundenkonto';if(type==='invoiceCatalog')return r.label||'Rechnungsposition';if(type==='manualInvoiceItems')return r.label||'Rechnungsposition';if(type==='invoiceSettings')return 'Rechnungsgrundlagen';if(type==='materialItems')return `${r.targetKey||'Material'} · ${r.itemKey||''}`;return id;
 }
 function syncHumanValue(v){if(v===undefined)return '—';if(v===null)return 'leer';if(typeof v==='object')return JSON.stringify(v);return String(v)}
 function syncRenderPlan(coordinator){
@@ -2114,9 +2150,9 @@ function syncMergeIntoDb(plan){
   const localCustomerPhotos=new Map((db.customers||[]).map(r=>[r.id,Array.isArray(r.photoIds)?syncClone(r.photoIds):[]]));
   const localDiaryPhotos=new Map((db.diary||[]).map(r=>[r.id,r.photoId||null]));
   db.customers=active(ent.customers).map(r=>{const x=syncClone(r);x.photoIds=localCustomerPhotos.get(x.id)||[];return x});
-  db.projects=active(ent.projects).map(syncClone);db.diary=active(ent.diary).map(r=>{const x=syncClone(r);const pid=localDiaryPhotos.get(x.id);if(pid)x.photoId=pid;return x});db.customProjectTypes=active(ent.customProjectTypes).map(syncClone);db.hourPayments=active(ent.hourPayments).map(syncClone);
+  db.projects=active(ent.projects).map(syncClone);db.diary=active(ent.diary).map(r=>{const x=syncClone(r);const pid=localDiaryPhotos.get(x.id);if(pid)x.photoId=pid;return x});db.customProjectTypes=active(ent.customProjectTypes).map(syncClone);db.hourPayments=active(ent.hourPayments).map(syncClone);db.invoiceCatalog=active(ent.invoiceCatalog||[]).map(syncClone);db.manualInvoiceItems=active(ent.manualInvoiceItems||[]).map(syncClone);
   const mergedBilling=active(ent.invoiceSettings||[])[0]; if(mergedBilling) db.invoiceSettings=syncClone(mergedBilling); ensureInvoiceSettings();
-  syncEnsureSettings();['customers','projects','diary','customProjectTypes','hourPayments','materialItems','invoiceSettings'].forEach(t=>db.sync.deleted[t]=deleted(ent[t]||[]).map(syncClone));
+  syncEnsureSettings();['customers','projects','diary','customProjectTypes','hourPayments','invoiceCatalog','manualInvoiceItems','materialItems','invoiceSettings'].forEach(t=>db.sync.deleted[t]=deleted(ent[t]||[]).map(syncClone));
   ensureMaterialLists();
   const oldTargets=new Set(Object.keys(db.materialLists));
   active(ent.materialItems).forEach(r=>{if(!db.materialLists[r.targetKey])db.materialLists[r.targetKey]={version:1,items:{},updatedAt:syncNow()};const row=syncClone(r);delete row.targetKey;delete row.itemKey;db.materialLists[r.targetKey].items[r.itemKey]=row;db.materialLists[r.targetKey].updatedAt=syncNow();oldTargets.delete(r.targetKey)});
@@ -2129,7 +2165,7 @@ function syncCommitMerged(plan){
 function syncFinalizeSuccess(syncId){
   db.sync.lastSuccessfulSyncId=syncId;db.sync.lastSuccessfulSyncAt=syncNow();
   const mark=(r)=>{r.lastSyncId=syncId;if(r.fieldVersions)Object.values(r.fieldVersions).forEach(v=>{if(v&&typeof v==='object')v.baseSyncId=syncId})};
-  [db.customers,db.projects,db.diary,db.customProjectTypes,db.hourPayments].forEach(arr=>(arr||[]).forEach(mark));mark(db.invoiceSettings);Object.values(db.materialLists||{}).forEach(l=>Object.values(l.items||{}).forEach(mark));Object.values(db.sync.deleted||{}).forEach(arr=>(arr||[]).forEach(mark));
+  [db.customers,db.projects,db.diary,db.customProjectTypes,db.hourPayments,db.invoiceCatalog,db.manualInvoiceItems].forEach(arr=>(arr||[]).forEach(mark));mark(db.invoiceSettings);Object.values(db.materialLists||{}).forEach(l=>Object.values(l.items||{}).forEach(mark));Object.values(db.sync.deleted||{}).forEach(arr=>(arr||[]).forEach(mark));
   saveDB();localStorage.removeItem(SYNC_ROLLBACK_KEY);localStorage.removeItem(SYNC_PENDING_KEY);syncPeerInfo();
 }
 function syncRollbackLocal(){
@@ -2142,7 +2178,7 @@ function syncRecoveryCheck(){
 syncRecoveryCheck();
 
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderBackupCenter();renderInvoiceSettings()}window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderBackupCenter();renderInvoiceSettings();renderInvoiceCatalog()}window.scrollTo(0,0)}
 function calculatedWorkHoursNumber(){
   const s=document.getElementById('start')?.value||'';
   const e=document.getElementById('end')?.value||'';
@@ -3547,6 +3583,9 @@ function deleteProject(projectId){
   ensureMaterialLists();
   syncDeleteMaterialTarget(`project:${projectId}`);
   delete db.materialLists[`project:${projectId}`];
+  ensureInvoiceCatalog();
+  db.manualInvoiceItems.filter(r=>r.projectId===projectId).forEach(r=>syncTombstone('manualInvoiceItems',r));
+  db.manualInvoiceItems=db.manualInvoiceItems.filter(r=>r.projectId!==projectId);
   saveDB();
   renderProjectTab();
   renderCustomers();
@@ -4020,42 +4059,105 @@ function saveStandardHourlyRate(value){
   if(!syncValuesEqual(old,db.invoiceSettings.standardHourlyRate))syncTouchRecord(db.invoiceSettings,['standardHourlyRate']);
   saveDB();renderInvoiceSettings();renderProjectTab();toast('Stundensatz gespeichert');
 }
+function invoiceCatalogOptionsHtml(){
+  ensureInvoiceCatalog();
+  const items=[...db.invoiceCatalog].sort((a,b)=>(a.label||'').localeCompare(b.label||'','de',{sensitivity:'base'}));
+  return '<option value="">Gespeicherte Position wählen …</option>'+items.map(i=>`<option value="${escapeHtml(i.id)}">${escapeHtml(i.label||'Ohne Bezeichnung')} · ${escapeHtml(i.unit||'Stk.')} · ${escapeHtml(formatMoney(parseMoneyNumber(i.unitPrice)))}</option>`).join('');
+}
+function renderInvoiceCatalog(){
+  ensureInvoiceCatalog();
+  const el=document.getElementById('invoiceCatalogList'); if(!el)return;
+  if(!db.invoiceCatalog.length){el.innerHTML='<div class="muted">Noch keine eigenen Rechnungspositionen gespeichert.</div>';return}
+  el.innerHTML=[...db.invoiceCatalog].sort((a,b)=>(a.label||'').localeCompare(b.label||'','de',{sensitivity:'base'})).map(i=>`<div class="invoice-catalog-item"><div><b>${escapeHtml(i.label||'Ohne Bezeichnung')}</b><div class="muted">${escapeHtml(i.unit||'Stk.')}</div></div><div class="cat-price"><b>${escapeHtml(formatMoney(parseMoneyNumber(i.unitPrice)))}</b></div><button class="invoice-delete-mini" type="button" title="Löschen" onclick="deleteInvoiceCatalogItem('${escapeHtml(i.id)}')">×</button></div>`).join('');
+}
+function createInvoiceCatalogItem(label,unit,unitPrice){
+  ensureInvoiceCatalog();
+  label=String(label||'').trim(); unit=String(unit||'').trim()||'Stk.'; unitPrice=String(unitPrice??'').trim();
+  if(!label){toast('Bezeichnung fehlt');return null}
+  const item={id:makeStableId('icat'),label,unit,unitPrice,createdAt:syncNow(),updatedAt:syncNow()};
+  syncEnsureRecord(item,'invoiceCatalog',SYNC_FIELDS.invoiceCatalog,'icat');
+  db.invoiceCatalog.push(item); saveDB(); return item;
+}
+function addInvoiceCatalogItemFromSettings(){
+  const label=document.getElementById('invoiceCatalogLabel')?.value||'';
+  const unit=document.getElementById('invoiceCatalogUnit')?.value||'';
+  const price=document.getElementById('invoiceCatalogPrice')?.value||'';
+  const item=createInvoiceCatalogItem(label,unit,price); if(!item)return;
+  ['invoiceCatalogLabel','invoiceCatalogUnit','invoiceCatalogPrice'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  renderInvoiceCatalog(); renderProjectTab(); toast('Position gespeichert');
+}
+function deleteInvoiceCatalogItem(id){
+  ensureInvoiceCatalog(); const idx=db.invoiceCatalog.findIndex(x=>x.id===id); if(idx<0)return;
+  if(!confirm('Gespeicherte Rechnungsposition löschen? Bereits zu Baustellen hinzugefügte Positionen bleiben erhalten.'))return;
+  syncTombstone('invoiceCatalog',db.invoiceCatalog[idx]); db.invoiceCatalog.splice(idx,1); saveDB(); renderInvoiceCatalog(); renderProjectTab(); toast('Position gelöscht');
+}
+function addManualInvoiceItem(projectId,catalogItem,qty){
+  ensureInvoiceCatalog(); qty=String(qty??'').trim();
+  const q=parseMoneyNumber(qty); if(q<=0){toast('Menge eingeben');return false}
+  const row={id:makeStableId('irow'),projectId,catalogId:catalogItem?.id||'',label:catalogItem?.label||'',unit:catalogItem?.unit||'Stk.',qty,unitPrice:String(catalogItem?.unitPrice??''),createdAt:syncNow(),updatedAt:syncNow()};
+  syncEnsureRecord(row,'manualInvoiceItems',SYNC_FIELDS.manualInvoiceItems,'irow'); db.manualInvoiceItems.push(row); saveDB(); return true;
+}
+function addSavedInvoiceItemToProject(projectId){
+  const sel=document.getElementById(`invoiceSaved_${projectId}`); const qty=document.getElementById(`invoiceSavedQty_${projectId}`)?.value||'';
+  const item=(db.invoiceCatalog||[]).find(x=>x.id===sel?.value); if(!item){toast('Position auswählen');return}
+  if(addManualInvoiceItem(projectId,item,qty)){renderProjectTab();toast('Position hinzugefügt')}
+}
+function createAndAddInvoiceItem(projectId){
+  const label=document.getElementById(`invoiceNewLabel_${projectId}`)?.value||'';
+  const unit=document.getElementById(`invoiceNewUnit_${projectId}`)?.value||'';
+  const price=document.getElementById(`invoiceNewPrice_${projectId}`)?.value||'';
+  const qty=document.getElementById(`invoiceNewQty_${projectId}`)?.value||'';
+  if(parseMoneyNumber(qty)<=0){toast('Menge eingeben');return}
+  const item=createInvoiceCatalogItem(label,unit,price); if(!item)return;
+  if(addManualInvoiceItem(projectId,item,qty)){renderProjectTab();toast('Gespeichert und hinzugefügt')}
+}
+function deleteManualInvoiceItem(id){
+  ensureInvoiceCatalog(); const idx=db.manualInvoiceItems.findIndex(x=>x.id===id); if(idx<0)return;
+  syncTombstone('manualInvoiceItems',db.manualInvoiceItems[idx]); db.manualInvoiceItems.splice(idx,1); saveDB(); renderProjectTab(); toast('Position entfernt');
+}
 function invoicePositionsForProject(project){
-  ensureInvoiceSettings();
-  const positions=[];
-  const warnings=[];
-  const hours=ownHoursForProject(project);
-  const hourlyRate=parseMoneyNumber(db.invoiceSettings.standardHourlyRate);
+  ensureInvoiceSettings(); ensureInvoiceCatalog();
+  const positions=[]; const warnings=[];
+  const hours=ownHoursForProject(project); const hourlyRate=parseMoneyNumber(db.invoiceSettings.standardHourlyRate);
   if(hours>0){
-    if(hourlyRate>0)positions.push({label:'Arbeitsleistung',unit:'Std.',qty:hours,unitPrice:hourlyRate,total:hours*hourlyRate});
+    if(hourlyRate>0)positions.push({label:'Arbeitsleistung',unit:'Std.',qty:hours,unitPrice:hourlyRate,total:hours*hourlyRate,source:'auto'});
     else warnings.push('Für die Arbeitsstunden ist noch kein Standard-Stundensatz hinterlegt.');
   }
   if((project.type||'pv')==='pv'){
     const list=getMaterialList(`project:${project.id}`);
     PV_MATERIAL_GROUPS.forEach(group=>group.items.forEach(([id,name,unit])=>{
-      const row=list.items[id]||{};
-      if(!row.installed)return;
-      const qty=parseMoneyNumber(row.qty);
-      const price=parseMoneyNumber(row.unitPrice);
-      if(qty>0 && price>0)positions.push({label:name,unit,qty,unitPrice:price,total:qty*price});
-      else if(row.installed)warnings.push(`${name}: für eine Rechnungsposition fehlen Menge oder Einzelpreis.`);
+      const row=list.items[id]||{}; if(!row.installed)return;
+      const qty=parseMoneyNumber(row.qty); const price=parseMoneyNumber(row.unitPrice);
+      if(qty>0 && price>0)positions.push({label:name,unit,qty,unitPrice:price,total:qty*price,source:'material'});
+      else warnings.push(`${name}: für eine Rechnungsposition fehlen Menge oder Einzelpreis.`);
     }));
   }
+  (db.manualInvoiceItems||[]).filter(r=>r.projectId===project.id).forEach(r=>{
+    const qty=parseMoneyNumber(r.qty),price=parseMoneyNumber(r.unitPrice);
+    if(qty>0 && price>=0)positions.push({id:r.id,label:r.label||'Position',unit:r.unit||'Stk.',qty,unitPrice:price,total:qty*price,source:'manual'});
+  });
   return {positions,warnings};
 }
 function projectInvoicePreviewHtml(project){
-  const {positions,warnings}=invoicePositionsForProject(project);
-  const total=positions.reduce((s,p)=>s+p.total,0);
+  const {positions,warnings}=invoicePositionsForProject(project); const total=positions.reduce((s,p)=>s+p.total,0);
   return `<details class="project-detail-section">
     <summary><span>Rechnungspositionen</span><span class="project-detail-count">${positions.length} Position${positions.length===1?'':'en'}</span></summary>
     <div class="project-detail-inner">
       ${positions.length?`<div class="invoice-preview">
-        <div class="invoice-row head"><span>Position</span><span class="num">Menge</span><span class="num">Einzelpreis</span><span class="num">Gesamt</span></div>
-        ${positions.map(p=>`<div class="invoice-row"><span>${escapeHtml(p.label)} <span class="muted">(${escapeHtml(p.unit)})</span></span><span class="num">${escapeHtml(String(Number(p.qty.toFixed(2))).replace('.',','))}</span><span class="num">${escapeHtml(formatMoney(p.unitPrice))}</span><span class="num"><b>${escapeHtml(formatMoney(p.total))}</b></span></div>`).join('')}
+        <div class="invoice-row with-action head"><span>Position</span><span class="num">Menge</span><span class="num">Einzelpreis</span><span class="num">Gesamt</span><span></span></div>
+        ${positions.map(p=>`<div class="invoice-row with-action"><span>${escapeHtml(p.label)} <span class="muted">(${escapeHtml(p.unit)})</span></span><span class="num">${escapeHtml(String(Number(p.qty.toFixed(2))).replace('.',','))}</span><span class="num">${escapeHtml(formatMoney(p.unitPrice))}</span><span class="num"><b>${escapeHtml(formatMoney(p.total))}</b></span><span>${p.source==='manual'?`<button class="invoice-delete-mini" type="button" onclick="deleteManualInvoiceItem('${escapeHtml(p.id)}')">×</button>`:''}</span></div>`).join('')}
         <div class="invoice-total"><span>Summe Positionen</span><span>${escapeHtml(formatMoney(total))}</span></div>
       </div>`:'<div class="muted">Noch keine vollständigen Rechnungspositionen vorhanden.</div>'}
       ${warnings.length?`<div class="invoice-warning">${warnings.map(w=>escapeHtml(w)).join('<br>')}</div>`:''}
-      <div class="muted" style="margin-top:8px;">Arbeitsleistung = erfasste eigene Stunden × Standard-Stundensatz. Material wird übernommen, sobald „verbaut“ aktiviert ist und Menge sowie Einzelpreis eingetragen sind.</div>
+      <div class="invoice-add-box">
+        <b>Gespeicherte Position hinzufügen</b>
+        <div class="invoice-add-saved"><label>Position<select id="invoiceSaved_${escapeHtml(project.id)}">${invoiceCatalogOptionsHtml()}</select></label><label>Menge<input id="invoiceSavedQty_${escapeHtml(project.id)}" type="number" min="0" step="0.01" inputmode="decimal" value="1"></label><button class="btn btn2" type="button" onclick="addSavedInvoiceItemToProject('${escapeHtml(project.id)}')">＋ Hinzufügen</button></div>
+      </div>
+      <div class="invoice-add-box">
+        <b>Neue Position anlegen & für später speichern</b>
+        <div class="invoice-add-grid"><label>Bezeichnung<input id="invoiceNewLabel_${escapeHtml(project.id)}" type="text" placeholder="z. B. Anfahrt"></label><label>Einheit<input id="invoiceNewUnit_${escapeHtml(project.id)}" type="text" value="Stk."></label><label>Einzelpreis €<input id="invoiceNewPrice_${escapeHtml(project.id)}" type="number" min="0" step="0.01" inputmode="decimal"></label><label>Menge<input id="invoiceNewQty_${escapeHtml(project.id)}" type="number" min="0" step="0.01" inputmode="decimal" value="1"></label><button class="btn btn2" type="button" onclick="createAndAddInvoiceItem('${escapeHtml(project.id)}')">＋ Speichern</button></div>
+      </div>
+      <div class="muted" style="margin-top:8px;">Neue eigene Positionen werden dauerhaft gespeichert und stehen bei der nächsten Baustelle wieder zur Auswahl.</div>
     </div>
   </details>`;
 }
@@ -4557,7 +4659,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.41',db:syncClone(db)
+      appVersion:'1.42',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -4572,7 +4674,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.41',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.42',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -4744,7 +4846,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.41',
+      appVersion:'1.42',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -4752,6 +4854,9 @@ async function exportBackup(){
         customProjectTypes:Array.isArray(db.customProjectTypes)?db.customProjectTypes:[],
         materialLists:(db.materialLists&&typeof db.materialLists==='object')?db.materialLists:{},
         hourPayments:Array.isArray(db.hourPayments)?db.hourPayments:[],
+        invoiceSettings:db.invoiceSettings||{},
+        invoiceCatalog:Array.isArray(db.invoiceCatalog)?db.invoiceCatalog:[],
+        manualInvoiceItems:Array.isArray(db.manualInvoiceItems)?db.manualInvoiceItems:[],
         sync:db.sync||{},
         diary:Array.isArray(db.diary)?db.diary:[],
         photos:exportPhotos
@@ -4912,6 +5017,18 @@ async function mergeBackupData(backup){
       existingCustomTypeIds.add(t.id);
     }
   });
+
+  ensureInvoiceCatalog();
+  const importedCatalog=Array.isArray(backup.data.invoiceCatalog)?backup.data.invoiceCatalog:[];
+  const existingCatalogIds=new Set(db.invoiceCatalog.map(x=>x.id));
+  importedCatalog.forEach(x=>{if(x?.id && !existingCatalogIds.has(x.id)){db.invoiceCatalog.push(x);existingCatalogIds.add(x.id)}});
+  const importedManualItems=Array.isArray(backup.data.manualInvoiceItems)?backup.data.manualInvoiceItems:[];
+  const existingManualIds=new Set(db.manualInvoiceItems.map(x=>x.id));
+  importedManualItems.forEach(x=>{if(x?.id && !existingManualIds.has(x.id)){db.manualInvoiceItems.push(x);existingManualIds.add(x.id)}});
+  if(backup.data.invoiceSettings && typeof backup.data.invoiceSettings==='object'){
+    ensureInvoiceSettings();
+    if(!db.invoiceSettings.standardHourlyRate && backup.data.invoiceSettings.standardHourlyRate) db.invoiceSettings.standardHourlyRate=backup.data.invoiceSettings.standardHourlyRate;
+  }
 
   const importedProjects=Array.isArray(backup.data.projects)?backup.data.projects:[];
   const existingProjectIds=new Set(db.projects.map(p=>p.id).filter(Boolean));
