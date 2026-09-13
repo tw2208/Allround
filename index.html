@@ -398,6 +398,25 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
   color:white;
   border-color:var(--blue);
 }
+.project-tab-count{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:20px;
+  height:20px;
+  margin-left:5px;
+  padding:0 6px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  color:inherit;
+  font-size:10px;
+  font-weight:800;
+  line-height:1;
+}
+.project-tab.active .project-tab-count{
+  background:rgba(255,255,255,.22);
+}
+
 .project-list-card .project-type{
   font-size:11px;
   color:var(--blue2);
@@ -1055,7 +1074,7 @@ textarea{
   font-weight:900;
 }
 
-/* Version 1.42 – Einzelpreise & Rechnungsgrundlagen */
+/* Version 1.45 – Bautagebuch-Bearbeitung korrigiert */
 .pv-mat-table-head,.pv-mat-row{
   grid-template-columns:minmax(145px,1fr) 68px 76px 42px 42px 42px;
 }
@@ -1110,6 +1129,16 @@ textarea{
 @media(max-width:560px){.project-material-actions{align-items:stretch}.project-material-actions .project-material-note{min-width:100%}.pv-pdf-btn{width:100%}}
 
 /* Version 1.40 – Baustellenakte mit Material, Fotos und Bautagebuch */
+.project-list-fold{margin-bottom:10px;border:1px solid rgba(255,255,255,.10);border-radius:14px;background:rgba(255,255,255,.035);overflow:hidden}
+.project-list-fold>summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.project-list-fold>summary::-webkit-details-marker{display:none}
+.project-list-fold>summary:after{content:'▾';flex:0 0 auto;color:#149cff;font-size:15px;transition:transform .18s ease}
+.project-list-fold[open]>summary:after{transform:rotate(180deg)}
+.project-fold-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+.project-fold-name{font-size:17px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project-fold-plan{font-size:13px;color:#aeb9c7;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.project-fold-plan.empty{font-style:italic;opacity:.7}
+.project-fold-details{padding:0 14px 14px}
 .project-detail-section{margin-top:12px;border:1px solid rgba(255,255,255,.10);border-radius:12px;background:rgba(255,255,255,.025);overflow:hidden}
 .project-detail-section>summary{list-style:none;cursor:pointer;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700;color:#f5f8fb}
 .project-detail-section>summary::-webkit-details-marker{display:none}
@@ -1213,6 +1242,7 @@ textarea{
 
     <input id="date" type="hidden">
     <input id="diaryEditIndex" type="hidden" value="">
+    <input id="diaryEditId" type="hidden" value="">
 
     <div class="diary-form-section">
       <div class="diary-section-title">Baustelle</div>
@@ -1555,7 +1585,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.42</div>
+    <div class="blue" style="margin-top:6px;">Version 1.45</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1948,7 +1978,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.42'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.43'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -2786,9 +2816,18 @@ async function saveDiary(){
   }
   const customerIndex=(db.customers||[]).findIndex(c=>c.id===project.customerId);
   const customer=customerIndex>=0?db.customers[customerIndex]:null;
+  const editId=document.getElementById('diaryEditId')?.value||'';
   const editIndexRaw=document.getElementById('diaryEditIndex')?.value ?? '';
-  const editIndex=editIndexRaw==='' ? null : Number(editIndexRaw);
-  const previous=editIndex!==null ? db.diary[editIndex] : null;
+  let editIndex=editIndexRaw==='' ? null : Number(editIndexRaw);
+  if(editId){
+    const stableIndex=(db.diary||[]).findIndex(e=>e && e.id===editId);
+    if(stableIndex>=0) editIndex=stableIndex;
+  }
+  const previous=editIndex!==null && db.diary[editIndex] ? db.diary[editIndex] : null;
+  if((editId || editIndexRaw!=='') && !previous){
+    toast('Der Tagebucheintrag konnte nicht mehr gefunden werden. Bitte Ansicht neu laden.');
+    return;
+  }
   let photoId=previous?.photoId || null;
 
   if(pendingPhotoBlob){
@@ -2878,7 +2917,7 @@ async function saveDiary(){
   renderCustomers();
   renderHoursAccounts();
   renderProjectTab();
-  toast(editIndex!==null ? 'Tagebucheintrag aktualisiert' : (photoId?'Tagebuch + Foto gespeichert':'Bautagebuch gespeichert'));
+  toast(previous ? 'Tagebucheintrag aktualisiert' : (photoId?'Tagebuch + Foto gespeichert':'Bautagebuch gespeichert'));
   document.getElementById('note').value='';
   document.getElementById('mat').value='';
   removePendingPhoto();
@@ -2895,6 +2934,8 @@ function clearDiary(){
 function resetDiaryEditMode(){
   const idx=document.getElementById('diaryEditIndex');
   if(idx) idx.value='';
+  const editId=document.getElementById('diaryEditId');
+  if(editId) editId.value='';
   const title=document.getElementById('diaryFormTitle');
   if(title) title.textContent='Neuer Tagebucheintrag';
   const btn=document.getElementById('diarySaveBtn');
@@ -2941,6 +2982,8 @@ async function editDiaryEntry(index){
   setEmployeeHours(entry.employeeHours||[]);
   document.getElementById('date').value=selected;
   document.getElementById('diaryEditIndex').value=String(index);
+  const editIdEl=document.getElementById('diaryEditId');
+  if(editIdEl) editIdEl.value=entry.id||'';
 
   const title=document.getElementById('diaryFormTitle');
   if(title) title.textContent='Tagebucheintrag bearbeiten';
@@ -3628,8 +3671,13 @@ function refreshProjectTypeUI(selectedType=''){
 
   const tabs=document.querySelector('.project-tabs');
   if(tabs){
+    const counts=(db.projects||[]).reduce((acc,project)=>{
+      const type=project.type||'pv';
+      acc[type]=(acc[type]||0)+1;
+      return acc;
+    },{});
     tabs.innerHTML=allProjectTypes().map((t,i)=>
-      `<button class="project-tab ${activeProjectType===t.id?'active':''}" data-type="${escapeHtml(t.id)}" onclick="showProjectTab('${escapeHtml(t.id)}',this)">${escapeHtml(t.name)}</button>`
+      `<button class="project-tab ${activeProjectType===t.id?'active':''}" data-type="${escapeHtml(t.id)}" onclick="showProjectTab('${escapeHtml(t.id)}',this)">${escapeHtml(t.name)} <span class="project-tab-count">${counts[t.id]||0}</span></button>`
     ).join('');
   }
 }
@@ -4213,34 +4261,41 @@ function renderProjectTab(){
     const diaryEntries=diaryEntriesForProject(project);
 
     return `
-      <div class="card project-list-card">
-        <div class="project-type">${escapeHtml(projectTypeName(project.type||'pv'))}</div>
-        <div class="hero" style="font-size:18px;">${escapeHtml(project.name||'Ohne Namen')}</div>
-        <div class="blue" style="margin-top:3px;">${escapeHtml(customer?.name||project.customerName||'Kein Kunde zugeordnet')}</div>
-        <div class="muted">${escapeHtml(project.address||'Keine Adresse hinterlegt')}</div>
-        ${project.plan?`<div class="project-plan">${escapeHtml(project.plan)}</div>`:''}
-        ${(project.type||'pv')==='pv'?`
-          <div class="project-specs">
-            <span>Wechselrichter<b>${escapeHtml(project.inverter||'—')}</b></span>
-            <span>Speicher<b>${escapeHtml(project.storage||'—')}</b></span>
-            <span>Module<b>${project.modules||'—'}</b></span>
-            <span>Dachart<b>${escapeHtml(project.roofType||'—')}</b></span>
-          </div>`:''}
-        ${project.type==='fenster'?`
-          <div class="project-specs one"><span>Fensterfläche<b>${project.windowArea?String(project.windowArea).replace('.',',')+' m²':'—'}</b></span></div>`:''}
-        <div class="project-own-hours"><span>Meine Stunden gesamt</span><b>${formatHoursNumber(ownTotal)}</b></div>
+      <details class="project-list-fold">
+        <summary>
+          <div class="project-fold-main">
+            <div class="project-fold-name">${escapeHtml(project.name||'Ohne Namen')}</div>
+            <div class="project-fold-plan${project.plan?'':' empty'}">${project.plan?escapeHtml(project.plan):'Kein Vorhaben eingetragen'}</div>
+          </div>
+        </summary>
+        <div class="project-fold-details">
+          <div class="project-type">${escapeHtml(projectTypeName(project.type||'pv'))}</div>
+          <div class="blue" style="margin-top:3px;">${escapeHtml(customer?.name||project.customerName||'Kein Kunde zugeordnet')}</div>
+          <div class="muted">${escapeHtml(project.address||'Keine Adresse hinterlegt')}</div>
+          ${project.plan?`<div class="project-plan">${escapeHtml(project.plan)}</div>`:''}
+          ${(project.type||'pv')==='pv'?`
+            <div class="project-specs">
+              <span>Wechselrichter<b>${escapeHtml(project.inverter||'—')}</b></span>
+              <span>Speicher<b>${escapeHtml(project.storage||'—')}</b></span>
+              <span>Module<b>${project.modules||'—'}</b></span>
+              <span>Dachart<b>${escapeHtml(project.roofType||'—')}</b></span>
+            </div>`:''}
+          ${project.type==='fenster'?`
+            <div class="project-specs one"><span>Fensterfläche<b>${project.windowArea?String(project.windowArea).replace('.',',')+' m²':'—'}</b></span></div>`:''}
+          <div class="project-own-hours"><span>Meine Stunden gesamt</span><b>${formatHoursNumber(ownTotal)}</b></div>
 
-        ${projectInvoicePreviewHtml(project)}
-        ${projectMaterialHtml(project)}
-        ${projectPhotosHtml(project,diaryEntries)}
-        ${projectDiaryHtml(project,diaryEntries)}
+          ${projectInvoicePreviewHtml(project)}
+          ${projectMaterialHtml(project)}
+          ${projectPhotosHtml(project,diaryEntries)}
+          ${projectDiaryHtml(project,diaryEntries)}
 
-        <div class="actions" style="margin-top:10px;">
-          <button class="btn btn2" type="button" onclick="editProject('${escapeHtml(project.id)}')">✏️ Bearbeiten</button>
-          ${customer?`<button class="btn btn2" type="button" onclick="openCustomerById('${escapeHtml(customer.id)}')">Kunde öffnen</button>`:''}
-          <button class="btn btn2 diary-danger" type="button" onclick="deleteProject('${escapeHtml(project.id)}')">🗑️ Löschen</button>
+          <div class="actions" style="margin-top:10px;">
+            <button class="btn btn2" type="button" onclick="editProject('${escapeHtml(project.id)}')">✏️ Bearbeiten</button>
+            ${customer?`<button class="btn btn2" type="button" onclick="openCustomerById('${escapeHtml(customer.id)}')">Kunde öffnen</button>`:''}
+            <button class="btn btn2 diary-danger" type="button" onclick="deleteProject('${escapeHtml(project.id)}')">🗑️ Löschen</button>
+          </div>
         </div>
-      </div>`;
+      </details>`;
   }).join('');
   loadStoredPhotos('img[data-project-photo-id]','projectPhotoId');
 }
@@ -4659,7 +4714,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.42',db:syncClone(db)
+      appVersion:'1.43',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -4674,7 +4729,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.42',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.43',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -4846,7 +4901,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.42',
+      appVersion:'1.43',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
