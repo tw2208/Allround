@@ -1074,7 +1074,7 @@ textarea{
   font-weight:900;
 }
 
-/* Version 1.47 – Bautagebuch-Bearbeitung korrigiert */
+/* Version 1.48 – Bautagebuch-Bearbeitung zuverlässig korrigiert */
 .pv-mat-table-head,.pv-mat-row{
   grid-template-columns:minmax(145px,1fr) 68px 76px 42px 42px 42px;
 }
@@ -1583,7 +1583,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.47</div>
+    <div class="blue" style="margin-top:6px;">Version 1.48</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -2939,24 +2939,20 @@ function resetDiaryEditMode(){
   if(btn) btn.textContent='Eintrag speichern';
 }
 
-async function editDiaryEntry(index){
-  const entry=db.diary[index];
-  if(!entry) return;
+async function editDiaryEntry(indexOrId){
+  let index=-1;
+  if(typeof indexOrId==='string'){
+    index=(db.diary||[]).findIndex(e=>e&&e.id===indexOrId);
+    if(index<0 && /^\d+$/.test(indexOrId)) index=Number(indexOrId);
+  }else index=Number(indexOrId);
+  const entry=(db.diary||[])[index];
+  if(!entry){
+    toast('Tagebucheintrag konnte nicht gefunden werden');
+    return;
+  }
 
   const selected=entry.date||diaryTodayISO;
   selectDiaryDate(selected);
-
-  const customerSelect=document.getElementById('diaryCustomer');
-  refreshDiaryCustomerSelect();
-  if(customerSelect && Number.isInteger(entry.customerIndex) && customerSelect.options[entry.customerIndex]){
-    customerSelect.value=String(entry.customerIndex);
-  }else if(customerSelect){
-    const match=[...customerSelect.options].find(o=>{
-      const c=db.customers[Number(o.value)];
-      return c && c.name===entry.customerName;
-    });
-    if(match) customerSelect.value=match.value;
-  }
 
   document.getElementById('site').value=entry.site||'';
   document.getElementById('start').value=entry.start||'08:00';
@@ -3133,7 +3129,7 @@ function renderDiary(){
           `:''}
           ${x.photoId?`<div class="photo-grid"><img class="photo-thumb" data-photo-id="${x.photoId}" alt="Tagebuchfoto"></div>`:''}
           <div class="actions" style="margin-top:10px;">
-            <button class="btn btn2" type="button" onclick="editDiaryEntry(${index})">✏️ Bearbeiten</button>
+            <button class="btn btn2" type="button" onclick="editDiaryEntry('${escapeJsString(x.id||String(index))}')">✏️ Bearbeiten</button>
             <button class="btn btn2 diary-danger" type="button" onclick="deleteDiaryEntry(${index})">🗑️ Löschen</button>
           </div>
         </div>
