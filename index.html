@@ -1070,7 +1070,14 @@ textarea{
 }
 
 
-/* Version 1.39 – Baustellenakte mit Material, Fotos und Bautagebuch */
+
+/* Version 1.40 – PDF-Export PV-Materialliste */
+.project-material-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.project-material-actions .project-material-note{margin:0;flex:1;min-width:210px}
+.pv-pdf-btn{padding:8px 11px;min-height:36px;font-size:12px;white-space:nowrap}
+@media(max-width:560px){.project-material-actions{align-items:stretch}.project-material-actions .project-material-note{min-width:100%}.pv-pdf-btn{width:100%}}
+
+/* Version 1.40 – Baustellenakte mit Material, Fotos und Bautagebuch */
 .project-detail-section{margin-top:12px;border:1px solid rgba(255,255,255,.10);border-radius:12px;background:rgba(255,255,255,.025);overflow:hidden}
 .project-detail-section>summary{list-style:none;cursor:pointer;padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700;color:#f5f8fb}
 .project-detail-section>summary::-webkit-details-marker{display:none}
@@ -1107,6 +1114,8 @@ textarea{
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -1516,7 +1525,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.39</div>
+    <div class="blue" style="margin-top:6px;">Version 1.40</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1865,7 +1874,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.39'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.40'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -3721,7 +3730,10 @@ function projectMaterialHtml(project){
     <details class="project-detail-section">
       <summary><span>PV-Materialliste</span><span class="project-detail-count">Bestell- und Baustellencheckliste</span></summary>
       <div class="project-detail-inner">
-        <div class="project-material-note"><span>Benötigte Menge frei eintragen</span><span data-material-status-key="${escapeHtml(targetKey)}">Automatisch gespeichert</span></div>
+        <div class="project-material-actions">
+          <div class="project-material-note"><span>Benötigte Menge frei eintragen</span><span data-material-status-key="${escapeHtml(targetKey)}">Automatisch gespeichert</span></div>
+          <button type="button" class="secondary pv-pdf-btn" onclick="exportProjectMaterialPdf('${escapeHtml(project.id)}')">PDF exportieren</button>
+        </div>
         ${PV_MATERIAL_GROUPS.map(group=>`
           <div class="pv-mat-group">
             <div class="pv-mat-group-title">${escapeHtml(group.name)}</div>
@@ -3739,6 +3751,144 @@ function projectMaterialHtml(project){
           </div>`).join('')}
       </div>
     </details>`;
+}
+
+
+function pdfSafeFilenamePart(value){
+  return String(value||'PV-Projekt')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9_-]+/g,'_')
+    .replace(/^_+|_+$/g,'') || 'PV-Projekt';
+}
+
+function localIsoDate(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function usedProjectMaterialRows(project){
+  const targetKey=`project:${project.id}`;
+  const list=getMaterialList(targetKey);
+  const rows=[];
+  PV_MATERIAL_GROUPS.forEach(group=>group.items.forEach(([id,name,unit])=>{
+    const item=list.items[id]||{};
+    const qty=String(item.qty??'').trim();
+    const ordered=Boolean(item.ordered);
+    const loaded=Boolean(item.loaded);
+    const installed=Boolean(item.installed);
+    if(qty!=='' || ordered || loaded || installed){
+      rows.push({id,name,unit,qty,ordered,loaded,installed,group:group.name});
+    }
+  }));
+  return rows;
+}
+
+function drawPdfCheck(doc,cell){
+  const cx=cell.x+cell.width/2;
+  const cy=cell.y+cell.height/2+0.5;
+  doc.setDrawColor(20,20,20);
+  doc.setLineWidth(0.55);
+  doc.line(cx-2.5,cy,cx-0.6,cy+2.0);
+  doc.line(cx-0.6,cy+2.0,cx+3.2,cy-2.7);
+}
+
+async function exportProjectMaterialPdf(projectId){
+  try{
+    const project=(db.projects||[]).find(p=>p.id===projectId);
+    if(!project){toast('Baustelle nicht gefunden');return;}
+    const rows=usedProjectMaterialRows(project);
+    if(!rows.length){toast('Keine ausgefüllten Materialpositionen vorhanden');return;}
+    if(!window.jspdf?.jsPDF){
+      toast('PDF-Modul konnte nicht geladen werden');
+      return;
+    }
+
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const customer=customerById(project.customerId);
+    const customerName=customer?.name || project.customerName || '—';
+    const projectName=project.name || 'PV-Anlage';
+    const dateIso=localIsoDate();
+    const dateDisplay=new Date().toLocaleDateString('de-DE');
+
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(16);
+    doc.text('PV-Materialliste',14,16);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(10);
+    doc.text(`Kunde: ${customerName}`,14,23);
+    doc.text(`Projekt: ${projectName}`,14,28);
+    doc.text(`Datum: ${dateDisplay}`,14,33);
+
+    if(typeof doc.autoTable!=='function'){
+      toast('PDF-Tabellenmodul konnte nicht geladen werden');
+      return;
+    }
+
+    const body=rows.map(r=>[r.name,r.unit,r.qty,'','','']);
+    doc.autoTable({
+      startY:39,
+      head:[['Material','Einheit','benötigte Menge','bestellt','verladen','verbaut']],
+      body,
+      theme:'grid',
+      margin:{left:10,right:10,bottom:14},
+      styles:{font:'helvetica',fontSize:8.2,cellPadding:2.2,valign:'middle',textColor:[20,20,20],lineColor:[180,180,180],lineWidth:0.15},
+      headStyles:{fillColor:[15,73,119],textColor:[255,255,255],fontStyle:'bold',halign:'center'},
+      columnStyles:{
+        0:{cellWidth:67,halign:'left'},
+        1:{cellWidth:20,halign:'center'},
+        2:{cellWidth:30,halign:'center'},
+        3:{cellWidth:22,halign:'center'},
+        4:{cellWidth:22,halign:'center'},
+        5:{cellWidth:22,halign:'center'}
+      },
+      didDrawCell(data){
+        if(data.section!=='body' || data.column.index<3 || data.column.index>5)return;
+        const row=rows[data.row.index];
+        const checked=data.column.index===3?row.ordered:(data.column.index===4?row.loaded:row.installed);
+        if(checked)drawPdfCheck(doc,data.cell);
+      },
+      didDrawPage(data){
+        const pageCount=doc.internal.getNumberOfPages();
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(100);
+        doc.text(`Allround Weber · PV-Materialliste · Seite ${pageCount}`,14,291);
+        doc.setTextColor(20);
+      }
+    });
+
+    const filename=`PV-Materialliste_${pdfSafeFilenamePart(customerName)}_${dateIso}.pdf`;
+    const blob=doc.output('blob');
+    const file=new File([blob],filename,{type:'application/pdf'});
+
+    if(navigator.share){
+      let canShare=true;
+      try{if(navigator.canShare)canShare=navigator.canShare({files:[file]});}catch(e){canShare=false;}
+      if(canShare){
+        try{
+          await navigator.share({title:'PV-Materialliste',text:`${customerName} – ${projectName}`,files:[file]});
+          toast('PDF bereit');
+          return;
+        }catch(err){
+          if(err?.name==='AbortError')return;
+        }
+      }
+    }
+
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=filename;a.rel='noopener';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),3000);
+    toast('PDF exportiert');
+  }catch(err){
+    console.error('PV-Materialliste PDF-Export fehlgeschlagen',err);
+    toast('PDF-Export fehlgeschlagen');
+  }
 }
 
 function projectDiaryHtml(project,entries){
@@ -4236,7 +4386,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.39',db:syncClone(db)
+      appVersion:'1.40',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -4251,7 +4401,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.39',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.40',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -4423,7 +4573,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.39',
+      appVersion:'1.40',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],

@@ -1,4 +1,4 @@
-const CACHE = 'allround-weber-v39';
+const CACHE = 'allround-weber-v40';
 const ASSETS = [
   './manifest.webmanifest',
   './icon-192.png',
