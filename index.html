@@ -1102,6 +1102,14 @@ textarea{
 .invoice-add-saved{display:grid;grid-template-columns:minmax(0,1fr) 90px auto;gap:7px;align-items:end}
 .invoice-row.with-action{grid-template-columns:minmax(0,1fr) 70px 88px 92px 34px}
 .invoice-delete-mini{border:0;background:transparent;color:#ff8f8f;font-size:16px;padding:4px;cursor:pointer}
+.invoice-edit-mini{border:0;background:transparent;color:#7fc8ff;font-size:15px;padding:4px;cursor:pointer}.invoice-actions-mini{display:flex;gap:2px;justify-content:flex-end}
+
+.lexware-box{margin-top:12px;padding:11px;border:1px solid rgba(31,157,255,.35);border-radius:11px;background:rgba(31,157,255,.045)}
+.lexware-grid{display:grid;grid-template-columns:1fr 120px;gap:8px;margin:9px 0}
+.lexware-summary{display:grid;gap:5px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.lexware-summary>div{display:flex;justify-content:space-between;gap:12px}.lexware-summary .gross{font-size:14px;font-weight:900;color:#fff}
+.lexware-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.lexware-note{font-size:10px;color:var(--muted);margin-top:7px}
+@media(max-width:680px){.lexware-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.invoice-catalog-form,.invoice-add-grid,.invoice-add-saved{grid-template-columns:1fr 1fr}.invoice-catalog-form label:first-child,.invoice-add-grid label:first-child,.invoice-add-saved label:first-child{grid-column:1/-1}.invoice-catalog-form button,.invoice-add-grid button,.invoice-add-saved button{grid-column:1/-1}.invoice-catalog-item{grid-template-columns:minmax(0,1fr) auto}.invoice-catalog-item .cat-price{grid-column:1/2}.invoice-row.with-action{min-width:500px}}
 
 
@@ -1583,7 +1591,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.48</div>
+    <div class="blue" style="margin-top:6px;">Version 1.50</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1807,7 +1815,7 @@ const SYNC_ROLLBACK_KEY='allround_weber_sync_rollback_v1';
 const SYNC_PENDING_KEY='allround_weber_sync_pending_v1';
 const SYNC_FIELDS={
   customers:['name','contact','street','zip','place','phone','email','notes'],
-  projects:['customerId','customerName','type','name','address','plan','inverter','storage','modules','roofType','windowArea'],
+  projects:['customerId','customerName','type','name','address','plan','inverter','storage','modules','roofType','windowArea','invoiceTaxRate','invoiceServiceDate'],
   diary:['projectId','customerIndex','customerName','site','date','start','end','pause','hours','note','mat','ownHours','employeeHours'],
   customProjectTypes:['name'],
   hourPayments:['name','paid','paidDate','paidHours','entries'],
@@ -1976,7 +1984,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.43'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.50'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -4106,7 +4114,7 @@ function renderInvoiceCatalog(){
   ensureInvoiceCatalog();
   const el=document.getElementById('invoiceCatalogList'); if(!el)return;
   if(!db.invoiceCatalog.length){el.innerHTML='<div class="muted">Noch keine eigenen Rechnungspositionen gespeichert.</div>';return}
-  el.innerHTML=[...db.invoiceCatalog].sort((a,b)=>(a.label||'').localeCompare(b.label||'','de',{sensitivity:'base'})).map(i=>`<div class="invoice-catalog-item"><div><b>${escapeHtml(i.label||'Ohne Bezeichnung')}</b><div class="muted">${escapeHtml(i.unit||'Stk.')}</div></div><div class="cat-price"><b>${escapeHtml(formatMoney(parseMoneyNumber(i.unitPrice)))}</b></div><button class="invoice-delete-mini" type="button" title="Löschen" onclick="deleteInvoiceCatalogItem('${escapeHtml(i.id)}')">×</button></div>`).join('');
+  el.innerHTML=[...db.invoiceCatalog].sort((a,b)=>(a.label||'').localeCompare(b.label||'','de',{sensitivity:'base'})).map(i=>`<div class="invoice-catalog-item"><div><b>${escapeHtml(i.label||'Ohne Bezeichnung')}</b><div class="muted">${escapeHtml(i.unit||'Stk.')}</div></div><div class="cat-price"><b>${escapeHtml(formatMoney(parseMoneyNumber(i.unitPrice)))}</b></div><div class="invoice-actions-mini"><button class="invoice-edit-mini" type="button" title="Bearbeiten" onclick="editInvoiceCatalogItem('${escapeHtml(i.id)}')">✎</button><button class="invoice-delete-mini" type="button" title="Löschen" onclick="deleteInvoiceCatalogItem('${escapeHtml(i.id)}')">×</button></div></div>`).join('');
 }
 function createInvoiceCatalogItem(label,unit,unitPrice){
   ensureInvoiceCatalog();
@@ -4123,6 +4131,19 @@ function addInvoiceCatalogItemFromSettings(){
   const item=createInvoiceCatalogItem(label,unit,price); if(!item)return;
   ['invoiceCatalogLabel','invoiceCatalogUnit','invoiceCatalogPrice'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
   renderInvoiceCatalog(); renderProjectTab(); toast('Position gespeichert');
+}
+function editInvoiceCatalogItem(id){
+  ensureInvoiceCatalog(); const item=db.invoiceCatalog.find(x=>x.id===id); if(!item)return;
+  const label=prompt('Bezeichnung',item.label||''); if(label===null)return;
+  const unit=prompt('Einheit',item.unit||'Stk.'); if(unit===null)return;
+  const price=prompt('Einzelpreis €',String(item.unitPrice??'')); if(price===null)return;
+  if(!String(label).trim()){toast('Bezeichnung fehlt');return}
+  const changed=[];
+  if(item.label!==String(label).trim()){item.label=String(label).trim();changed.push('label')}
+  if(item.unit!==String(unit).trim()){item.unit=String(unit).trim()||'Stk.';changed.push('unit')}
+  if(String(item.unitPrice??'')!==String(price).trim()){item.unitPrice=String(price).trim();changed.push('unitPrice')}
+  if(changed.length){syncEnsureRecord(item,'invoiceCatalog',SYNC_FIELDS.invoiceCatalog,'icat');syncTouchRecord(item,changed);saveDB();}
+  renderInvoiceCatalog();renderProjectTab();toast('Position geändert');
 }
 function deleteInvoiceCatalogItem(id){
   ensureInvoiceCatalog(); const idx=db.invoiceCatalog.findIndex(x=>x.id===id); if(idx<0)return;
@@ -4149,6 +4170,39 @@ function createAndAddInvoiceItem(projectId){
   const item=createInvoiceCatalogItem(label,unit,price); if(!item)return;
   if(addManualInvoiceItem(projectId,item,qty)){renderProjectTab();toast('Gespeichert und hinzugefügt')}
 }
+function editManualInvoiceItem(id){
+  ensureInvoiceCatalog(); const row=db.manualInvoiceItems.find(x=>x.id===id); if(!row)return;
+  const label=prompt('Bezeichnung',row.label||''); if(label===null)return;
+  const unit=prompt('Einheit',row.unit||'Stk.'); if(unit===null)return;
+  const qty=prompt('Menge',String(row.qty??'')); if(qty===null)return;
+  const price=prompt('Einzelpreis €',String(row.unitPrice??'')); if(price===null)return;
+  if(!String(label).trim()){toast('Bezeichnung fehlt');return}
+  if(parseMoneyNumber(qty)<=0){toast('Menge muss größer 0 sein');return}
+  const changed=[];
+  const vals={label:String(label).trim(),unit:String(unit).trim()||'Stk.',qty:String(qty).trim(),unitPrice:String(price).trim()};
+  Object.entries(vals).forEach(([k,v])=>{if(String(row[k]??'')!==String(v)){row[k]=v;changed.push(k)}});
+  if(changed.length){syncEnsureRecord(row,'manualInvoiceItems',SYNC_FIELDS.manualInvoiceItems,'irow');syncTouchRecord(row,changed);saveDB();}
+  renderProjectTab();toast('Rechnungsposition geändert');
+}
+function editAutoInvoiceItem(projectId){
+  ensureInvoiceSettings();
+  const val=prompt('Standard-Stundensatz € / Std.',String(db.invoiceSettings.standardHourlyRate??'')); if(val===null)return;
+  if(parseMoneyNumber(val)<0){toast('Ungültiger Stundensatz');return}
+  saveStandardHourlyRate(val);
+}
+function editMaterialInvoiceItem(projectId,itemKey){
+  const list=getMaterialList(`project:${projectId}`); const row=list.items[itemKey]||{};
+  const qty=prompt('Benötigte/abzurechnende Menge',String(row.qty??'')); if(qty===null)return;
+  const price=prompt('Einzelpreis €',String(row.unitPrice??'')); if(price===null)return;
+  if(parseMoneyNumber(qty)<=0){toast('Menge muss größer 0 sein');return}
+  const changed=[];
+  if(String(row.qty??'')!==String(qty).trim()){row.qty=String(qty).trim();changed.push('qty')}
+  if(String(row.unitPrice??'')!==String(price).trim()){row.unitPrice=String(price).trim();changed.push('unitPrice')}
+  row.installed=true; if(!changed.includes('installed'))changed.push('installed');
+  list.items[itemKey]=row; list.updatedAt=new Date().toISOString();
+  syncEnsureRecord(row,'materialItems',SYNC_FIELDS.materialItems,'mat'); if(changed.length)syncTouchRecord(row,changed);
+  saveDB();renderProjectTab();toast('Materialposition geändert');
+}
 function deleteManualInvoiceItem(id){
   ensureInvoiceCatalog(); const idx=db.manualInvoiceItems.findIndex(x=>x.id===id); if(idx<0)return;
   syncTombstone('manualInvoiceItems',db.manualInvoiceItems[idx]); db.manualInvoiceItems.splice(idx,1); saveDB(); renderProjectTab(); toast('Position entfernt');
@@ -4166,7 +4220,7 @@ function invoicePositionsForProject(project){
     PV_MATERIAL_GROUPS.forEach(group=>group.items.forEach(([id,name,unit])=>{
       const row=list.items[id]||{}; if(!row.installed)return;
       const qty=parseMoneyNumber(row.qty); const price=parseMoneyNumber(row.unitPrice);
-      if(qty>0 && price>0)positions.push({label:name,unit,qty,unitPrice:price,total:qty*price,source:'material'});
+      if(qty>0 && price>0)positions.push({label:name,unit,qty,unitPrice:price,total:qty*price,source:'material',itemKey:id,projectId:project.id});
       else warnings.push(`${name}: für eine Rechnungsposition fehlen Menge oder Einzelpreis.`);
     }));
   }
@@ -4176,6 +4230,40 @@ function invoicePositionsForProject(project){
   });
   return {positions,warnings};
 }
+function projectInvoiceTaxRate(project){
+  const v=String(project.invoiceTaxRate??'19');
+  return ['0','19'].includes(v)?Number(v):19;
+}
+function saveProjectInvoiceTaxRate(projectId,value){
+  const p=(db.projects||[]).find(x=>x.id===projectId);if(!p)return;
+  p.invoiceTaxRate=String(value);syncEnsureRecord(p,'projects',SYNC_FIELDS.projects,'project');
+  if(!SYNC_FIELDS.projects.includes('invoiceTaxRate'))SYNC_FIELDS.projects.push('invoiceTaxRate');
+  syncTouchRecord(p,['invoiceTaxRate']);saveDB();renderProjectTab();
+}
+function projectInvoiceServiceDate(project){return project.invoiceServiceDate||new Date().toISOString().slice(0,10)}
+function saveProjectInvoiceServiceDate(projectId,value){
+  const p=(db.projects||[]).find(x=>x.id===projectId);if(!p)return;
+  p.invoiceServiceDate=value||'';syncEnsureRecord(p,'projects',SYNC_FIELDS.projects,'project');
+  if(!SYNC_FIELDS.projects.includes('invoiceServiceDate'))SYNC_FIELDS.projects.push('invoiceServiceDate');
+  syncTouchRecord(p,['invoiceServiceDate']);saveDB();
+}
+function prepareLexwareDraft(projectId){
+  const project=(db.projects||[]).find(x=>x.id===projectId);if(!project)return;
+  const customer=customerById(project.customerId);const {positions}=invoicePositionsForProject(project);
+  if(!positions.length){toast('Keine Rechnungspositionen vorhanden');return}
+  const tax=projectInvoiceTaxRate(project),net=positions.reduce((s,p)=>s+p.total,0),vat=net*tax/100,gross=net+vat;
+  const data={customer:customer?.name||project.customerName||'',project:project.name||'',serviceDate:projectInvoiceServiceDate(project),taxRate:tax,positions:positions.map(p=>({name:p.label,quantity:p.qty,unit:p.unit,unitPrice:p.unitPrice,total:p.total})),net,vat,gross};
+  project.lexwarePreparedAt=new Date().toISOString();project.lexwarePreparedDraft=data;saveDB();renderProjectTab();toast('Lexware-Entwurf vorbereitet');
+}
+function lexwareInvoiceBoxHtml(project,positions){
+  const tax=projectInvoiceTaxRate(project),net=positions.reduce((s,p)=>s+p.total,0),vat=net*tax/100,gross=net+vat;
+  return `<div class="lexware-box"><b>Lexware-Rechnungsvorschau</b><div class="muted">Aus Arbeitsstunden, verbautem Material und zusätzlichen Rechnungspositionen.</div>
+  <div class="lexware-grid"><label>Leistungsdatum<input type="date" value="${escapeHtml(projectInvoiceServiceDate(project))}" onchange="saveProjectInvoiceServiceDate('${escapeHtml(project.id)}',this.value)"></label><label>USt.<select onchange="saveProjectInvoiceTaxRate('${escapeHtml(project.id)}',this.value)"><option value="19" ${tax===19?'selected':''}>19 %</option><option value="0" ${tax===0?'selected':''}>0 %</option></select></label></div>
+  <div class="lexware-summary"><div><span>Netto</span><b>${escapeHtml(formatMoney(net))}</b></div><div><span>Umsatzsteuer ${tax} %</span><b>${escapeHtml(formatMoney(vat))}</b></div><div class="gross"><span>Gesamt</span><span>${escapeHtml(formatMoney(gross))}</span></div></div>
+  <div class="lexware-actions"><button class="btn btn2" type="button" onclick="prepareLexwareDraft('${escapeHtml(project.id)}')">Lexware-Entwurf vorbereiten</button><button class="btn" type="button" disabled title="Sichere Lexware-Verbindung wird im nächsten Schritt eingerichtet">An Lexware senden</button></div>
+  <div class="lexware-note">„An Lexware senden“ wird freigeschaltet, sobald die sichere API-Verbindung eingerichtet ist. Der API-Schlüssel wird nicht in dieser PWA gespeichert.</div></div>`;
+}
+
 function projectInvoicePreviewHtml(project){
   const {positions,warnings}=invoicePositionsForProject(project); const total=positions.reduce((s,p)=>s+p.total,0);
   return `<details class="project-detail-section">
@@ -4183,10 +4271,11 @@ function projectInvoicePreviewHtml(project){
     <div class="project-detail-inner">
       ${positions.length?`<div class="invoice-preview">
         <div class="invoice-row with-action head"><span>Position</span><span class="num">Menge</span><span class="num">Einzelpreis</span><span class="num">Gesamt</span><span></span></div>
-        ${positions.map(p=>`<div class="invoice-row with-action"><span>${escapeHtml(p.label)} <span class="muted">(${escapeHtml(p.unit)})</span></span><span class="num">${escapeHtml(String(Number(p.qty.toFixed(2))).replace('.',','))}</span><span class="num">${escapeHtml(formatMoney(p.unitPrice))}</span><span class="num"><b>${escapeHtml(formatMoney(p.total))}</b></span><span>${p.source==='manual'?`<button class="invoice-delete-mini" type="button" onclick="deleteManualInvoiceItem('${escapeHtml(p.id)}')">×</button>`:''}</span></div>`).join('')}
+        ${positions.map(p=>`<div class="invoice-row with-action"><span>${escapeHtml(p.label)} <span class="muted">(${escapeHtml(p.unit)})</span></span><span class="num">${escapeHtml(String(Number(p.qty.toFixed(2))).replace('.',','))}</span><span class="num">${escapeHtml(formatMoney(p.unitPrice))}</span><span class="num"><b>${escapeHtml(formatMoney(p.total))}</b></span><span><div class="invoice-actions-mini">${p.source==='manual'?`<button class="invoice-edit-mini" type="button" title="Bearbeiten" onclick="editManualInvoiceItem('${escapeHtml(p.id)}')">✎</button><button class="invoice-delete-mini" type="button" title="Löschen" onclick="deleteManualInvoiceItem('${escapeHtml(p.id)}')">×</button>`:p.source==='auto'?`<button class="invoice-edit-mini" type="button" title="Stundensatz bearbeiten" onclick="editAutoInvoiceItem('${escapeHtml(project.id)}')">✎</button>`:p.source==='material'?`<button class="invoice-edit-mini" type="button" title="Materialposition bearbeiten" onclick="editMaterialInvoiceItem('${escapeHtml(project.id)}','${escapeHtml(p.itemKey)}')">✎</button>`:''}</div></span></div>`).join('')}
         <div class="invoice-total"><span>Summe Positionen</span><span>${escapeHtml(formatMoney(total))}</span></div>
       </div>`:'<div class="muted">Noch keine vollständigen Rechnungspositionen vorhanden.</div>'}
       ${warnings.length?`<div class="invoice-warning">${warnings.map(w=>escapeHtml(w)).join('<br>')}</div>`:''}
+      ${lexwareInvoiceBoxHtml(project,positions)}
       <div class="invoice-add-box">
         <b>Gespeicherte Position hinzufügen</b>
         <div class="invoice-add-saved"><label>Position<select id="invoiceSaved_${escapeHtml(project.id)}">${invoiceCatalogOptionsHtml()}</select></label><label>Menge<input id="invoiceSavedQty_${escapeHtml(project.id)}" type="number" min="0" step="0.01" inputmode="decimal" value="1"></label><button class="btn btn2" type="button" onclick="addSavedInvoiceItemToProject('${escapeHtml(project.id)}')">＋ Hinzufügen</button></div>
@@ -4195,7 +4284,7 @@ function projectInvoicePreviewHtml(project){
         <b>Neue Position anlegen & für später speichern</b>
         <div class="invoice-add-grid"><label>Bezeichnung<input id="invoiceNewLabel_${escapeHtml(project.id)}" type="text" placeholder="z. B. Anfahrt"></label><label>Einheit<input id="invoiceNewUnit_${escapeHtml(project.id)}" type="text" value="Stk."></label><label>Einzelpreis €<input id="invoiceNewPrice_${escapeHtml(project.id)}" type="number" min="0" step="0.01" inputmode="decimal"></label><label>Menge<input id="invoiceNewQty_${escapeHtml(project.id)}" type="number" min="0" step="0.01" inputmode="decimal" value="1"></label><button class="btn btn2" type="button" onclick="createAndAddInvoiceItem('${escapeHtml(project.id)}')">＋ Speichern</button></div>
       </div>
-      <div class="muted" style="margin-top:8px;">Neue eigene Positionen werden dauerhaft gespeichert und stehen bei der nächsten Baustelle wieder zur Auswahl.</div>
+      <div class="muted" style="margin-top:8px;">Neue eigene Positionen werden dauerhaft gespeichert und stehen bei der nächsten Baustelle wieder zur Auswahl. Über ✎ kannst du vorhandene Rechnungspositionen jederzeit ändern.</div>
     </div>
   </details>`;
 }
@@ -4703,7 +4792,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.43',db:syncClone(db)
+      appVersion:'1.50',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -4718,7 +4807,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.43',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.50',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -4890,7 +4979,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.43',
+      appVersion:'1.50',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
