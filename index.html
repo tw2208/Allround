@@ -1074,7 +1074,7 @@ textarea{
   font-weight:900;
 }
 
-/* Version 1.45 – Bautagebuch-Bearbeitung korrigiert */
+/* Version 1.47 – Bautagebuch-Bearbeitung korrigiert */
 .pv-mat-table-head,.pv-mat-row{
   grid-template-columns:minmax(145px,1fr) 68px 76px 42px 42px 42px;
 }
@@ -1266,8 +1266,6 @@ textarea{
         </div>
       </div>
 
-      <label>Pause in Minuten</label>
-      <input id="pause" type="number" value="0" min="0" step="5" inputmode="numeric">
 
       <div class="hours diary-work-hours">
         <span class="muted">Meine Arbeitszeit</span>
@@ -1585,7 +1583,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.45</div>
+    <div class="blue" style="margin-top:6px;">Version 1.47</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -2212,11 +2210,10 @@ function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.re
 function calculatedWorkHoursNumber(){
   const s=document.getElementById('start')?.value||'';
   const e=document.getElementById('end')?.value||'';
-  const p=Number(document.getElementById('pause')?.value||0);
   if(!s||!e) return 0;
   const [sh,sm]=s.split(':').map(Number);
   const [eh,em]=e.split(':').map(Number);
-  let minutes=(eh*60+em)-(sh*60+sm)-p;
+  let minutes=(eh*60+em)-(sh*60+sm);
   if(minutes<0) minutes+=24*60;
   return Math.max(0,minutes/60);
 }
@@ -2225,7 +2222,7 @@ function calc(){
   const hours=calculatedWorkHoursNumber();
   document.getElementById('hours').textContent=formatHoursNumber(hours);
 }
-['start','end','pause'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
+['start','end'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
 const diaryToday=new Date();
 const diaryTodayISO=[
   diaryToday.getFullYear(),
@@ -2863,7 +2860,7 @@ async function saveDiary(){
     site:project.name||'Baustelle',
     start:document.getElementById('start').value,
     end:document.getElementById('end').value,
-    pause:document.getElementById('pause').value,
+    pause:'0',
     hours:document.getElementById('hours').textContent,
     note:document.getElementById('note').value,
     mat:document.getElementById('mat').value,
@@ -2964,7 +2961,6 @@ async function editDiaryEntry(index){
   document.getElementById('site').value=entry.site||'';
   document.getElementById('start').value=entry.start||'08:00';
   document.getElementById('end').value=entry.end||'16:00';
-  document.getElementById('pause').value=entry.pause||0;
 
   let editProjectId=entry.projectId||'';
   if(!editProjectId){
@@ -3051,7 +3047,6 @@ function openNewDiaryEntry(){
   document.getElementById('site').value='';
   document.getElementById('start').value='08:00';
   document.getElementById('end').value='16:00';
-  document.getElementById('pause').value='0';
   refreshDiaryProjectSelect('');
   document.getElementById('note').value='';
   document.getElementById('mat').value='';
@@ -3129,7 +3124,6 @@ function renderDiary(){
 
         <div class="diary-detail" id="diaryDetail-${index}" hidden>
           <div class="rule"></div>
-          <div class="muted">Pause: ${x.pause||0} min</div>
           <div style="margin-top:8px;">${escapeHtml(x.note||'Keine Notiz')}</div>
           <div class="blue" style="margin-top:8px;">Material: ${escapeHtml(x.mat||'—')}</div>
           ${Array.isArray(x.employeeHours)&&x.employeeHours.length?`
@@ -4221,7 +4215,6 @@ function projectDiaryHtml(project,entries){
               <div class="grow"><b>${escapeHtml(entry.date||'Ohne Datum')}</b><div class="blue">${entry.start||entry.end?`${escapeHtml(entry.start||'')}–${escapeHtml(entry.end||'')}`:''}</div></div>
               <span class="pill">${escapeHtml(entry.hours||formatHoursNumber(Number(entry.ownHours)||0))}</span>
             </div>
-            <div class="muted" style="margin-top:6px;">Pause: ${escapeHtml(entry.pause??0)} min</div>
             <div class="rule"></div>
             <div>${escapeHtml(entry.note||'Keine Notiz')}</div>
             <div class="blue" style="margin-top:7px;">Material: ${escapeHtml(entry.mat||entry.material||'—')}</div>
@@ -4264,8 +4257,8 @@ function renderProjectTab(){
       <details class="project-list-fold">
         <summary>
           <div class="project-fold-main">
-            <div class="project-fold-name">${escapeHtml(project.name||'Ohne Namen')}</div>
-            <div class="project-fold-plan${project.plan?'':' empty'}">${project.plan?escapeHtml(project.plan):'Kein Vorhaben eingetragen'}</div>
+            <div class="project-fold-name">${escapeHtml(customer?.name||project.customerName||'Kein Kunde zugeordnet')}</div>
+            <div class="project-fold-plan${project.plan?'':' empty'}">${project.plan?escapeHtml(project.plan):escapeHtml(project.name||'Kein Vorhaben eingetragen')}</div>
           </div>
         </summary>
         <div class="project-fold-details">
