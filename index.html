@@ -1103,6 +1103,7 @@ textarea{
 .invoice-row.with-action{grid-template-columns:minmax(0,1fr) 70px 88px 92px 34px}
 .invoice-delete-mini{border:0;background:transparent;color:#ff8f8f;font-size:16px;padding:4px;cursor:pointer}
 .invoice-edit-mini{border:0;background:transparent;color:#7fc8ff;font-size:15px;padding:4px;cursor:pointer}.invoice-actions-mini{display:flex;gap:2px;justify-content:flex-end}
+.lexware-bridge-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end;margin-top:12px}.lexware-bridge-grid label{margin:0}.lexware-bridge-status{margin-top:9px;padding:9px 10px;border:1px solid var(--line);border-radius:9px;font-size:11px}.lexware-bridge-status.ok{border-color:rgba(46,204,113,.45);color:#9df0bd;background:rgba(46,204,113,.06)}.lexware-bridge-status.bad{border-color:rgba(255,90,90,.45);color:#ffb1b1;background:rgba(255,90,90,.06)}.lexware-draft-state{margin-top:8px;padding:8px 9px;border-radius:8px;background:rgba(31,157,255,.06);font-size:10.5px}.lexware-send-btn[disabled]{opacity:.45;cursor:not-allowed}@media(max-width:680px){.lexware-bridge-grid{grid-template-columns:1fr}.lexware-bridge-grid button{width:100%}}
 
 .lexware-box{margin-top:12px;padding:11px;border:1px solid rgba(31,157,255,.35);border-radius:11px;background:rgba(31,157,255,.045)}
 .lexware-grid{display:grid;grid-template-columns:1fr 120px;gap:8px;margin:9px 0}
@@ -1591,7 +1592,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.50</div>
+    <div class="blue" style="margin-top:6px;">Version 1.53</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1607,6 +1608,18 @@ textarea{
   </div>
 
   <div class="card">
+    <h3 style="margin-top:0;">Lexware-Verbindung</h3>
+    <div class="muted">Der Lexware-API-Schlüssel bleibt ausschließlich im geschützten Vermittlungsdienst. In der App werden nur dessen URL und ein separater Verbindungsschlüssel lokal auf diesem Gerät gespeichert.</div>
+    <div class="lexware-bridge-grid">
+      <label>Vermittlungsdienst-URL<input id="lexwareBridgeUrl" type="url" inputmode="url" placeholder="https://allround-weber-lexware.workers.dev"></label>
+      <label>Verbindungsschlüssel<input id="lexwareBridgeToken" type="password" autocomplete="off" placeholder="separater App-Schlüssel"></label>
+      <button class="btn btn2" type="button" onclick="saveLexwareBridgeSettings()">Speichern</button>
+    </div>
+    <div class="actions" style="margin-top:8px;"><button class="btn btn2" type="button" onclick="testLexwareBridge()">🔒 Verbindung testen</button></div>
+    <div id="lexwareBridgeStatus" class="lexware-bridge-status">Noch nicht getestet.</div>
+  </div>
+
+  <div class="card">
     <h3 style="margin-top:0;">Gespeicherte Rechnungspositionen</h3>
     <div class="muted">Eigene Leistungen oder Artikel einmal anlegen und später bei jeder Baustelle wiederverwenden. Die Liste erweitert sich dauerhaft.</div>
     <div class="invoice-catalog-form">
@@ -1618,6 +1631,50 @@ textarea{
     <div id="invoiceCatalogList" class="invoice-catalog-list"></div>
   </div>
 
+
+
+</section>
+
+<section id="sync" class="screen">
+  <div class="head"><button class="back" onclick="show('home')">‹</button><h2>Synchronisieren</h2></div>
+  <div class="card">
+    <div class="sync-card">
+      <h3>Direkte Gerätesynchronisierung</h3>
+      <div class="muted">iPhone und iPad direkt per WebRTC synchronisieren. Keine Cloud. Fotos werden noch nicht über die direkte Gerätesynchronisierung übertragen.</div>
+      <div class="sync-grid">
+        <button class="btn" type="button" onclick="syncStartDeviceA()">Gerät A · Starten</button>
+        <button class="btn btn2" type="button" onclick="syncPrepareDeviceB()">Gerät B · Verbinden</button>
+      </div>
+      <div class="actions">
+        <button class="btn btn2" type="button" onclick="syncOpenScanner()">QR-Code scannen</button>
+        <button class="btn btn2" type="button" onclick="syncResetSession()">Verbindung zurücksetzen</button>
+      </div>
+      <div id="syncStatus" class="sync-status">Bereit. Beide Geräte müssen dieselbe HTTPS-App geöffnet haben und im selben Hotspot/WLAN sein.</div>
+      <div id="syncPeerInfo" class="sync-small" style="margin-top:7px"></div>
+      <div id="syncQrWrap" hidden>
+        <div id="syncQrHint" class="sync-small" style="margin-top:10px"></div>
+        <div id="syncQr" class="sync-qr"></div>
+      </div>
+      <video id="syncVideo" class="sync-video" playsinline muted hidden></video>
+      <canvas id="syncCanvas" hidden></canvas>
+      <details style="margin-top:10px">
+        <summary class="sync-small">Manuelle Signalübertragung</summary>
+        <textarea id="syncSignalOut" readonly placeholder="Ausgehendes Signal"></textarea>
+        <textarea id="syncSignalIn" placeholder="Signal vom anderen Gerät einfügen"></textarea>
+        <button class="btn btn2" type="button" style="margin-top:8px" onclick="syncAcceptManualSignal()">Signal übernehmen</button>
+      </details>
+      <div id="syncDiffSummary" hidden></div>
+      <div id="syncConflicts" hidden></div>
+      <div id="syncCommitActions" class="actions" hidden>
+        <button class="btn" id="syncCommitBtn" type="button" onclick="syncApproveAndCommit()">Synchronisierung übernehmen</button>
+        <button class="btn btn2" type="button" onclick="syncAbort()">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="backup" class="screen">
+  <div class="head"><button class="back" onclick="show('home')">‹</button><h2>Backup</h2></div>
   <div class="card">
     <h3 style="margin-top:0;">Backup & Wiederherstellung</h3>
     <div class="muted">Die App hält automatisch bis zu 30 tägliche lokale Datenstände vor. Zusätzlich solltest du regelmäßig eine Komplettsicherung außerhalb der App, z. B. in iCloud Drive, speichern.</div>
@@ -1659,42 +1716,9 @@ textarea{
       <div class="backup-status" id="backupStatus"></div>
     </div>
 
-    <div class="sync-card">
-      <h3>Direkte Gerätesynchronisierung</h3>
-      <div class="muted">iPhone und iPad direkt per WebRTC synchronisieren. Keine Cloud. Fotos werden noch nicht über die direkte Gerätesynchronisierung übertragen.</div>
-      <div class="sync-grid">
-        <button class="btn" type="button" onclick="syncStartDeviceA()">Gerät A · Starten</button>
-        <button class="btn btn2" type="button" onclick="syncPrepareDeviceB()">Gerät B · Verbinden</button>
-      </div>
-      <div class="actions">
-        <button class="btn btn2" type="button" onclick="syncOpenScanner()">QR-Code scannen</button>
-        <button class="btn btn2" type="button" onclick="syncResetSession()">Verbindung zurücksetzen</button>
-      </div>
-      <div id="syncStatus" class="sync-status">Bereit. Beide Geräte müssen dieselbe HTTPS-App geöffnet haben und im selben Hotspot/WLAN sein.</div>
-      <div id="syncPeerInfo" class="sync-small" style="margin-top:7px"></div>
-      <div id="syncQrWrap" hidden>
-        <div id="syncQrHint" class="sync-small" style="margin-top:10px"></div>
-        <div id="syncQr" class="sync-qr"></div>
-      </div>
-      <video id="syncVideo" class="sync-video" playsinline muted hidden></video>
-      <canvas id="syncCanvas" hidden></canvas>
-      <details style="margin-top:10px">
-        <summary class="sync-small">Manuelle Signalübertragung</summary>
-        <textarea id="syncSignalOut" readonly placeholder="Ausgehendes Signal"></textarea>
-        <textarea id="syncSignalIn" placeholder="Signal vom anderen Gerät einfügen"></textarea>
-        <button class="btn btn2" type="button" style="margin-top:8px" onclick="syncAcceptManualSignal()">Signal übernehmen</button>
-      </details>
-      <div id="syncDiffSummary" hidden></div>
-      <div id="syncConflicts" hidden></div>
-      <div id="syncCommitActions" class="actions" hidden>
-        <button class="btn" id="syncCommitBtn" type="button" onclick="syncApproveAndCommit()">Synchronisierung übernehmen</button>
-        <button class="btn btn2" type="button" onclick="syncAbort()">Abbrechen</button>
-      </div>
-    </div>
   </div>
-
-  
 </section>
+
 
 </main>
 </div>
@@ -1722,6 +1746,8 @@ textarea{
 <button id="n-customers" onclick="show('customers')"><span class="ni">👥</span>Kunden</button>
 <button id="n-projects" onclick="show('projects')"><span class="ni">🏗️</span>Baustellen</button>
 <button id="n-hoursAccounts" onclick="show('hoursAccounts')"><span class="ni">⏱️</span>Stundenkonten</button>
+<button id="n-backup" onclick="show('backup')"><span class="ni">☁️</span>Backup</button>
+<button id="n-sync" onclick="show('sync')"><span class="ni">🔄</span>Synchronisieren</button>
 <button id="n-more" onclick="show('more')"><span class="ni">•••</span>Mehr</button>
 </div></div>
 <div class="toast" id="toast"></div>
@@ -1815,7 +1841,7 @@ const SYNC_ROLLBACK_KEY='allround_weber_sync_rollback_v1';
 const SYNC_PENDING_KEY='allround_weber_sync_pending_v1';
 const SYNC_FIELDS={
   customers:['name','contact','street','zip','place','phone','email','notes'],
-  projects:['customerId','customerName','type','name','address','plan','inverter','storage','modules','roofType','windowArea','invoiceTaxRate','invoiceServiceDate'],
+  projects:['customerId','customerName','type','name','address','plan','inverter','storage','modules','roofType','windowArea','invoiceTaxRate','invoiceServiceDate','lexwareDraftId','lexwareDraftCreatedAt','lexwareDraftResourceUri'],
   diary:['projectId','customerIndex','customerName','site','date','start','end','pause','hours','note','mat','ownHours','employeeHours'],
   customProjectTypes:['name'],
   hourPayments:['name','paid','paidDate','paidHours','entries'],
@@ -1984,7 +2010,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.50'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.51'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -2214,7 +2240,7 @@ function syncRecoveryCheck(){
 syncRecoveryCheck();
 
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderBackupCenter();renderInvoiceSettings();renderInvoiceCatalog()}window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderInvoiceSettings();renderInvoiceCatalog();renderLexwareBridgeSettings()}if(id==='backup'){renderBackupCenter()}window.scrollTo(0,0)}
 function calculatedWorkHoursNumber(){
   const s=document.getElementById('start')?.value||'';
   const e=document.getElementById('end')?.value||'';
@@ -4247,21 +4273,109 @@ function saveProjectInvoiceServiceDate(projectId,value){
   if(!SYNC_FIELDS.projects.includes('invoiceServiceDate'))SYNC_FIELDS.projects.push('invoiceServiceDate');
   syncTouchRecord(p,['invoiceServiceDate']);saveDB();
 }
+const LEXWARE_BRIDGE_KEY='allround_weber_lexware_bridge_v1';
+function lexwareBridgeConfig(){
+  try{const x=JSON.parse(localStorage.getItem(LEXWARE_BRIDGE_KEY)||'{}');return x&&typeof x==='object'?x:{}}catch(e){return {}}
+}
+function normalizeBridgeUrl(v){return String(v||'').trim().replace(/\/+$/,'')}
+function renderLexwareBridgeSettings(){
+  const c=lexwareBridgeConfig();
+  const u=document.getElementById('lexwareBridgeUrl'),t=document.getElementById('lexwareBridgeToken'),st=document.getElementById('lexwareBridgeStatus');
+  if(u)u.value=c.url||''; if(t)t.value=c.token||'';
+  if(st){
+    if(c.lastTestOk){st.className='lexware-bridge-status ok';st.textContent=`Verbunden mit ${c.companyName||'Lexware'} · zuletzt getestet ${new Date(c.lastTestAt).toLocaleString('de-DE')}`}
+    else if(c.lastTestError){st.className='lexware-bridge-status bad';st.textContent=`Letzter Test fehlgeschlagen: ${c.lastTestError}`}
+    else{st.className='lexware-bridge-status';st.textContent='Noch nicht getestet.'}
+  }
+}
+function saveLexwareBridgeSettings(){
+  const url=normalizeBridgeUrl(document.getElementById('lexwareBridgeUrl')?.value||'');
+  const token=String(document.getElementById('lexwareBridgeToken')?.value||'').trim();
+  if(!url||!/^https:\/\//i.test(url)){toast('HTTPS-Adresse des Vermittlungsdienstes eingeben');return}
+  if(!token){toast('Verbindungsschlüssel eingeben');return}
+  localStorage.setItem(LEXWARE_BRIDGE_KEY,JSON.stringify({url,token,lastTestOk:false}));renderLexwareBridgeSettings();toast('Lexware-Verbindung lokal gespeichert');
+}
+async function lexwareBridgeRequest(path,opts={}){
+  const c=lexwareBridgeConfig();
+  if(!c.url||!c.token)throw new Error('Lexware-Verbindung ist noch nicht eingerichtet.');
+  const ctrl=new AbortController(); const timer=setTimeout(()=>ctrl.abort(),20000);
+  try{
+    const res=await fetch(c.url+path,{method:opts.method||'POST',headers:{'Accept':'application/json','Content-Type':'application/json','X-App-Token':c.token},body:opts.body?JSON.stringify(opts.body):undefined,signal:ctrl.signal});
+    let data=null; try{data=await res.json()}catch(e){}
+    if(!res.ok)throw new Error(data?.message||data?.error||`HTTP ${res.status}`);
+    return data||{};
+  }catch(e){if(e?.name==='AbortError')throw new Error('Zeitüberschreitung beim Vermittlungsdienst.');throw e}
+  finally{clearTimeout(timer)}
+}
+async function testLexwareBridge(){
+  saveLexwareBridgeSettings();
+  const c=lexwareBridgeConfig(); if(!c.url||!c.token)return;
+  const st=document.getElementById('lexwareBridgeStatus'); if(st){st.className='lexware-bridge-status';st.textContent='Verbindung wird geprüft …'}
+  try{
+    const r=await lexwareBridgeRequest('/api/lexware/test');
+    const next={...c,lastTestOk:true,lastTestAt:new Date().toISOString(),companyName:r.companyName||'Lexware',lastTestError:''};localStorage.setItem(LEXWARE_BRIDGE_KEY,JSON.stringify(next));renderLexwareBridgeSettings();toast('Lexware-Verbindung funktioniert');
+  }catch(e){
+    const next={...c,lastTestOk:false,lastTestAt:new Date().toISOString(),lastTestError:e.message||'Verbindung fehlgeschlagen'};localStorage.setItem(LEXWARE_BRIDGE_KEY,JSON.stringify(next));renderLexwareBridgeSettings();toast('Lexware-Verbindung fehlgeschlagen');
+  }
+}
+function lexwareIsoDate(dateStr){
+  const d=/^\d{4}-\d{2}-\d{2}$/.test(String(dateStr||''))?new Date(`${dateStr}T12:00:00`):new Date();
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  const off=-d.getTimezoneOffset(),sign=off>=0?'+':'-',hh=String(Math.floor(Math.abs(off)/60)).padStart(2,'0'),mm=String(Math.abs(off)%60).padStart(2,'0');
+  return `${y}-${m}-${day}T00:00:00.000${sign}${hh}:${mm}`;
+}
+function buildLexwareInvoicePayload(project){
+  const customer=customerById(project.customerId); const {positions,warnings}=invoicePositionsForProject(project);
+  if(!positions.length)throw new Error('Keine Rechnungspositionen vorhanden.');
+  if(warnings.length)throw new Error('Rechnungspositionen sind noch unvollständig: '+warnings[0]);
+  const name=String(customer?.name||project.customerName||'').trim();
+  if(!name)throw new Error('Beim Kunden fehlt der Name.');
+  const tax=projectInvoiceTaxRate(project),serviceDate=projectInvoiceServiceDate(project),today=new Date().toISOString().slice(0,10);
+  const address={name,countryCode:'DE'};
+  if(customer?.street)address.street=String(customer.street).trim();
+  if(customer?.zip)address.zip=String(customer.zip).trim();
+  if(customer?.place)address.city=String(customer.place).trim();
+  return {
+    archived:false,
+    voucherDate:lexwareIsoDate(today),
+    address,
+    lineItems:positions.map(p=>({type:'custom',name:String(p.label||'Position').slice(0,255),quantity:Number(Number(p.qty).toFixed(4)),unitName:String(p.unit||'Stk.').slice(0,25),unitPrice:{currency:'EUR',netAmount:Number(Number(p.unitPrice).toFixed(2)),taxRatePercentage:tax},discountPercentage:0})),
+    totalPrice:{currency:'EUR'},
+    taxConditions:{taxType:'net'},
+    shippingConditions:{shippingType:'service',shippingDate:lexwareIsoDate(serviceDate)},
+    title:'Rechnung',
+    introduction:project.name?`Leistungen zum Vorhaben: ${project.name}`:undefined,
+    remark:`Leistungsdatum: ${new Date(serviceDate+'T12:00:00').toLocaleDateString('de-DE')}`
+  };
+}
 function prepareLexwareDraft(projectId){
   const project=(db.projects||[]).find(x=>x.id===projectId);if(!project)return;
-  const customer=customerById(project.customerId);const {positions}=invoicePositionsForProject(project);
-  if(!positions.length){toast('Keine Rechnungspositionen vorhanden');return}
-  const tax=projectInvoiceTaxRate(project),net=positions.reduce((s,p)=>s+p.total,0),vat=net*tax/100,gross=net+vat;
-  const data={customer:customer?.name||project.customerName||'',project:project.name||'',serviceDate:projectInvoiceServiceDate(project),taxRate:tax,positions:positions.map(p=>({name:p.label,quantity:p.qty,unit:p.unit,unitPrice:p.unitPrice,total:p.total})),net,vat,gross};
-  project.lexwarePreparedAt=new Date().toISOString();project.lexwarePreparedDraft=data;saveDB();renderProjectTab();toast('Lexware-Entwurf vorbereitet');
+  try{
+    const payload=buildLexwareInvoicePayload(project); const {positions}=invoicePositionsForProject(project); const tax=projectInvoiceTaxRate(project),net=positions.reduce((s,p)=>s+p.total,0),vat=net*tax/100,gross=net+vat;
+    project.lexwarePreparedAt=new Date().toISOString();project.lexwarePreparedDraft={payload,net,vat,gross};saveDB();renderProjectTab();toast('Lexware-Entwurf vorbereitet');
+  }catch(e){toast(e.message||'Entwurf konnte nicht vorbereitet werden')}
+}
+async function sendLexwareDraft(projectId){
+  const project=(db.projects||[]).find(x=>x.id===projectId);if(!project)return;
+  const c=lexwareBridgeConfig(); if(!c.lastTestOk){toast('Lexware-Verbindung zuerst unter Mehr testen');return}
+  if(project.lexwareDraftId && !confirm(`Für diese Baustelle wurde bereits ein Lexware-Entwurf erstellt (${project.lexwareDraftId}). Wirklich einen weiteren Entwurf anlegen?`))return;
+  let payload; try{payload=buildLexwareInvoicePayload(project)}catch(e){toast(e.message);return}
+  if(!confirm('Rechnungsentwurf jetzt an Lexware senden? In Lexware wird ein neuer Entwurf angelegt.'))return;
+  const btn=document.getElementById(`lexwareSend_${projectId}`); if(btn){btn.disabled=true;btn.textContent='Wird gesendet …'}
+  try{
+    const r=await lexwareBridgeRequest('/api/lexware/invoices/draft',{body:{invoice:payload,projectId:project.id}});
+    project.lexwareDraftId=r.id||'';project.lexwareDraftResourceUri=r.resourceUri||'';project.lexwareDraftCreatedAt=r.createdDate||new Date().toISOString();
+    syncEnsureRecord(project,'projects',SYNC_FIELDS.projects,'project');syncTouchRecord(project,['lexwareDraftId','lexwareDraftResourceUri','lexwareDraftCreatedAt']);saveDB();renderProjectTab();toast('Rechnungsentwurf in Lexware angelegt');
+  }catch(e){console.error(e);toast('Lexware: '+(e.message||'Übertragung fehlgeschlagen'));if(btn){btn.disabled=false;btn.textContent='An Lexware senden'}}
 }
 function lexwareInvoiceBoxHtml(project,positions){
-  const tax=projectInvoiceTaxRate(project),net=positions.reduce((s,p)=>s+p.total,0),vat=net*tax/100,gross=net+vat;
+  const tax=projectInvoiceTaxRate(project),net=positions.reduce((s,p)=>s+p.total,0),vat=net*tax/100,gross=net+vat; const c=lexwareBridgeConfig();
+  const draft=project.lexwareDraftId?`<div class="lexware-draft-state">✓ Letzter Lexware-Entwurf: <b>${escapeHtml(project.lexwareDraftId)}</b>${project.lexwareDraftCreatedAt?` · ${escapeHtml(new Date(project.lexwareDraftCreatedAt).toLocaleString('de-DE'))}`:''}</div>`:'';
   return `<div class="lexware-box"><b>Lexware-Rechnungsvorschau</b><div class="muted">Aus Arbeitsstunden, verbautem Material und zusätzlichen Rechnungspositionen.</div>
   <div class="lexware-grid"><label>Leistungsdatum<input type="date" value="${escapeHtml(projectInvoiceServiceDate(project))}" onchange="saveProjectInvoiceServiceDate('${escapeHtml(project.id)}',this.value)"></label><label>USt.<select onchange="saveProjectInvoiceTaxRate('${escapeHtml(project.id)}',this.value)"><option value="19" ${tax===19?'selected':''}>19 %</option><option value="0" ${tax===0?'selected':''}>0 %</option></select></label></div>
   <div class="lexware-summary"><div><span>Netto</span><b>${escapeHtml(formatMoney(net))}</b></div><div><span>Umsatzsteuer ${tax} %</span><b>${escapeHtml(formatMoney(vat))}</b></div><div class="gross"><span>Gesamt</span><span>${escapeHtml(formatMoney(gross))}</span></div></div>
-  <div class="lexware-actions"><button class="btn btn2" type="button" onclick="prepareLexwareDraft('${escapeHtml(project.id)}')">Lexware-Entwurf vorbereiten</button><button class="btn" type="button" disabled title="Sichere Lexware-Verbindung wird im nächsten Schritt eingerichtet">An Lexware senden</button></div>
-  <div class="lexware-note">„An Lexware senden“ wird freigeschaltet, sobald die sichere API-Verbindung eingerichtet ist. Der API-Schlüssel wird nicht in dieser PWA gespeichert.</div></div>`;
+  ${draft}<div class="lexware-actions"><button class="btn btn2" type="button" onclick="prepareLexwareDraft('${escapeHtml(project.id)}')">Lexware-Entwurf vorbereiten</button><button id="lexwareSend_${escapeHtml(project.id)}" class="btn lexware-send-btn" type="button" onclick="sendLexwareDraft('${escapeHtml(project.id)}')" ${c.lastTestOk?'':'disabled'}>An Lexware senden</button></div>
+  <div class="lexware-note">${c.lastTestOk?'Die Verbindung ist getestet. Es wird ausschließlich ein <b>Rechnungsentwurf</b> angelegt und nicht finalisiert.':'Unter <b>Mehr → Lexware-Verbindung</b> Vermittlungsdienst eintragen und testen. Der Lexware-API-Schlüssel bleibt außerhalb der PWA.'}</div></div>`;
 }
 
 function projectInvoicePreviewHtml(project){
@@ -4792,7 +4906,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.50',db:syncClone(db)
+      appVersion:'1.51',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -4807,7 +4921,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.50',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.51',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -4979,7 +5093,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.50',
+      appVersion:'1.51',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
