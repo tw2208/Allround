@@ -675,6 +675,25 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .project-modal-head>b,.project-modal-head b{font-size:19px}
 body.modal-open{overflow:hidden}
+
+/* Version 1.66 – scrollbare Vollbild-Modale auf iPhone/iPad */
+.modal[hidden]{display:none}
+.modal{
+  position:fixed;inset:0;z-index:1100;display:flex;align-items:flex-end;justify-content:center;
+  background:rgba(0,0,0,.72);overflow:hidden;
+}
+.modal-card{
+  width:min(760px,100%);max-height:calc(100dvh - env(safe-area-inset-top));
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  touch-action:pan-y;background:var(--bg);border:1px solid var(--line);border-radius:18px 18px 0 0;
+  padding:16px 14px calc(22px + env(safe-area-inset-bottom));box-sizing:border-box;
+}
+.modal-head{
+  position:sticky;top:-16px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:-16px -14px 12px;padding:16px 14px 10px;background:var(--bg);border-bottom:1px solid var(--line);
+}
+.modal-head b{font-size:19px}
+@supports not (height:100dvh){.modal-card{max-height:91vh}}
 .project-extra-title{
   margin:15px 0 5px;padding-top:11px;border-top:1px solid var(--line);
   color:var(--blue2);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.45px
@@ -1227,8 +1246,8 @@ textarea{
 @media(max-width:520px){.sync-grid,.sync-conflict-values{grid-template-columns:1fr}.sync-summary{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.64 – Materialbedarf */
-/* Version 1.64 – PV-Reihenplanung */
+/* Version 1.66 – Materialbedarf */
+/* Version 1.66 – PV-Reihenplanung */
 
 .pv-forecast-box{margin-top:12px;padding:12px;border:1px solid #234f74;border-radius:12px;background:#071a2c}
 .pv-forecast-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
@@ -1828,7 +1847,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.64</div>
+    <div class="blue" style="margin-top:6px;">Version 1.66</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1994,14 +2013,55 @@ textarea{
 
 <script>
 const DBKEY='allround_weber_pwa_v1';
-let db={diary:[],customers:[{name:'Dressler',place:'Oberottendorf'},{name:'Familie Müller',place:'Meißen'}],projects:[]};
-try{const x=localStorage.getItem(DBKEY);if(x)db=JSON.parse(x)}catch(e){}
+const APP_VERSION='1.66';
+const STARTUP_SAFETY_KEY='allround_weber_startup_safety_v1';
+let db={diary:[],customers:[],projects:[]};
+let dbLoadState={hadStored:false,parseFailed:false,error:''};
+let dbRawAtStartup='';
+try{
+  const x=localStorage.getItem(DBKEY);
+  if(x){
+    dbLoadState.hadStored=true;
+    dbRawAtStartup=x;
+    const parsed=JSON.parse(x);
+    if(!parsed || typeof parsed!=='object' || Array.isArray(parsed)) throw new Error('Ungültiges Datenbankformat');
+    db=parsed;
+    // Vor jeder neuen App-Version einen unveränderten Rohstand sichern, bevor Startmigrationen laufen.
+    try{
+      const prev=JSON.parse(localStorage.getItem(STARTUP_SAFETY_KEY)||'null');
+      if(!prev || prev.targetVersion!==APP_VERSION){
+        localStorage.setItem(STARTUP_SAFETY_KEY,JSON.stringify({
+          createdAt:new Date().toISOString(),targetVersion:APP_VERSION,dbRaw:x
+        }));
+      }
+    }catch(_e){
+      try{localStorage.setItem(STARTUP_SAFETY_KEY,JSON.stringify({createdAt:new Date().toISOString(),targetVersion:APP_VERSION,dbRaw:x}))}catch(__e){}
+    }
+  }
+}catch(e){
+  dbLoadState.parseFailed=true;
+  dbLoadState.error=String(e&&e.message||e||'Unbekannter Lesefehler');
+  console.error('Allround Weber: gespeicherte Datenbank konnte nicht gelesen werden.',e);
+}
+function canPersistDB(){return !dbLoadState.parseFailed}
+function persistDB(){
+  if(!canPersistDB()) return false;
+  localStorage.setItem(DBKEY,JSON.stringify(db));
+  return true;
+}
 
 function makeStableId(prefix='id'){
   return prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9);
 }
 
 function ensureDataModel(){
+  // Bei beschädigtem/unklarem Speicherstand niemals Startmigrationen zurückschreiben.
+  if(dbLoadState.parseFailed){
+    if(!Array.isArray(db.customers)) db.customers=[];
+    if(!Array.isArray(db.diary)) db.diary=[];
+    if(!Array.isArray(db.projects)) db.projects=[];
+    return;
+  }
   if(!Array.isArray(db.customers)) db.customers=[];
   if(!Array.isArray(db.diary)) db.diary=[];
   const hadProjectsArray=Array.isArray(db.projects);
@@ -2028,17 +2088,28 @@ function ensureDataModel(){
     );
 
     existingProjectCustomers.forEach(customer=>{
+      const legacyAddress=customer.projectAddress || [
+        customer.street||'',
+        [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
+      ].filter(Boolean).join(', ');
+      const legacyName=customer.projectName || customer.name || 'Baustelle';
+      const legacyType=customer.projectType||'pv';
+      // Falls der separate Migrationsmarker verloren ging, keine bereits übernommene Baustelle duplizieren.
+      const alreadyMigrated=db.projects.some(p=>
+        p && p.customerId===customer.id &&
+        (p.legacySourceCustomerId===customer.id ||
+          ((p.type||'pv')===legacyType && (p.name||'')===legacyName && (p.address||'')===legacyAddress))
+      );
+      if(alreadyMigrated) return;
       db.projects.push({
         id:makeStableId('proj'),
+        legacySourceCustomerId:customer.id,
         customerId:customer.id,
         customerName:customer.name||'',
         type:customer.projectType||'pv',
         status:'running',
         name:customer.projectName || customer.name || 'Baustelle',
-        address:customer.projectAddress || [
-          customer.street||'',
-          [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
-        ].filter(Boolean).join(', '),
+        address:legacyAddress,
         plan:customer.projectPlan || customer.notes || '',
         inverter:customer.inverter||'',
         storage:customer.storage||'',
@@ -2060,7 +2131,7 @@ function ensureDataModel(){
     }
   });
 
-  if(changed) localStorage.setItem(DBKEY,JSON.stringify(db));
+  if(changed) persistDB();
 }
 ensureDataModel();
 
@@ -2240,6 +2311,8 @@ function syncMaterialRecord(targetKey,itemKey,row){
   return rec;
 }
 function syncEnsureDataModel(){
+  if(dbLoadState.parseFailed) return;
+  const before=JSON.stringify(db);
   syncEnsureSettings();
   db.customers.forEach(r=>syncEnsureRecord(r,'customers',SYNC_FIELDS.customers,'cust'));
   db.projects.forEach(r=>syncEnsureRecord(r,'projects',SYNC_FIELDS.projects,'proj'));
@@ -2258,11 +2331,19 @@ function syncEnsureDataModel(){
     if(!list.items)return;
     Object.entries(list.items).forEach(([itemKey,row])=>syncMaterialRecord(targetKey,itemKey,row));
   });
-  localStorage.setItem(DBKEY,JSON.stringify(db));
+  const after=JSON.stringify(db);
+  if(after!==before) persistDB();
 }
 syncEnsureDataModel();
 
-function saveDB(){localStorage.setItem(DBKEY,JSON.stringify(db));scheduleDailySnapshot()}
+function saveDB(){
+  if(!persistDB()){
+    console.warn('Allround Weber: Speichern blockiert, weil der Start-Datenbestand nicht sicher gelesen werden konnte.');
+    return false;
+  }
+  scheduleDailySnapshot();
+  return true;
+}
 
 // ---------- WebRTC sync runtime ----------
 let syncPC=null,syncDC=null,syncRole='',syncScannerStream=null,syncScannerFrame=null;
@@ -2321,7 +2402,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.64'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:APP_VERSION})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -5554,7 +5635,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.64',db:syncClone(db)
+      appVersion:APP_VERSION,db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -5569,7 +5650,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.64',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:APP_VERSION,db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -5741,7 +5822,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.64',
+      appVersion:APP_VERSION,
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -6568,6 +6649,9 @@ function startEvccAutoRefresh(){
 
 // EVCC-Liveansicht ist in der aktuellen App deaktiviert. Keine automatischen Hintergrundabrufe.
 window.addEventListener('load',()=>{
+  if(dbLoadState.parseFailed){
+    setTimeout(()=>alert('SICHERHEITSMODUS\n\nDie gespeicherten App-Daten konnten nicht sicher gelesen werden. Deshalb wurden beim Start keine Migrationen gespeichert und bestehende Daten werden nicht überschrieben.\n\nBitte jetzt nichts neu anlegen oder bearbeiten. Stelle zuerst ein Backup wieder her bzw. prüfe den Datenbestand.\n\nFehler: '+dbLoadState.error),100);
+  }
   syncPeerInfo();
   renderProjectTab();
   renderHoursAccounts();
