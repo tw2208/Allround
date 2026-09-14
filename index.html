@@ -378,6 +378,52 @@ label{display:block;color:var(--blue2);font-size:13px;font-weight:700;margin:11p
 .diary-delete-btn:active{transform:scale(.96)}
 
 
+.project-status-tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:12px;
+}
+.project-status-tab{
+  border:1px solid var(--line);
+  background:#0d2238;
+  color:var(--text);
+  border-radius:14px;
+  padding:11px 8px;
+  font-weight:800;
+  font-size:13px;
+}
+.project-status-tab.active{
+  background:var(--blue);
+  border-color:var(--blue);
+  color:white;
+}
+.project-status-count{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:22px;
+  height:22px;
+  margin-left:6px;
+  padding:0 7px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  font-size:10px;
+}
+.project-status-tab.active .project-status-count{background:rgba(255,255,255,.22)}
+.project-status-badge{
+  display:inline-flex;
+  align-items:center;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px 8px;
+  margin-bottom:7px;
+  font-size:10px;
+  font-weight:800;
+  color:var(--blue2);
+  background:#0d2238;
+}
+
 .project-tabs{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -1181,7 +1227,7 @@ textarea{
 @media(max-width:520px){.sync-grid,.sync-conflict-values{grid-template-columns:1fr}.sync-summary{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.57 – Materialbedarf */
+/* Version 1.59 – Materialbedarf */
 .material-demand-category{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
 .material-demand-category button{width:auto;min-width:92px;padding:9px 13px;border-radius:999px}
 .material-demand-category button.active{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -1632,6 +1678,12 @@ textarea{
       </div>
     </div>
 
+    <label>Status der Baustelle</label>
+    <select id="newProjectStatus">
+      <option value="running">Laufende Baustelle</option>
+      <option value="upcoming">Anstehende Baustelle</option>
+    </select>
+
     <label>Art der Baustelle</label>
     <select id="newProjectType" onchange="updateNewProjectFields()">
       <option value="pv">PV-Anlage</option>
@@ -1691,6 +1743,11 @@ textarea{
     <h2>Baustellen</h2>
   </div>
 
+  <div class="project-status-tabs" id="projectStatusTabs">
+    <button class="project-status-tab active" data-status="running" onclick="showProjectStatus('running',this)">Laufende Baustellen <span class="project-status-count" id="projectStatusRunningCount">0</span></button>
+    <button class="project-status-tab" data-status="upcoming" onclick="showProjectStatus('upcoming',this)">Anstehende Baustellen <span class="project-status-count" id="projectStatusUpcomingCount">0</span></button>
+  </div>
+
   <div class="actions project-type-manage-actions">
     <button class="btn btn2" type="button" onclick="openProjectTypeManager()">⚙️ Baustellenarten verwalten</button>
   </div>
@@ -1718,7 +1775,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.57</div>
+    <div class="blue" style="margin-top:6px;">Version 1.59</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1923,6 +1980,7 @@ function ensureDataModel(){
         customerId:customer.id,
         customerName:customer.name||'',
         type:customer.projectType||'pv',
+        status:'running',
         name:customer.projectName || customer.name || 'Baustelle',
         address:customer.projectAddress || [
           customer.street||'',
@@ -1941,6 +1999,13 @@ function ensureDataModel(){
     localStorage.setItem('allround_weber_projects_migrated_v1','1');
     changed=true;
   }
+
+  db.projects.forEach(project=>{
+    if(!project.status){
+      project.status='running';
+      changed=true;
+    }
+  });
 
   if(changed) localStorage.setItem(DBKEY,JSON.stringify(db));
 }
@@ -2012,7 +2077,7 @@ const SYNC_ROLLBACK_KEY='allround_weber_sync_rollback_v1';
 const SYNC_PENDING_KEY='allround_weber_sync_pending_v1';
 const SYNC_FIELDS={
   customers:['name','contact','street','zip','place','phone','email','notes'],
-  projects:['customerId','customerName','type','name','address','plan','inverter','storage','modules','roofType','windowArea','invoiceTaxRate','invoiceServiceDate','lexwareDraftId','lexwareDraftCreatedAt','lexwareDraftResourceUri'],
+  projects:['customerId','customerName','status','type','name','address','plan','inverter','storage','modules','roofType','windowArea','invoiceTaxRate','invoiceServiceDate','lexwareDraftId','lexwareDraftCreatedAt','lexwareDraftResourceUri'],
   diary:['projectId','customerIndex','customerName','site','date','start','end','pause','hours','note','mat','ownHours','employeeHours'],
   customProjectTypes:['name'],
   hourPayments:['name','paid','paidDate','paidHours','entries'],
@@ -2194,7 +2259,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.57'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.58'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -2575,7 +2640,7 @@ function resetDrywallDemandDefaults(){
   saveDB();renderDrywallDemandRows();toast('Trockenbaudecken-Standardwerte zurückgesetzt');
 }
 
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderInvoiceSettings();renderInvoiceCatalog();renderLexwareBridgeSettings()}if(id==='backup'){renderBackupCenter()}if(id==='materialDemand'){renderMaterialDemand()}window.scrollTo(0,0)}
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderInvoiceSettings();renderInvoiceCatalog();renderLexwareBridgeSettings()}if(id==='backup'){renderBackupCenter()}if(id==='materialDemand'){renderMaterialDemand()}if(id==='projects'){refreshProjectTypeUI(activeProjectType);renderProjectTab()}window.scrollTo(0,0)}
 function calculatedWorkHoursNumber(){
   const s=document.getElementById('start')?.value||'';
   const e=document.getElementById('end')?.value||'';
@@ -3356,6 +3421,15 @@ async function editDiaryEntry(indexOrId){
   toggleDiaryForm(true);
 }
 
+function editProjectDiaryEntry(entryId){
+  const entry=(db.diary||[]).find(e=>e&&e.id===entryId);
+  if(!entry){
+    toast('Tagebucheintrag konnte nicht gefunden werden');
+    return;
+  }
+  show('diary');
+  setTimeout(()=>editDiaryEntry(entryId),0);
+}
 
 function diaryDateLabel(iso){
   if(!iso) return '';
@@ -3813,6 +3887,7 @@ function resetProjectForm(){
 
   refreshProjectCustomerSelect('');
   refreshProjectTypeUI('pv');
+  document.getElementById('newProjectStatus').value='running';
   document.getElementById('newProjectType').value='pv';
 
   ['newProjectName','newProjectAddress','newProjectPlan','newProjectInverter','newProjectStorage','newProjectModules','newProjectRoof','newProjectWindowArea',
@@ -3898,6 +3973,7 @@ function saveNewProject(){
   const payload={
     customerId,
     customerName:customer.name||'',
+    status:document.getElementById('newProjectStatus').value||'running',
     type,
     name,
     address,
@@ -3944,6 +4020,7 @@ function saveNewProject(){
     return;
   }
 
+  showProjectStatus(payload.status||'running');
   showProjectTab(type);
   show('projects');
 }
@@ -3960,6 +4037,7 @@ function editProject(projectId){
 
   refreshProjectCustomerSelect(project.customerId||'');
   refreshProjectTypeUI(project.type||'pv');
+  document.getElementById('newProjectStatus').value=project.status||'running';
   document.getElementById('newProjectType').value=project.type||'pv';
   document.getElementById('newProjectName').value=project.name||'';
   document.getElementById('newProjectAddress').value=project.address||'';
@@ -4031,6 +4109,7 @@ function refreshProjectTypeUI(selectedType=''){
   const tabs=document.querySelector('.project-tabs');
   if(tabs){
     const counts=(db.projects||[]).reduce((acc,project)=>{
+      if((project.status||'running')!==activeProjectStatus) return acc;
       const type=project.type||'pv';
       acc[type]=(acc[type]||0)+1;
       return acc;
@@ -4039,6 +4118,7 @@ function refreshProjectTypeUI(selectedType=''){
       `<button class="project-tab ${activeProjectType===t.id?'active':''}" data-type="${escapeHtml(t.id)}" onclick="showProjectTab('${escapeHtml(t.id)}',this)">${escapeHtml(t.name)} <span class="project-tab-count">${counts[t.id]||0}</span></button>`
     ).join('');
   }
+  refreshProjectStatusUI();
 }
 
 function openProjectTypeManager(){
@@ -4161,7 +4241,28 @@ function projectTypeName(type){
 }
 
 let activeProjectType='pv';
+let activeProjectStatus='running';
 setTimeout(()=>refreshProjectTypeUI(activeProjectType),0);
+
+function projectStatusName(status){
+  return status==='upcoming'?'Anstehende Baustelle':'Laufende Baustelle';
+}
+
+function refreshProjectStatusUI(){
+  const running=(db.projects||[]).filter(p=>(p.status||'running')==='running').length;
+  const upcoming=(db.projects||[]).filter(p=>(p.status||'running')==='upcoming').length;
+  const rc=document.getElementById('projectStatusRunningCount'); if(rc)rc.textContent=running;
+  const uc=document.getElementById('projectStatusUpcomingCount'); if(uc)uc.textContent=upcoming;
+  document.querySelectorAll('.project-status-tab').forEach(b=>b.classList.toggle('active',b.dataset.status===activeProjectStatus));
+}
+
+function showProjectStatus(status,button){
+  activeProjectStatus=status==='upcoming'?'upcoming':'running';
+  document.querySelectorAll('.project-status-tab').forEach(b=>b.classList.toggle('active',b.dataset.status===activeProjectStatus));
+  if(button) button.classList.add('active');
+  refreshProjectTypeUI(activeProjectType);
+  renderProjectTab();
+}
 
 function showProjectTab(type,button){
   activeProjectType=type;
@@ -4748,6 +4849,7 @@ function projectDiaryHtml(project,entries){
             <div class="item">
               <div class="grow"><b>${escapeHtml(entry.date||'Ohne Datum')}</b><div class="blue">${entry.start||entry.end?`${escapeHtml(entry.start||'')}–${escapeHtml(entry.end||'')}`:''}</div></div>
               <span class="pill">${escapeHtml(entry.hours||formatHoursNumber(Number(entry.ownHours)||0))}</span>
+              <button class="invoice-edit-mini" type="button" title="Tagebucheintrag bearbeiten" onclick="editProjectDiaryEntry('${escapeHtml(entry.id||'')}')">✎</button>
             </div>
             <div class="rule"></div>
             <div>${escapeHtml(entry.note||'Keine Notiz')}</div>
@@ -4773,12 +4875,12 @@ function renderProjectTab(){
   if(!el) return;
 
   const projects=(db.projects||[])
-    .filter(project=>(project.type||'pv')===activeProjectType)
+    .filter(project=>(project.status||'running')===activeProjectStatus && (project.type||'pv')===activeProjectType)
     .slice()
     .sort((a,b)=>(a.name||'').localeCompare(b.name||'','de',{sensitivity:'base'}));
 
   if(!projects.length){
-    el.innerHTML=`<div class="card"><div class="muted">Noch keine Baustellen in „${projectTypeName(activeProjectType)}“ angelegt.</div></div>`;
+    el.innerHTML=`<div class="card"><div class="muted">Noch keine ${activeProjectStatus==='upcoming'?'anstehenden':'laufenden'} Baustellen in „${projectTypeName(activeProjectType)}“ angelegt.</div></div>`;
     return;
   }
 
@@ -4796,6 +4898,7 @@ function renderProjectTab(){
           </div>
         </summary>
         <div class="project-fold-details">
+          <div class="project-status-badge">${escapeHtml(projectStatusName(project.status||'running'))}</div>
           <div class="project-type">${escapeHtml(projectTypeName(project.type||'pv'))}</div>
           <div class="blue" style="margin-top:3px;">${escapeHtml(customer?.name||project.customerName||'Kein Kunde zugeordnet')}</div>
           <div class="muted">${escapeHtml(project.address||'Keine Adresse hinterlegt')}</div>
@@ -5165,7 +5268,7 @@ async function renderCustomers(){
     ${(()=>{
       const linked=(db.projects||[]).filter(p=>p.customerId===customer.id);
       return linked.length
-        ? linked.map(p=>`<button class="customer-project-link" type="button" onclick="showProjectTab('${esc(p.type||'pv')}');show('projects')"><b>${esc(p.name||'Baustelle')}</b><span>${esc(projectTypeName(p.type||'pv'))}</span></button>`).join('')
+        ? linked.map(p=>`<button class="customer-project-link" type="button" onclick="showProjectStatus('${esc(p.status||'running')}');showProjectTab('${esc(p.type||'pv')}');show('projects')"><b>${esc(p.name||'Baustelle')}</b><span>${esc(projectTypeName(p.type||'pv'))} · ${esc(projectStatusName(p.status||'running'))}</span></button>`).join('')
         : '<div class="muted">Noch keine Baustelle für diesen Kunden angelegt.</div>';
     })()}
 
@@ -5241,7 +5344,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.57',db:syncClone(db)
+      appVersion:'1.58',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -5256,7 +5359,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.57',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.58',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -5428,7 +5531,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.57',
+      appVersion:'1.58',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
