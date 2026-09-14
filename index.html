@@ -676,7 +676,7 @@ header small,header .tagline,.topbar small,.topbar .tagline,.header small,.heade
 .project-modal-head>b,.project-modal-head b{font-size:19px}
 body.modal-open{overflow:hidden}
 
-/* Version 1.66 – scrollbare Vollbild-Modale auf iPhone/iPad */
+/* Version 1.68 – scrollbare Vollbild-Modale auf iPhone/iPad */
 .modal[hidden]{display:none}
 .modal{
   position:fixed;inset:0;z-index:1100;display:flex;align-items:flex-end;justify-content:center;
@@ -1246,8 +1246,8 @@ textarea{
 @media(max-width:520px){.sync-grid,.sync-conflict-values{grid-template-columns:1fr}.sync-summary{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.66 – Materialbedarf */
-/* Version 1.66 – PV-Reihenplanung */
+/* Version 1.68 – Materialbedarf */
+/* Version 1.68 – PV-Reihenplanung */
 
 .pv-forecast-box{margin-top:12px;padding:12px;border:1px solid #234f74;border-radius:12px;background:#071a2c}
 .pv-forecast-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
@@ -1794,7 +1794,7 @@ textarea{
     <label>Standort</label><input id="pvForecastLocation" type="text" placeholder="Straße, Hausnummer, PLZ, Ort">
     <div class="project-form-grid">
       <div><label>Modulleistung je Modul (Wp)</label><input id="pvForecastModuleWp" type="number" min="1" step="1" value="500" oninput="renderPvRoofAreas()"></div>
-      <div><label>Standard-Verluste (%)</label><input id="pvForecastLoss" type="number" min="0" max="100" step="0.1" value="14"></div>
+      <div><label>Systemverluste (%)</label><input id="pvForecastLoss" type="number" min="0" max="100" step="0.1" value="14"></div>
     </div>
     <label>Modultyp</label>
     <select id="pvForecastTech"><option value="crystSi">Kristallines Silizium</option><option value="crystSi2025">Kristallines Silizium 2025</option><option value="CIS">CIS</option><option value="CdTe">CdTe</option><option value="Unknown">Unbekannt / Standard</option></select>
@@ -1802,9 +1802,10 @@ textarea{
       <div class="pv-forecast-head"><div><b>Dachflächen</b><div class="muted">Neigung, Ausrichtung und Modulbelegung je Dachfläche</div></div><button class="btn btn2" type="button" onclick="addPvRoofArea()">＋ Dachfläche</button></div>
       <div id="pvRoofAreas"></div>
     </div>
-    <label>PVGIS-Vermittlungsdienst</label><input id="pvForecastBridgeUrl" type="url" placeholder="https://…workers.dev">
-    <div class="muted">Für die Online-Prognose wird PVGIS 5.3 verwendet. Die Adresse wird im Vermittlungsdienst in Koordinaten umgewandelt.</div>
-    <div class="actions" style="margin-top:12px"><button class="btn" type="button" onclick="runPvForecast()">☀️ Prognose berechnen</button><button class="btn btn2" type="button" onclick="runPvForecastTest()">🧪 Testberechnung</button><button class="btn btn2" type="button" onclick="savePvForecastSetup()">Eingaben speichern</button><button class="btn btn2" type="button" onclick="closePvForecast()">Schließen</button></div>
+    <label>PVGIS-Vermittlungsdienst</label><input id="pvForecastBridgeUrl" type="url" placeholder="https://…workers.dev" oninput="pvForecastBridgeChanged()">
+    <div class="muted">Für die echte Online-Prognose wird PVGIS 5.3 verwendet. Die Baustellenadresse wird über den Vermittlungsdienst in Koordinaten umgewandelt.</div>
+    <div class="actions" style="margin-top:10px"><button class="btn btn2" type="button" onclick="testPvForecastBridge()">Verbindung testen</button><span id="pvForecastBridgeStatus" class="muted">Noch nicht geprüft</span></div>
+    <div class="actions" style="margin-top:12px"><button class="btn" type="button" onclick="runPvForecast()">☀️ PVGIS-Prognose berechnen</button><button class="btn btn2" type="button" onclick="runPvForecastTest()">≈ Näherungswert berechnen</button><button class="btn btn2" type="button" onclick="savePvForecastSetup()">Eingaben speichern</button><button class="btn btn2" type="button" onclick="closePvForecast()">Schließen</button></div>
     <div id="pvForecastResult"></div>
   </div>
 </div>
@@ -1847,7 +1848,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.66</div>
+    <div class="blue" style="margin-top:6px;">Version 1.68</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -2013,7 +2014,7 @@ textarea{
 
 <script>
 const DBKEY='allround_weber_pwa_v1';
-const APP_VERSION='1.66';
+const APP_VERSION='1.68';
 const STARTUP_SAFETY_KEY='allround_weber_startup_safety_v1';
 let db={diary:[],customers:[],projects:[]};
 let dbLoadState={hadStored:false,parseFailed:false,error:''};
@@ -4345,23 +4346,91 @@ const PV_FORECAST_BRIDGE_KEY='allround_weber_pvgis_bridge_v1';
 let pvForecastProjectId='';
 let pvRoofAreasDraft=[];
 const PV_ASPECTS=[['Süd',0],['Südwest',45],['West',90],['Nordwest',135],['Nord',180],['Nordost',-135],['Ost',-90],['Südost',-45]];
-function pvBridgeUrl(){try{return JSON.parse(localStorage.getItem(PV_FORECAST_BRIDGE_KEY)||'{}').url||JSON.parse(localStorage.getItem('allround_weber_lexware_bridge_v1')||'{}').url||''}catch{return ''}}
+function pvBridgeConfig(){try{return JSON.parse(localStorage.getItem(PV_FORECAST_BRIDGE_KEY)||'{}')||{}}catch{return {}}}
+function pvBridgeUrl(){const own=pvBridgeConfig().url||'';if(own)return own;try{return JSON.parse(localStorage.getItem('allround_weber_lexware_bridge_v1')||'{}').url||''}catch{return ''}}
+function savePvBridgeConfig(extra={}){const current=pvBridgeConfig();const url=(document.getElementById('pvForecastBridgeUrl')?.value||current.url||'').trim().replace(/\/$/,'');localStorage.setItem(PV_FORECAST_BRIDGE_KEY,JSON.stringify({...current,...extra,url}))}
+function pvForecastBridgeChanged(){savePvBridgeConfig({lastTestOk:false,lastTestAt:''});const el=document.getElementById('pvForecastBridgeStatus');if(el)el.textContent='Noch nicht geprüft'}
+function pvForecastBridgeStatus(){const el=document.getElementById('pvForecastBridgeStatus');if(!el)return;const c=pvBridgeConfig();if(c.lastTestOk){el.textContent=`✓ Bereit${c.lastTestAt?' · '+new Date(c.lastTestAt).toLocaleString('de-DE'):''}`;el.style.color='#7fe6a2'}else{el.textContent='Noch nicht geprüft';el.style.color=''}}
+async function testPvForecastBridge(){const base=(document.getElementById('pvForecastBridgeUrl')?.value||'').trim().replace(/\/$/,'');const el=document.getElementById('pvForecastBridgeStatus');if(!base){toast('Bitte Vermittlungsdienst eintragen');return false}if(el){el.textContent='Verbindung wird geprüft …';el.style.color=''}try{const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),12000);const res=await fetch(base+'/api/pvgis/test',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}',signal:ctrl.signal});clearTimeout(timer);const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||`HTTP ${res.status}`);const at=new Date().toISOString();savePvBridgeConfig({lastTestOk:true,lastTestAt:at,service:data.service||'PVGIS 5.3'});if(el){el.textContent=`✓ Bereit · ${data.service||'PVGIS 5.3'}`;el.style.color='#7fe6a2'}toast('PVGIS-Verbindung funktioniert');return true}catch(e){savePvBridgeConfig({lastTestOk:false,lastTestAt:''});if(el){el.textContent='✕ Verbindung fehlgeschlagen';el.style.color='#ff9d9d'}toast(e.name==='AbortError'?'PVGIS-Verbindung: Zeitüberschreitung':`PVGIS-Verbindung fehlgeschlagen: ${e.message||e}`);return false}}
 function normalizeRoofAreas(rows){return Array.isArray(rows)?rows.map((r,i)=>({id:r.id||makeStableId('roof'),name:String(r.name||`Dachfläche ${i+1}`),modules:Math.max(0,Math.round(Number(r.modules)||0)),angle:Math.max(0,Math.min(90,Number(r.angle)||0)),aspect:Number.isFinite(Number(r.aspect))?Number(r.aspect):0,loss:r.loss===''||r.loss==null?'':Math.max(0,Math.min(100,Number(r.loss)||0))})).filter(r=>r.modules>0||r.name):[]}
-function defaultRoofAreas(project){const stats=moduleRowsStats(project?.moduleRows);if(!stats.total)return [{id:makeStableId('roof'),name:'Dachfläche 1',modules:Number(project?.modules)||0,angle:30,aspect:0,loss:''}];let out=[];if(stats.portrait)out.push({id:makeStableId('roof'),name:'Dachfläche 1',modules:stats.portrait,angle:30,aspect:0,loss:''});if(stats.landscape)out.push({id:makeStableId('roof'),name:out.length?'Dachfläche 2':'Dachfläche 1',modules:stats.landscape,angle:30,aspect:0,loss:''});return out}
-function pvForecastProjectHtml(project){const f=project.pvForecast;const roofs=normalizeRoofAreas(project.roofAreas);return `<div class="pv-forecast-box"><div class="pv-forecast-head"><div><b>☀️ Ertragsprognose</b><div class="muted">${roofs.length?`${roofs.length} Dachfläche${roofs.length===1?'':'n'}`:'Noch nicht eingerichtet'}</div></div><button class="btn btn2" type="button" onclick="openPvForecast('${escapeHtml(project.id)}')">${f?'Neu berechnen':'Einrichten'}</button></div>${f?`<div class="pv-forecast-summary"><div><span class="muted">Anlagenleistung</span><br><b>${Number(f.peakPower||0).toFixed(2).replace('.',',')} kWp</b></div><div><span class="muted">Jahresertrag</span><br><b>${Math.round(f.yearly||0).toLocaleString('de-DE')} kWh</b></div><div><span class="muted">Spezifisch</span><br><b>${Math.round(f.specific||0).toLocaleString('de-DE')} kWh/kWp</b></div></div>${f.isTest?'<div class="muted"><b>🧪 Testwert – keine PVGIS-Prognose</b></div>':''}<div class="muted">Stand: ${escapeHtml(f.calculatedAt?new Date(f.calculatedAt).toLocaleDateString('de-DE'):'—')} · ${escapeHtml(f.location||project.address||'')}</div>`:'<div class="muted">Noch keine Prognose berechnet.</div>'}</div>`}
-function openPvForecast(projectId){const p=(db.projects||[]).find(x=>x.id===projectId);if(!p)return;pvForecastProjectId=projectId;pvRoofAreasDraft=normalizeRoofAreas(p.roofAreas);if(!pvRoofAreasDraft.length)pvRoofAreasDraft=defaultRoofAreas(p);document.getElementById('pvForecastProjectName').textContent=p.name||'';document.getElementById('pvForecastLocation').value=p.pvForecast?.location||p.address||'';document.getElementById('pvForecastModuleWp').value=p.pvForecast?.moduleWp||500;document.getElementById('pvForecastLoss').value=p.pvForecast?.loss??14;document.getElementById('pvForecastTech').value=p.pvForecast?.tech||'crystSi';document.getElementById('pvForecastBridgeUrl').value=pvBridgeUrl();renderPvRoofAreas();renderPvForecastResult(p.pvForecast);document.getElementById('pvForecastModal').hidden=false;document.body.classList.add('modal-open')}
+function defaultRoofAreas(project){const stats=moduleRowsStats(project?.moduleRows);if(!stats.total)return [{id:makeStableId('roof'),name:'Dachfläche 1',modules:Number(project?.modules)||0,angle:30,aspect:0,loss:''}];const out=[];if(stats.vertical)out.push({id:makeStableId('roof'),name:'Dachfläche senkrecht',modules:stats.vertical,angle:30,aspect:0,loss:''});if(stats.horizontal)out.push({id:makeStableId('roof'),name:'Dachfläche waagerecht',modules:stats.horizontal,angle:30,aspect:0,loss:''});return out}
+function pvForecastProjectHtml(project){const f=project.pvForecast;const roofs=normalizeRoofAreas(project.roofAreas);return `<div class="pv-forecast-box"><div class="pv-forecast-head"><div><b>☀️ Ertragsprognose</b><div class="muted">${roofs.length?`${roofs.length} Dachfläche${roofs.length===1?'':'n'}`:'Noch nicht eingerichtet'}</div></div><button class="btn btn2" type="button" onclick="openPvForecast('${escapeHtml(project.id)}')">${f?'Neu berechnen':'Einrichten'}</button></div>${f?`<div class="pv-forecast-summary"><div><span class="muted">Anlagenleistung</span><br><b>${Number(f.peakPower||0).toFixed(2).replace('.',',')} kWp</b></div><div><span class="muted">Jahresertrag</span><br><b>${Math.round(f.yearly||0).toLocaleString('de-DE')} kWh</b></div><div><span class="muted">Spezifisch</span><br><b>${Math.round(f.specific||0).toLocaleString('de-DE')} kWh/kWp</b></div></div>${f.isTest?'<div class="muted"><b>≈ Näherungswert – keine PVGIS-/Messdaten</b></div>':''}<div class="muted">Stand: ${escapeHtml(f.calculatedAt?new Date(f.calculatedAt).toLocaleDateString('de-DE'):'—')} · ${escapeHtml(f.location||project.address||'')}</div>`:'<div class="muted">Noch keine Prognose berechnet.</div>'}</div>`}
+function openPvForecast(projectId){const p=(db.projects||[]).find(x=>x.id===projectId);if(!p)return;pvForecastProjectId=projectId;pvRoofAreasDraft=normalizeRoofAreas(p.roofAreas);if(!pvRoofAreasDraft.length)pvRoofAreasDraft=defaultRoofAreas(p);document.getElementById('pvForecastProjectName').textContent=p.name||'';document.getElementById('pvForecastLocation').value=p.pvForecast?.location||p.address||'';document.getElementById('pvForecastModuleWp').value=p.pvForecast?.moduleWp||500;document.getElementById('pvForecastLoss').value=p.pvForecast?.loss??14;document.getElementById('pvForecastTech').value=p.pvForecast?.tech||'crystSi';document.getElementById('pvForecastBridgeUrl').value=pvBridgeUrl();renderPvRoofAreas();renderPvForecastResult(p.pvForecast);pvForecastBridgeStatus();document.getElementById('pvForecastModal').hidden=false;document.body.classList.add('modal-open')}
 function closePvForecast(){document.getElementById('pvForecastModal').hidden=true;document.body.classList.remove('modal-open')}
 function addPvRoofArea(){pvRoofAreasDraft.push({id:makeStableId('roof'),name:`Dachfläche ${pvRoofAreasDraft.length+1}`,modules:0,angle:30,aspect:0,loss:''});renderPvRoofAreas()}
 function removePvRoofArea(i){pvRoofAreasDraft.splice(i,1);renderPvRoofAreas()}
 function updatePvRoofArea(i,k,v){const r=pvRoofAreasDraft[i];if(!r)return;if(['modules','angle','aspect','loss'].includes(k))r[k]=v===''?'':Number(String(v).replace(',','.'));else r[k]=v;renderPvRoofAreas(false)}
 function renderPvRoofAreas(full=true){const wrap=document.getElementById('pvRoofAreas');if(!wrap)return;const wp=Math.max(0,Number(document.getElementById('pvForecastModuleWp')?.value)||0);if(full)wrap.innerHTML=pvRoofAreasDraft.map((r,i)=>`<div class="pv-roof-card"><div class="pv-roof-grid"><div><label>Bezeichnung</label><input value="${escapeHtml(r.name)}" onchange="updatePvRoofArea(${i},'name',this.value)"></div><div><label>Module</label><input type="number" min="0" step="1" value="${r.modules||''}" onchange="updatePvRoofArea(${i},'modules',this.value)"></div><div><label>Leistung</label><input value="${((Number(r.modules)||0)*wp/1000).toFixed(2).replace('.',',')} kWp" readonly></div><div><label>Dachneigung °</label><input type="number" min="0" max="90" step="1" value="${r.angle??30}" onchange="updatePvRoofArea(${i},'angle',this.value)"></div><div><label>Ausrichtung</label><select onchange="updatePvRoofArea(${i},'aspect',this.value)">${PV_ASPECTS.map(([n,a])=>`<option value="${a}" ${Number(r.aspect)===a?'selected':''}>${n}</option>`).join('')}</select></div><div><label>Verluste % (optional)</label><input type="number" min="0" max="100" step="0.1" value="${r.loss??''}" placeholder="Standard" onchange="updatePvRoofArea(${i},'loss',this.value)"></div></div><div class="actions"><button class="btn btn2 diary-danger" type="button" onclick="removePvRoofArea(${i})">Entfernen</button></div></div>`).join('');else{[...wrap.querySelectorAll('.pv-roof-card')].forEach((c,i)=>{const ro=pvRoofAreasDraft[i];const inp=c.querySelectorAll('input')[2];if(inp&&ro)inp.value=((Number(ro.modules)||0)*wp/1000).toFixed(2).replace('.',',')+' kWp'})}}
 function pvForecastSetup(){const p=(db.projects||[]).find(x=>x.id===pvForecastProjectId);if(!p)return null;const location=document.getElementById('pvForecastLocation').value.trim();const moduleWp=Math.max(1,Number(document.getElementById('pvForecastModuleWp').value)||500);const loss=Math.max(0,Math.min(100,Number(String(document.getElementById('pvForecastLoss').value).replace(',','.'))||0));const tech=document.getElementById('pvForecastTech').value;const roofs=normalizeRoofAreas(pvRoofAreasDraft).filter(r=>r.modules>0);return {p,location,moduleWp,loss,tech,roofs}}
-function savePvForecastSetup(silent=false){const x=pvForecastSetup();if(!x)return false;if(!x.location){if(!silent)toast('Bitte Standort eingeben');return false}if(!x.roofs.length){if(!silent)toast('Bitte mindestens eine Dachfläche mit Modulen anlegen');return false}const before=syncClone(x.p);x.p.roofAreas=x.roofs;x.p.pvForecast={...(x.p.pvForecast||{}),location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech};syncTouchChanged(before,x.p,SYNC_FIELDS.projects);localStorage.setItem(PV_FORECAST_BRIDGE_KEY,JSON.stringify({url:document.getElementById('pvForecastBridgeUrl').value.trim().replace(/\/$/,'')}));saveDB();renderProjectTab();if(!silent)toast('Ertragsprognose-Eingaben gespeichert');return true}
-function pvTestOrientationFactor(aspect){const a=Math.abs(Number(aspect)||0);if(a<=22.5)return 1;if(a<=67.5)return .95;if(a<=112.5)return .84;if(a<=157.5)return .70;return .60}
-function pvTestTiltFactor(angle){const d=Math.abs((Number(angle)||0)-35);return Math.max(.78,1-d*.004)}
-function runPvForecastTest(){const x=pvForecastSetup();if(!x||!savePvForecastSetup(true))return;const monthShares=[.035,.055,.085,.105,.125,.135,.135,.12,.09,.06,.035,.02];const areas=x.roofs.map(r=>{const peakPower=r.modules*x.moduleWp/1000;const effectiveLoss=r.loss===''?x.loss:Number(r.loss);const specificBase=1050;const specific=specificBase*pvTestOrientationFactor(r.aspect)*pvTestTiltFactor(r.angle)*(1-Math.max(0,Math.min(100,effectiveLoss))/100);const yearly=peakPower*specific;return {name:r.name,modules:r.modules,peakPower,yearly,monthly:monthShares.map(v=>yearly*v),angle:r.angle,aspect:r.aspect,loss:effectiveLoss}});const peakPower=areas.reduce((a,r)=>a+r.peakPower,0);const yearly=areas.reduce((a,r)=>a+r.yearly,0);const monthly=monthShares.map((_,i)=>areas.reduce((a,r)=>a+(r.monthly[i]||0),0));const p=(db.projects||[]).find(q=>q.id===pvForecastProjectId);if(!p)return;const before=syncClone(p);p.roofAreas=x.roofs;p.pvForecast={location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,peakPower,yearly,specific:peakPower?yearly/peakPower:0,monthly,areas,calculatedAt:new Date().toISOString(),source:'Lokale Testberechnung',isTest:true};syncTouchChanged(before,p,SYNC_FIELDS.projects);saveDB();renderPvForecastResult(p.pvForecast);renderProjectTab();toast('Lokale Testberechnung abgeschlossen')}
-async function runPvForecast(){const x=pvForecastSetup();if(!x||!savePvForecastSetup(true))return;const base=document.getElementById('pvForecastBridgeUrl').value.trim().replace(/\/$/,'');if(!base){toast('Bitte PVGIS-Vermittlungsdienst eintragen');return}const result=document.getElementById('pvForecastResult');result.innerHTML='<div class="card"><b>PVGIS wird berechnet …</b></div>';try{const res=await fetch(base+'/api/pvgis/forecast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,roofAreas:x.roofs})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||`HTTP ${res.status}`);const p=(db.projects||[]).find(q=>q.id===pvForecastProjectId);if(!p)return;const before=syncClone(p);p.roofAreas=x.roofs;p.pvForecast={location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,lat:data.lat,lon:data.lon,peakPower:data.peakPower,yearly:data.yearly,specific:data.specific,monthly:data.monthly||[],areas:data.areas||[],calculatedAt:new Date().toISOString(),source:'PVGIS 5.3'};syncTouchChanged(before,p,SYNC_FIELDS.projects);saveDB();renderPvForecastResult(p.pvForecast);renderProjectTab();toast('Ertragsprognose berechnet')}catch(e){console.error(e);result.innerHTML=`<div class="card"><b>Prognose nicht möglich</b><div class="muted">${escapeHtml(e.message||String(e))}</div></div>`}}
-function renderPvForecastResult(f){const el=document.getElementById('pvForecastResult');if(!el)return;if(!f?.yearly){el.innerHTML='';return}const monthly=Array.isArray(f.monthly)?f.monthly:[];const max=Math.max(1,...monthly);const names=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];el.innerHTML=`<div class="pv-forecast-box"><b>Gesamtprognose</b><div class="pv-forecast-summary"><div><span class="muted">Leistung</span><br><b>${Number(f.peakPower||0).toFixed(2).replace('.',',')} kWp</b></div><div><span class="muted">Jahresertrag</span><br><b>${Math.round(f.yearly||0).toLocaleString('de-DE')} kWh</b></div><div><span class="muted">Spezifisch</span><br><b>${Math.round(f.specific||0).toLocaleString('de-DE')} kWh/kWp</b></div></div><div class="pv-month-bars">${monthly.map((v,i)=>`<div class="pv-month-bar"><i style="height:${Math.max(2,Math.round(v/max*95))}px"></i>${names[i]}<br>${Math.round(v)}</div>`).join('')}</div>${(f.areas||[]).map(a=>`<div class="item"><div class="grow"><b>${escapeHtml(a.name)}</b><div class="muted">${a.modules} Module · ${Number(a.peakPower).toFixed(2).replace('.',',')} kWp</div></div><b>${Math.round(a.yearly).toLocaleString('de-DE')} kWh</b></div>`).join('')}${f.isTest?`<div class="card" style="margin-top:10px"><b>🧪 TESTBERECHNUNG</b><div class="muted">Keine PVGIS-Prognose – nur zum Prüfen der App-Logik.</div></div><div class="muted" style="margin-top:8px">Quelle: Lokale Testberechnung · ${escapeHtml(f.location||'')}</div>`:`<div class="muted" style="margin-top:8px">Quelle: PVGIS 5.3 · Standort ${Number(f.lat).toFixed(4)}, ${Number(f.lon).toFixed(4)}</div>`}</div>`}
+function savePvForecastSetup(silent=false){const x=pvForecastSetup();if(!x)return false;if(!x.location){if(!silent)toast('Bitte Standort eingeben');return false}if(!x.roofs.length){if(!silent)toast('Bitte mindestens eine Dachfläche mit Modulen anlegen');return false}const before=syncClone(x.p);x.p.roofAreas=x.roofs;x.p.pvForecast={...(x.p.pvForecast||{}),location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech};syncTouchChanged(before,x.p,SYNC_FIELDS.projects);savePvBridgeConfig();saveDB();renderProjectTab();if(!silent)toast('Ertragsprognose-Eingaben gespeichert');return true}
+function pvLocalSiteModel(location){
+  const text=String(location||'').trim();
+  const m=text.match(/\b(\d{5})\b/);
+  const plz=m?m[1]:'';
+  // Grobes Deutschland-Modell nach erster PLZ-Ziffer. Die Werte sind bewusst
+  // keine Mess-/PVGIS-Daten, sondern lokale Referenzwerte vor Systemverlusten.
+  const baseByZone={0:1220,1:1190,2:1140,3:1160,4:1140,5:1170,6:1200,7:1250,8:1290,9:1230};
+  const zone=plz?Number(plz[0]):null;
+  const base=zone!==null&&baseByZone[zone]?baseByZone[zone]:1200;
+  return {plz,zone,base,label:plz?`PLZ ${plz} · Standortzone ${zone}`:'Deutschland-Mittelwert · keine PLZ erkannt',fallback:!plz};
+}
+function pvLocalTechModel(tech){
+  const map={
+    crystSi:{factor:1,label:'Kristallines Silizium'},
+    crystSi2025:{factor:1.025,label:'Kristallines Silizium 2025'},
+    CIS:{factor:1.01,label:'CIS/CIGS'},
+    CdTe:{factor:1.02,label:'CdTe'},
+    Unknown:{factor:.99,label:'Unbekannt / Standard'}
+  };
+  return map[tech]||map.Unknown;
+}
+function pvLocalOrientationFactor(aspect,angle){
+  // Kontinuierliche Näherung: Süd = 0°, Ost = -90°, West = +90°, Nord = ±180°.
+  const a=Math.min(180,Math.abs(Number(aspect)||0));
+  const tilt=Math.max(0,Math.min(90,Number(angle)||0));
+  const southness=(Math.cos(a*Math.PI/180)+1)/2; // 1 Süd, .5 O/W, 0 Nord
+  // Bei flachen Dächern spielt die Himmelsrichtung weniger, bei steilen stärker hinein.
+  const orientationPenalty=(1-southness)*(0.10+0.34*Math.sin(tilt*Math.PI/180));
+  return Math.max(.55,1-orientationPenalty);
+}
+function pvLocalTiltFactor(angle){
+  const a=Math.max(0,Math.min(90,Number(angle)||0));
+  // Breites Optimum um ca. 32–35°; bewusst konservative, glatte Näherung.
+  const d=Math.abs(a-33);
+  return Math.max(.78,1-0.00013*d*d);
+}
+function pvLocalMonthShares(zone){
+  // Deutschlandtypische Verteilung; Norden etwas sommerlastiger, Süden etwas ausgeglichener.
+  const north=[.025,.045,.080,.110,.135,.145,.145,.125,.090,.055,.025,.020];
+  const mid  =[.030,.050,.080,.105,.130,.140,.140,.120,.090,.060,.030,.025];
+  const south=[.035,.055,.085,.105,.125,.135,.135,.115,.090,.060,.035,.025];
+  if(zone===1||zone===2||zone===3||zone===4)return north;
+  if(zone===7||zone===8||zone===9)return south;
+  return mid;
+}
+function runPvForecastTest(){
+  const x=pvForecastSetup();if(!x||!savePvForecastSetup(true))return;
+  const site=pvLocalSiteModel(x.location),tech=pvLocalTechModel(x.tech),monthShares=pvLocalMonthShares(site.zone);
+  const areas=x.roofs.map(r=>{
+    const peakPower=r.modules*x.moduleWp/1000;
+    const effectiveLoss=r.loss===''?x.loss:Number(r.loss);
+    const orientationFactor=pvLocalOrientationFactor(r.aspect,r.angle);
+    const tiltFactor=pvLocalTiltFactor(r.angle);
+    const lossFactor=1-Math.max(0,Math.min(100,effectiveLoss))/100;
+    const specific=site.base*orientationFactor*tiltFactor*tech.factor*lossFactor;
+    const yearly=peakPower*specific;
+    return {name:r.name,modules:r.modules,peakPower,yearly,monthly:monthShares.map(v=>yearly*v),angle:r.angle,aspect:r.aspect,loss:effectiveLoss,specific,orientationFactor,tiltFactor};
+  });
+  const peakPower=areas.reduce((a,r)=>a+r.peakPower,0),yearly=areas.reduce((a,r)=>a+r.yearly,0);
+  const monthly=monthShares.map((_,i)=>areas.reduce((a,r)=>a+(r.monthly[i]||0),0));
+  const p=(db.projects||[]).find(q=>q.id===pvForecastProjectId);if(!p)return;
+  const before=syncClone(p);p.roofAreas=x.roofs;p.pvForecast={location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,peakPower,yearly,specific:peakPower?yearly/peakPower:0,monthly,areas,calculatedAt:new Date().toISOString(),source:'Lokale Näherungsberechnung',isTest:true,isApproximation:true,siteModel:site,techModel:tech};
+  syncTouchChanged(before,p,SYNC_FIELDS.projects);saveDB();renderPvForecastResult(p.pvForecast);renderProjectTab();
+  toast(site.fallback?'Näherungswert berechnet – für besseren Standortfaktor PLZ eingeben':'Lokaler Näherungswert berechnet');
+}
+async function runPvForecast(){const x=pvForecastSetup();if(!x||!savePvForecastSetup(true))return;const base=(document.getElementById('pvForecastBridgeUrl').value||'').trim().replace(/\/$/,'');if(!base){toast('Bitte PVGIS-Vermittlungsdienst eintragen');return}const result=document.getElementById('pvForecastResult');result.innerHTML='<div class="card"><b>PVGIS wird berechnet …</b><div class="muted">Standort und Dachflächen werden geprüft.</div></div>';try{const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),45000);const res=await fetch(base+'/api/pvgis/forecast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,roofAreas:x.roofs}),signal:ctrl.signal});clearTimeout(timer);const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||`HTTP ${res.status}`);if(!Number.isFinite(Number(data.yearly))||!Number.isFinite(Number(data.peakPower)))throw new Error('Ungültige Antwort vom PVGIS-Dienst');const p=(db.projects||[]).find(q=>q.id===pvForecastProjectId);if(!p)return;const before=syncClone(p);p.roofAreas=x.roofs;p.pvForecast={location:x.location,resolvedLocation:data.location||x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,lat:data.lat,lon:data.lon,peakPower:Number(data.peakPower)||0,yearly:Number(data.yearly)||0,specific:Number(data.specific)||0,monthly:Array.isArray(data.monthly)?data.monthly.map(Number):[],areas:Array.isArray(data.areas)?data.areas:[],radiationDb:data.radiationDb||'',horizon:data.horizon!==false,calculatedAt:new Date().toISOString(),source:data.source||'PVGIS 5.3',isTest:false};syncTouchChanged(before,p,SYNC_FIELDS.projects);savePvBridgeConfig({lastTestOk:true,lastTestAt:new Date().toISOString()});saveDB();renderPvForecastResult(p.pvForecast);pvForecastBridgeStatus();renderProjectTab();toast('PVGIS-Ertragsprognose berechnet')}catch(e){console.error(e);const msg=e.name==='AbortError'?'PVGIS-Anfrage hat zu lange gedauert':(e.message||String(e));result.innerHTML=`<div class="card"><b>Prognose nicht möglich</b><div class="muted">${escapeHtml(msg)}</div></div>`;toast('PVGIS-Prognose fehlgeschlagen')}}
+function pvAspectName(a){const n=PV_ASPECTS.find(([,v])=>Number(v)===Number(a));return n?n[0]:`${Number(a)||0}°`}
+function renderPvForecastResult(f){const el=document.getElementById('pvForecastResult');if(!el)return;if(!f?.yearly){el.innerHTML='';return}const monthly=Array.isArray(f.monthly)?f.monthly:[];const max=Math.max(1,...monthly.map(Number));const names=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];const areas=(f.areas||[]).map(a=>`<div class="item"><div class="grow"><b>${escapeHtml(a.name)}</b><div class="muted">${a.modules} Module · ${Number(a.peakPower).toFixed(2).replace('.',',')} kWp · ${escapeHtml(pvAspectName(a.aspect))} · ${Number(a.angle)||0}° · ${Number(a.loss)||0}% Verluste</div></div><b>${Math.round(a.yearly).toLocaleString('de-DE')} kWh</b></div>`).join('');const sourceInfo=f.isTest?`<div class="card" style="margin-top:10px"><b>≈ NÄHERUNGSWERT</b><div class="muted">Lokale überschlägige Ertragsprognose – keine PVGIS-, Wetter- oder Messdaten. Berücksichtigt Standortzone aus der PLZ, Dachneigung, Ausrichtung, Systemverluste und Modultyp. Nicht als garantierter Ertrag verwenden.</div></div><div class="muted" style="margin-top:8px">Berechnungsbasis: ${escapeHtml(f.siteModel?.label||'Deutschland-Mittelwert')} · ${Math.round(Number(f.siteModel?.base)||1200)} kWh/kWp Referenz vor Verlusten · Modulmodell: ${escapeHtml(f.techModel?.label||'Standard')}<br>Standort: ${escapeHtml(f.location||'')}</div>`:`<div class="muted" style="margin-top:8px">Quelle: ${escapeHtml(f.source||'PVGIS 5.3')}${f.radiationDb?' · Strahlungsdaten: '+escapeHtml(f.radiationDb):''}<br>Standort: ${Number(f.lat).toFixed(4)}, ${Number(f.lon).toFixed(4)}${f.resolvedLocation?'<br>'+escapeHtml(f.resolvedLocation):''}</div>`;el.innerHTML=`<div class="pv-forecast-box"><b>Gesamtprognose</b><div class="pv-forecast-summary"><div><span class="muted">Leistung</span><br><b>${Number(f.peakPower||0).toFixed(2).replace('.',',')} kWp</b></div><div><span class="muted">Jahresertrag</span><br><b>${Math.round(f.yearly||0).toLocaleString('de-DE')} kWh</b></div><div><span class="muted">Spezifisch</span><br><b>${Math.round(f.specific||0).toLocaleString('de-DE')} kWh/kWp</b></div></div><div class="pv-month-bars">${monthly.map((v,i)=>`<div class="pv-month-bar"><i style="height:${Math.max(2,Math.round(Number(v)/max*95))}px"></i>${names[i]||''}<br>${Math.round(Number(v)||0)}</div>`).join('')}</div>${areas}${sourceInfo}</div>`}
 
 
 const BUILTIN_PROJECT_TYPES=[
