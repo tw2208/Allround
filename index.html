@@ -1180,6 +1180,33 @@ textarea{
 .sync-conflict .actions{margin-top:8px}.sync-ready{color:#7cf0ad;font-weight:800}
 @media(max-width:520px){.sync-grid,.sync-conflict-values{grid-template-columns:1fr}.sync-summary{grid-template-columns:1fr 1fr}}
 
+
+/* Version 1.57 – Materialbedarf */
+.material-demand-category{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+.material-demand-category button{width:auto;min-width:92px;padding:9px 13px;border-radius:999px}
+.material-demand-category button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.material-demand-controls{display:grid;grid-template-columns:1.5fr .7fr .7fr;gap:10px;align-items:end}
+.material-demand-table{display:grid;gap:8px;margin-top:10px;overflow-x:auto}
+.material-demand-head,.material-demand-row{display:grid;grid-template-columns:minmax(145px,2fr) 66px 88px 88px 78px 72px 44px;gap:7px;align-items:center;min-width:710px}
+.material-demand-head{font-size:11px;color:var(--muted);padding:0 4px}
+.material-demand-row{background:#071a2c;border:1px solid #234f74;border-radius:12px;padding:8px}
+.material-demand-row input{min-width:0;margin:0;padding:9px 8px}
+.material-demand-result{font-weight:800;color:#7cf0ad;text-align:right;white-space:nowrap}
+.material-demand-delete{width:38px;min-width:38px;height:38px;padding:0;border-radius:9px;background:#31161b;border:1px solid #6d3038;color:#ff9da8}
+.material-demand-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.material-demand-summary>div{background:#071a2c;border:1px solid #234f74;border-radius:11px;padding:10px}
+.material-demand-note{font-size:12px;color:var(--muted);line-height:1.4;margin-top:10px}
+.material-demand-controls.drywall{grid-template-columns:1fr}
+.drywall-demand-head,.drywall-demand-row{display:grid;grid-template-columns:minmax(170px,2fr) 72px 100px 82px 82px 44px;gap:7px;align-items:center;min-width:650px}
+.drywall-demand-head{font-size:11px;color:var(--muted);padding:0 4px}
+.drywall-demand-row{background:#071a2c;border:1px solid #234f74;border-radius:12px;padding:8px}
+.drywall-demand-row input{min-width:0;margin:0;padding:9px 8px}
+@media(max-width:650px){
+ .material-demand-controls{grid-template-columns:1fr 1fr}
+ .material-demand-controls>div:first-child{grid-column:1/-1}
+ .material-demand-head{display:grid}
+}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -1203,8 +1230,107 @@ textarea{
 <div class="tile" onclick="show('customers')"><span class="emoji">👥</span><b>Kunden</b><small>Kundenverwaltung</small><span class="arr">›</span></div>
 <div class="tile" onclick="show('projects')"><span class="big">🏗️</span><b>Baustellen</b><small>Nach Art sortiert</small></div>
 <div class="tile" onclick="show('hoursAccounts')"><span class="big">⏱️</span><b>Stundenkonten</b><small>Mitarbeiterstunden</small></div>
-<div class="tile" onclick="show('material')"><span class="emoji">🧰</span><b>Material</b><small>Bestand und Verbrauch</small><span class="arr">›</span></div>
+<div class="tile" onclick="show('materialDemand')"><span class="emoji">🧮</span><b>Materialbedarf</b><small>Bedarf nach Standardwerten berechnen</small><span class="arr">›</span></div>
 </div>
+</section>
+
+
+<section id="materialDemand" class="screen">
+  <div class="head">
+    <button class="back" onclick="show('home')">‹</button>
+    <h2>Materialbedarf</h2>
+  </div>
+
+  <div class="card">
+    <div class="item">
+      <span class="emoji">🧮</span>
+      <div class="grow">
+        <b>Bedarfsrechner</b>
+        <div class="muted">Standardbedarf abhängig von der geplanten Menge berechnen.</div>
+      </div>
+    </div>
+    <div class="material-demand-category">
+      <button type="button" class="btn active" id="mdCatPv" onclick="selectMaterialDemandCategory('pv')">PV</button>
+      <button type="button" class="btn" id="mdCatDrywallCeiling" onclick="selectMaterialDemandCategory('drywallCeiling')">Trockenbaudecke</button>
+    </div>
+    <div class="material-demand-note">Weitere handwerkliche Bedarfsrechner können später ergänzt werden.</div>
+  </div>
+
+  <div class="card" id="materialDemandPvCard">
+    <div class="item">
+      <span class="emoji">☀️</span>
+      <div class="grow">
+        <b>PV-Materialbedarf</b>
+        <div class="muted">Berechnung nach Anzahl der geplanten Module</div>
+      </div>
+    </div>
+    <div class="rule"></div>
+    <div class="material-demand-controls">
+      <div>
+        <label>PV-Baustelle übernehmen</label>
+        <select id="mdPvProject" onchange="materialDemandProjectChanged()"></select>
+      </div>
+      <div>
+        <label>Senkrechte Module</label>
+        <input id="mdPvPortraitModules" type="number" min="0" step="1" inputmode="numeric" value="0" oninput="renderMaterialDemandRows()">
+      </div>
+      <div>
+        <label>Horizontale Module</label>
+        <input id="mdPvLandscapeModules" type="number" min="0" step="1" inputmode="numeric" value="0" oninput="renderMaterialDemandRows()">
+      </div>
+    </div>
+
+    <div class="material-demand-summary">
+      <div><span class="muted">Geplante Module</span><br><b id="mdModuleSummary">0</b><div class="muted" id="mdOrientationSummary">0 senkrecht · 0 horizontal</div></div>
+      <div><span class="muted">Artikelpositionen</span><br><b id="mdItemSummary">0</b></div>
+    </div>
+
+    <div class="rule"></div>
+    <div class="hours"><b>Standardbedarf</b><span class="muted">getrennt nach Modul-Ausrichtung</span></div>
+    <div class="material-demand-table">
+      <div class="material-demand-head"><span>Artikel</span><span>Einheit</span><span>je senkr.</span><span>je horiz.</span><span>Grund</span><span>Bedarf</span><span></span></div>
+      <div id="materialDemandRows"></div>
+    </div>
+    <div class="actions" style="margin-top:10px;">
+      <button class="btn btn2" type="button" onclick="addMaterialDemandItem()">＋ Artikel hinzufügen</button>
+      <button class="btn btn2" type="button" onclick="resetMaterialDemandPvDefaults()">Standardwerte zurücksetzen</button>
+    </div>
+    <div class="material-demand-note">Die Standardwerte sind frei anpassbare Rechenwerte und können für senkrechte und horizontale Module getrennt eingestellt werden. Bei Stück-/Pack-/Satz-Einheiten wird auf volle Einheiten aufgerundet. Die tatsächliche Montageplanung, Dachaufteilung, Modulmaße und Herstellerangaben können den Bedarf verändern.</div>
+  </div>
+
+  <div class="card" id="materialDemandDrywallCeilingCard" hidden>
+    <div class="item">
+      <span class="emoji">🧱</span>
+      <div class="grow">
+        <b>Trockenbaudecke</b>
+        <div class="muted">Materialbedarf nach geplanter Deckenfläche</div>
+      </div>
+    </div>
+    <div class="rule"></div>
+    <div class="material-demand-controls drywall">
+      <div>
+        <label>Deckenfläche in m²</label>
+        <input id="mdDrywallArea" type="number" min="0" step="0.1" inputmode="decimal" value="0" oninput="renderDrywallDemandRows()">
+      </div>
+    </div>
+
+    <div class="material-demand-summary">
+      <div><span class="muted">Deckenfläche</span><br><b id="mdDrywallAreaSummary">0 m²</b></div>
+      <div><span class="muted">Artikelpositionen</span><br><b id="mdDrywallItemSummary">0</b></div>
+    </div>
+
+    <div class="rule"></div>
+    <div class="hours"><b>Standardbedarf</b><span class="muted">je m² Deckenfläche</span></div>
+    <div class="material-demand-table">
+      <div class="drywall-demand-head"><span>Artikel</span><span>Einheit</span><span>je m²</span><span>Grund</span><span>Bedarf</span><span></span></div>
+      <div id="drywallDemandRows"></div>
+    </div>
+    <div class="actions" style="margin-top:10px;">
+      <button class="btn btn2" type="button" onclick="addDrywallDemandItem()">＋ Artikel hinzufügen</button>
+      <button class="btn btn2" type="button" onclick="resetDrywallDemandDefaults()">Standardwerte zurücksetzen</button>
+    </div>
+    <div class="material-demand-note">Voreinstellung für eine einfache, einlagig beplankte Trockenbaudecke. Die Werte sind frei anpassbar. Randprofile, Sonderkonstruktionen, Brandschutz, doppelte Beplankung, Ausschnitte und objektspezifische Abstände können den tatsächlichen Bedarf verändern.</div>
+  </div>
 </section>
 
 <section id="diary" class="screen">
@@ -1592,7 +1718,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.53</div>
+    <div class="blue" style="margin-top:6px;">Version 1.57</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -1640,10 +1766,14 @@ textarea{
   <div class="card">
     <div class="sync-card">
       <h3>Direkte Gerätesynchronisierung</h3>
-      <div class="muted">iPhone und iPad direkt per WebRTC synchronisieren. Keine Cloud. Fotos werden noch nicht über die direkte Gerätesynchronisierung übertragen.</div>
-      <div class="sync-grid">
-        <button class="btn" type="button" onclick="syncStartDeviceA()">Gerät A · Starten</button>
-        <button class="btn btn2" type="button" onclick="syncPrepareDeviceB()">Gerät B · Verbinden</button>
+      <div class="muted">iPhone und iPad direkt per WebRTC synchronisieren. Kein Gerät ist dauerhaft maßgeblich: Änderungen werden zusammengeführt, echte Konflikte entscheidest du beim Synchronisieren. Fotos werden noch nicht übertragen.</div>
+      <div style="margin-top:12px">
+        <label>Gerätename<input id="syncDeviceNameInput" type="text" maxlength="40" placeholder="z. B. Thomas iPad" onblur="syncSaveDeviceName()"></label>
+        <div class="sync-small">Der Name wird nur verwendet, damit du bei Konflikten eindeutig siehst, von welchem Gerät die Daten stammen.</div>
+      </div>
+      <div class="sync-grid" style="margin-top:12px">
+        <button class="btn" type="button" onclick="syncStartDeviceA()">Synchronisierung starten</button>
+        <button class="btn btn2" type="button" onclick="syncPrepareDeviceB()">Mit anderem Gerät verbinden</button>
       </div>
       <div class="actions">
         <button class="btn btn2" type="button" onclick="syncOpenScanner()">QR-Code scannen</button>
@@ -1824,6 +1954,47 @@ function ensureMaterialLists(){
 
 ensureMaterialLists();
 
+const MATERIAL_DEMAND_PV_DEFAULTS=[
+  {id:'pv_modules',name:'PV-Module',unit:'Stk.',perPortrait:1,perLandscape:1,base:0},
+  {id:'roof_hooks',name:'Dachhaken',unit:'Stk.',perPortrait:2,perLandscape:3,base:0},
+  {id:'rails',name:'Montageschienen',unit:'m',perPortrait:2.3,perLandscape:3.6,base:0},
+  {id:'mid_clamps',name:'Mittelklemmen',unit:'Stk.',perPortrait:2,perLandscape:2,base:0},
+  {id:'end_clamps',name:'Endklemmen',unit:'Stk.',perPortrait:0.5,perLandscape:0.5,base:0},
+  {id:'dc_red',name:'Solarkabel 6 mm² rot',unit:'m',perPortrait:2,perLandscape:2,base:0},
+  {id:'dc_black',name:'Solarkabel 6 mm² schwarz',unit:'m',perPortrait:2,perLandscape:2,base:0},
+  {id:'cable_clips',name:'Kabelclips',unit:'Stk.',perPortrait:2,perLandscape:2,base:0}
+];
+const MATERIAL_DEMAND_DRYWALL_CEILING_DEFAULTS=[
+  {id:'drywall_board',name:'Gipskartonplatte 12,5 mm',unit:'m²',perSqm:1.10,base:0},
+  {id:'drywall_cd',name:'CD-Profil 60/27',unit:'m',perSqm:3.00,base:0},
+  {id:'drywall_hanger',name:'Direktabhänger / Noniusabhänger',unit:'Stk.',perSqm:2.50,base:0},
+  {id:'drywall_cross',name:'Kreuzverbinder',unit:'Stk.',perSqm:2.00,base:0},
+  {id:'drywall_screws',name:'Schnellbauschrauben TN 25',unit:'Stk.',perSqm:20.00,base:0},
+  {id:'drywall_filler',name:'Fugenspachtel',unit:'kg',perSqm:0.35,base:0},
+  {id:'drywall_tape',name:'Fugendeckstreifen',unit:'m',perSqm:1.20,base:0}
+];
+function ensureMaterialDemand(){
+  if(!db.materialDemand || typeof db.materialDemand!=='object' || Array.isArray(db.materialDemand)) db.materialDemand={};
+  if(!db.materialDemand.pv || typeof db.materialDemand.pv!=='object') db.materialDemand.pv={};
+  if(!Array.isArray(db.materialDemand.pv.items) || !db.materialDemand.pv.items.length){
+    db.materialDemand.pv.items=MATERIAL_DEMAND_PV_DEFAULTS.map(x=>({...x}));
+    saveDB();
+  }else{
+    let changed=false;
+    db.materialDemand.pv.items.forEach(item=>{
+      if(!('perPortrait' in item)){item.perPortrait=Number(item.perModule)||0;changed=true}
+      if(!('perLandscape' in item)){item.perLandscape=Number(item.perModule)||0;changed=true}
+    });
+    if(changed)saveDB();
+  }
+  if(!db.materialDemand.drywallCeiling || typeof db.materialDemand.drywallCeiling!=='object') db.materialDemand.drywallCeiling={};
+  if(!Array.isArray(db.materialDemand.drywallCeiling.items) || !db.materialDemand.drywallCeiling.items.length){
+    db.materialDemand.drywallCeiling.items=MATERIAL_DEMAND_DRYWALL_CEILING_DEFAULTS.map(x=>({...x}));
+    saveDB();
+  }
+}
+ensureMaterialDemand();
+
 function ensureInvoiceSettings(){
   if(!db.invoiceSettings || typeof db.invoiceSettings!=='object' || Array.isArray(db.invoiceSettings)) db.invoiceSettings={};
   if(!('standardHourlyRate' in db.invoiceSettings)) db.invoiceSettings.standardHourlyRate='';
@@ -1977,8 +2148,21 @@ function syncStatus(text,kind=''){
 }
 function syncPeerInfo(){
   const el=document.getElementById('syncPeerInfo'); if(!el)return;
+  const input=document.getElementById('syncDeviceNameInput'); if(input && document.activeElement!==input) input.value=db.sync?.deviceName||syncDeviceLabel();
   const last=db.sync?.lastSuccessfulSyncAt?new Date(db.sync.lastSuccessfulSyncAt).toLocaleString('de-DE'):'noch nie';
-  el.textContent=`Dieses Gerät: ${db.sync.deviceName} · Letzter erfolgreicher Sync: ${last}`+(syncRemoteHello?` · Verbunden: ${syncRemoteHello.deviceName||'anderes Gerät'}`:'');
+  const role=syncRole==='A'?' · Rolle: Koordinator':syncRole==='B'?' · Rolle: verbundenes Gerät':'';
+  el.textContent=`Dieses Gerät: ${db.sync.deviceName} · Letzter erfolgreicher Sync: ${last}${role}`+(syncRemoteHello?` · Gegenstelle: ${syncRemoteHello.deviceName||'anderes Gerät'}`:'');
+}
+function syncSaveDeviceName(){
+  syncEnsureSettings();
+  const input=document.getElementById('syncDeviceNameInput'); if(!input)return;
+  const name=String(input.value||'').trim().slice(0,40);
+  db.sync.deviceName=name||syncDeviceLabel();
+  input.value=db.sync.deviceName; saveDB(); syncPeerInfo(); toast('Gerätename gespeichert');
+}
+function syncSideName(side){
+  if(side==='a') return db.sync?.deviceName||'Dieses Gerät';
+  return syncRemoteHello?.deviceName||'Anderes Gerät';
 }
 function syncB64url(bytes){let s='';for(let i=0;i<bytes.length;i++)s+=String.fromCharCode(bytes[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function syncFromB64url(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
@@ -2010,7 +2194,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.51'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.57'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -2173,13 +2357,13 @@ function syncRenderPlan(coordinator){
   const sum=document.getElementById('syncDiffSummary'),conf=document.getElementById('syncConflicts'),actions=document.getElementById('syncCommitActions');if(!sum||!conf||!syncMergePlan)return;
   const e=syncMergePlan.entities;sum.hidden=false;sum.innerHTML=`<div class="sync-summary"><div><b>${e.customers.length}</b><div class="sync-small">Kunden</div></div><div><b>${e.projects.length}</b><div class="sync-small">Baustellen</div></div><div><b>${e.diary.length}</b><div class="sync-small">Tagebuch</div></div><div><b>${e.materialItems.length}</b><div class="sync-small">Materialpositionen</div></div></div>`;
   const conflicts=syncMergePlan.conflicts||[];conf.hidden=!conflicts.length;
-  conf.innerHTML=conflicts.map((c,i)=>`<div class="sync-conflict" id="${c.id}"><b>Konflikt ${i+1}: ${escapeHtml(syncRecordLabel(c.type,c.recordId))}</b><div class="sync-small">Feld: ${escapeHtml(c.label||c.field)}</div><div class="sync-conflict-values"><div class="sync-conflict-value"><b>Dieses Gerät</b>${escapeHtml(syncHumanValue(c.field==='__deleted'?(c.a?.deletedAt?'gelöscht':'behalten'):c.aValue))}</div><div class="sync-conflict-value"><b>Anderes Gerät</b>${escapeHtml(syncHumanValue(c.field==='__deleted'?(c.b?.deletedAt?'gelöscht':'behalten'):c.bValue))}</div></div>${coordinator?`<div class="actions"><button class="btn btn2" type="button" onclick="syncResolveConflict('${c.id}','a')">Dieses Gerät</button><button class="btn btn2" type="button" onclick="syncResolveConflict('${c.id}','b')">Anderes Gerät</button></div><div class="sync-small" data-resolution></div>`:'<div class="sync-small">Entscheidung erfolgt auf Gerät A.</div>'}</div>`).join('');
+  conf.innerHTML=conflicts.map((c,i)=>`<div class="sync-conflict" id="${c.id}"><b>Konflikt ${i+1}: ${escapeHtml(syncRecordLabel(c.type,c.recordId))}</b><div class="sync-small">Feld: ${escapeHtml(c.label||c.field)}</div><div class="sync-conflict-values"><div class="sync-conflict-value"><b>${escapeHtml(syncSideName('a'))}</b>${escapeHtml(syncHumanValue(c.field==='__deleted'?(c.a?.deletedAt?'gelöscht':'behalten'):c.aValue))}</div><div class="sync-conflict-value"><b>${escapeHtml(syncSideName('b'))}</b>${escapeHtml(syncHumanValue(c.field==='__deleted'?(c.b?.deletedAt?'gelöscht':'behalten'):c.bValue))}</div></div>${coordinator?`<div class="actions"><button class="btn btn2" type="button" onclick="syncResolveConflict('${c.id}','a')">${escapeHtml(syncSideName('a'))}</button><button class="btn btn2" type="button" onclick="syncResolveConflict('${c.id}','b')">${escapeHtml(syncSideName('b'))}</button></div><div class="sync-small" data-resolution></div>`:'<div class="sync-small">Entscheidung erfolgt auf Gerät A.</div>'}</div>`).join('');
   if(actions)actions.hidden=coordinator?false:true;
   if(coordinator){const btn=document.getElementById('syncCommitBtn');if(btn){btn.disabled=conflicts.some(c=>!c.choice);btn.textContent=conflicts.length?'Konflikte entscheiden':'Synchronisierung vorbereiten'}}
 }
 function syncResolveConflict(id,choice){
   const c=syncMergePlan?.conflicts?.find(x=>x.id===id);if(!c)return;c.choice=choice;
-  const box=document.getElementById(id);const msg=box?.querySelector('[data-resolution]');if(msg){msg.textContent=choice==='a'?'Dieses Gerät wird übernommen.':'Anderes Gerät wird übernommen.';msg.className='sync-small sync-ready'}
+  const box=document.getElementById(id);const msg=box?.querySelector('[data-resolution]');if(msg){msg.textContent=(choice==='a'?syncSideName('a'):syncSideName('b'))+' wird übernommen.';msg.className='sync-small sync-ready'}
   const btn=document.getElementById('syncCommitBtn');if(btn)btn.disabled=syncMergePlan.conflicts.some(x=>!x.choice);
 }
 function syncApplyConflictChoices(plan){
@@ -2238,9 +2422,160 @@ function syncRecoveryCheck(){
   if(localStorage.getItem(SYNC_PENDING_KEY)&&localStorage.getItem(SYNC_ROLLBACK_KEY)){syncRollbackLocal();setTimeout(()=>syncStatus('Eine unterbrochene Synchronisierung wurde sicher auf den vorherigen Datenstand zurückgesetzt.','warn'),0)}
 }
 syncRecoveryCheck();
+setTimeout(()=>syncPeerInfo(),0);
 
 function toast(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
-function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv','material'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderInvoiceSettings();renderInvoiceCatalog();renderLexwareBridgeSettings()}if(id==='backup'){renderBackupCenter()}window.scrollTo(0,0)}
+
+let materialDemandActiveCategory='pv';
+function selectMaterialDemandCategory(category){
+  materialDemandActiveCategory=category==='drywallCeiling'?'drywallCeiling':'pv';
+  document.querySelectorAll('.material-demand-category button').forEach(b=>b.classList.remove('active'));
+  const pvCard=document.getElementById('materialDemandPvCard');
+  const drywallCard=document.getElementById('materialDemandDrywallCeilingCard');
+  if(pvCard)pvCard.hidden=materialDemandActiveCategory!=='pv';
+  if(drywallCard)drywallCard.hidden=materialDemandActiveCategory!=='drywallCeiling';
+  const activeBtn=document.getElementById(materialDemandActiveCategory==='pv'?'mdCatPv':'mdCatDrywallCeiling');
+  if(activeBtn)activeBtn.classList.add('active');
+  renderMaterialDemand();
+}
+function renderMaterialDemand(){
+  ensureMaterialDemand();
+  const pvCard=document.getElementById('materialDemandPvCard');
+  const drywallCard=document.getElementById('materialDemandDrywallCeilingCard');
+  if(pvCard)pvCard.hidden=materialDemandActiveCategory!=='pv';
+  if(drywallCard)drywallCard.hidden=materialDemandActiveCategory!=='drywallCeiling';
+  const sel=document.getElementById('mdPvProject');
+  if(sel){
+    const current=sel.value;
+    const pvProjects=(db.projects||[]).filter(p=>p.type==='pv');
+    sel.innerHTML='<option value="">— manuell eingeben —</option>'+pvProjects.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.customerName||'')}${p.customerName&&p.name?' · ':''}${escapeHtml(p.name||'PV-Anlage')}</option>`).join('');
+    if([...sel.options].some(o=>o.value===current))sel.value=current;
+  }
+  renderMaterialDemandRows();
+  renderDrywallDemandRows();
+}
+function materialDemandProjectChanged(){
+  const sel=document.getElementById('mdPvProject');
+  const portrait=document.getElementById('mdPvPortraitModules');
+  const landscape=document.getElementById('mdPvLandscapeModules');
+  if(!sel||!portrait||!landscape)return;
+  const p=(db.projects||[]).find(x=>x.id===sel.value);
+  if(p){
+    // Bestehende PV-Baustellen speichern bisher nur die Gesamtzahl. Deshalb zunächst als senkrecht übernehmen;
+    // die Aufteilung kann anschließend direkt angepasst werden.
+    portrait.value=Math.max(0,Number(p.modules)||0);
+    landscape.value=0;
+  }
+  renderMaterialDemandRows();
+}
+function materialDemandRound(value,unit){
+  const v=Math.max(0,Number(value)||0);
+  const u=String(unit||'').toLowerCase();
+  if(/stk|stück|pack|satz|rolle|kart|paar/.test(u)) return Math.ceil(v);
+  return Math.round(v*100)/100;
+}
+function formatDemandNumber(v,unit){
+  if(/stk|stück|pack|satz|rolle|kart|paar/i.test(String(unit||'')))return String(Math.ceil(Number(v)||0));
+  return (Math.round((Number(v)||0)*100)/100).toLocaleString('de-DE',{maximumFractionDigits:2});
+}
+function renderMaterialDemandRows(){
+  ensureMaterialDemand();
+  const wrap=document.getElementById('materialDemandRows');
+  if(!wrap)return;
+  const portrait=Math.max(0,Number(document.getElementById('mdPvPortraitModules')?.value)||0);
+  const landscape=Math.max(0,Number(document.getElementById('mdPvLandscapeModules')?.value)||0);
+  const modules=portrait+landscape;
+  const items=db.materialDemand.pv.items||[];
+  wrap.innerHTML=items.map((item,index)=>{
+    const perPortrait=Number(item.perPortrait)||0;
+    const perLandscape=Number(item.perLandscape)||0;
+    const result=materialDemandRound(portrait*perPortrait+landscape*perLandscape+(Number(item.base)||0),item.unit);
+    return `<div class="material-demand-row">
+      <input class="md-name" aria-label="Artikel" value="${escapeHtml(item.name||'')}" onchange="saveMaterialDemandItem(${index},'name',this.value)">
+      <input class="md-unit" aria-label="Einheit" value="${escapeHtml(item.unit||'')}" onchange="saveMaterialDemandItem(${index},'unit',this.value,true)">
+      <input class="md-portrait" aria-label="Bedarf je senkrechtem Modul" type="number" min="0" step="any" inputmode="decimal" value="${escapeHtml(item.perPortrait??0)}" onchange="saveMaterialDemandItem(${index},'perPortrait',this.value,true)">
+      <input class="md-landscape" aria-label="Bedarf je horizontalem Modul" type="number" min="0" step="any" inputmode="decimal" value="${escapeHtml(item.perLandscape??0)}" onchange="saveMaterialDemandItem(${index},'perLandscape',this.value,true)">
+      <input class="md-base" aria-label="Grundbedarf" type="number" min="0" step="any" inputmode="decimal" value="${escapeHtml(item.base??0)}" onchange="saveMaterialDemandItem(${index},'base',this.value,true)">
+      <div class="material-demand-result" title="Berechneter Bedarf">${escapeHtml(formatDemandNumber(result,item.unit))}</div>
+      <button class="material-demand-delete" type="button" aria-label="Artikel löschen" onclick="deleteMaterialDemandItem(${index})">×</button>
+    </div>`;
+  }).join('');
+  const ms=document.getElementById('mdModuleSummary');if(ms)ms.textContent=String(modules);
+  const os=document.getElementById('mdOrientationSummary');if(os)os.textContent=`${portrait} senkrecht · ${landscape} horizontal`;
+  const is=document.getElementById('mdItemSummary');if(is)is.textContent=String(items.length);
+}
+function saveMaterialDemandItem(index,field,value,rerender=false){
+  ensureMaterialDemand();
+  const item=db.materialDemand.pv.items[index]; if(!item)return;
+  item[field]=(['perPortrait','perLandscape','perModule','base'].includes(field))?(value===''?'':Number(String(value).replace(',','.'))):value;
+  saveDB();
+  if(rerender)renderMaterialDemandRows();
+}
+function addMaterialDemandItem(){
+  ensureMaterialDemand();
+  db.materialDemand.pv.items.push({id:makeStableId('md'),name:'Neuer Artikel',unit:'Stk.',perPortrait:0,perLandscape:0,base:0});
+  saveDB();renderMaterialDemandRows();
+  setTimeout(()=>{const rows=document.querySelectorAll('#materialDemandRows .md-name');const el=rows[rows.length-1];if(el){el.focus();el.select();}},0);
+}
+function deleteMaterialDemandItem(index){
+  ensureMaterialDemand();
+  const item=db.materialDemand.pv.items[index];if(!item)return;
+  if(!confirm(`„${item.name||'Artikel'}“ aus dem PV-Bedarfsrechner entfernen?`))return;
+  db.materialDemand.pv.items.splice(index,1);saveDB();renderMaterialDemandRows();
+}
+function resetMaterialDemandPvDefaults(){
+  if(!confirm('PV-Standardwerte wirklich zurücksetzen? Eigene Anpassungen werden ersetzt.'))return;
+  ensureMaterialDemand();
+  db.materialDemand.pv.items=MATERIAL_DEMAND_PV_DEFAULTS.map(x=>({...x}));
+  saveDB();renderMaterialDemandRows();toast('PV-Standardwerte zurückgesetzt');
+}
+function renderDrywallDemandRows(){
+  ensureMaterialDemand();
+  const wrap=document.getElementById('drywallDemandRows');
+  if(!wrap)return;
+  const area=Math.max(0,Number(String(document.getElementById('mdDrywallArea')?.value||0).replace(',','.'))||0);
+  const items=db.materialDemand.drywallCeiling.items||[];
+  wrap.innerHTML=items.map((item,index)=>{
+    const result=materialDemandRound(area*(Number(item.perSqm)||0)+(Number(item.base)||0),item.unit);
+    return `<div class="drywall-demand-row">
+      <input class="md-dry-name" aria-label="Artikel" value="${escapeHtml(item.name||'')}" onchange="saveDrywallDemandItem(${index},'name',this.value)">
+      <input aria-label="Einheit" value="${escapeHtml(item.unit||'')}" onchange="saveDrywallDemandItem(${index},'unit',this.value,true)">
+      <input aria-label="Bedarf je Quadratmeter" type="number" min="0" step="any" inputmode="decimal" value="${escapeHtml(item.perSqm??0)}" onchange="saveDrywallDemandItem(${index},'perSqm',this.value,true)">
+      <input aria-label="Grundbedarf" type="number" min="0" step="any" inputmode="decimal" value="${escapeHtml(item.base??0)}" onchange="saveDrywallDemandItem(${index},'base',this.value,true)">
+      <div class="material-demand-result" title="Berechneter Bedarf">${escapeHtml(formatDemandNumber(result,item.unit))}</div>
+      <button class="material-demand-delete" type="button" aria-label="Artikel löschen" onclick="deleteDrywallDemandItem(${index})">×</button>
+    </div>`;
+  }).join('');
+  const as=document.getElementById('mdDrywallAreaSummary');if(as)as.textContent=`${(Math.round(area*10)/10).toLocaleString('de-DE',{maximumFractionDigits:1})} m²`;
+  const is=document.getElementById('mdDrywallItemSummary');if(is)is.textContent=String(items.length);
+}
+function saveDrywallDemandItem(index,field,value,rerender=false){
+  ensureMaterialDemand();
+  const item=db.materialDemand.drywallCeiling.items[index];if(!item)return;
+  item[field]=(['perSqm','base'].includes(field))?(value===''?'':Number(String(value).replace(',','.'))):value;
+  saveDB();
+  if(rerender)renderDrywallDemandRows();
+}
+function addDrywallDemandItem(){
+  ensureMaterialDemand();
+  db.materialDemand.drywallCeiling.items.push({id:makeStableId('md'),name:'Neuer Artikel',unit:'Stk.',perSqm:0,base:0});
+  saveDB();renderDrywallDemandRows();
+  setTimeout(()=>{const rows=document.querySelectorAll('#drywallDemandRows .md-dry-name');const el=rows[rows.length-1];if(el){el.focus();el.select();}},0);
+}
+function deleteDrywallDemandItem(index){
+  ensureMaterialDemand();
+  const item=db.materialDemand.drywallCeiling.items[index];if(!item)return;
+  if(!confirm(`„${item.name||'Artikel'}“ aus dem Trockenbaudecken-Rechner entfernen?`))return;
+  db.materialDemand.drywallCeiling.items.splice(index,1);saveDB();renderDrywallDemandRows();
+}
+function resetDrywallDemandDefaults(){
+  if(!confirm('Trockenbaudecken-Standardwerte wirklich zurücksetzen? Eigene Anpassungen werden ersetzt.'))return;
+  ensureMaterialDemand();
+  db.materialDemand.drywallCeiling.items=MATERIAL_DEMAND_DRYWALL_CEILING_DEFAULTS.map(x=>({...x}));
+  saveDB();renderDrywallDemandRows();toast('Trockenbaudecken-Standardwerte zurückgesetzt');
+}
+
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));let n=document.getElementById('n-'+id);if(!n&&['pv'].includes(id))n=document.getElementById('n-projects');if(n)n.classList.add('active');if(id==='hoursAccounts')renderHoursAccounts();if(id==='more'){renderInvoiceSettings();renderInvoiceCatalog();renderLexwareBridgeSettings()}if(id==='backup'){renderBackupCenter()}if(id==='materialDemand'){renderMaterialDemand()}window.scrollTo(0,0)}
 function calculatedWorkHoursNumber(){
   const s=document.getElementById('start')?.value||'';
   const e=document.getElementById('end')?.value||'';
@@ -4906,7 +5241,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.51',db:syncClone(db)
+      appVersion:'1.57',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -4921,7 +5256,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.51',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.57',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -5093,7 +5428,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.51',
+      appVersion:'1.57',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -5926,6 +6261,7 @@ window.addEventListener('load',()=>{
   syncPeerInfo();
   renderProjectTab();
   renderHoursAccounts();
+  renderMaterialDemand();
   selectDiaryDate(diaryTodayISO);
   // v1.38: täglich mindestens einen lokalen Sicherungsstand anlegen/aktualisieren.
   createOrUpdateDailySnapshot(false);
