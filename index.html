@@ -1227,7 +1227,7 @@ textarea{
 @media(max-width:520px){.sync-grid,.sync-conflict-values{grid-template-columns:1fr}.sync-summary{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.59 – Materialbedarf */
+/* Version 1.61 – Materialbedarf */
 .material-demand-category{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
 .material-demand-category button{width:auto;min-width:92px;padding:9px 13px;border-radius:999px}
 .material-demand-category button.active{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -1775,7 +1775,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.59</div>
+    <div class="blue" style="margin-top:6px;">Version 1.61</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -2019,6 +2019,9 @@ function ensureMaterialLists(){
 
 ensureMaterialLists();
 
+// Muss vor ensureMaterialDemand initialisiert sein, weil dessen Erstinitialisierung saveDB() aufrufen kann.
+let dailySnapshotTimer=null;
+
 const MATERIAL_DEMAND_PV_DEFAULTS=[
   {id:'pv_modules',name:'PV-Module',unit:'Stk.',perPortrait:1,perLandscape:1,base:0},
   {id:'roof_hooks',name:'Dachhaken',unit:'Stk.',perPortrait:2,perLandscape:3,base:0},
@@ -2259,7 +2262,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.58'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.61'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -2513,7 +2516,11 @@ function renderMaterialDemand(){
   if(sel){
     const current=sel.value;
     const pvProjects=(db.projects||[]).filter(p=>p.type==='pv');
-    sel.innerHTML='<option value="">— manuell eingeben —</option>'+pvProjects.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.customerName||'')}${p.customerName&&p.name?' · ':''}${escapeHtml(p.name||'PV-Anlage')}</option>`).join('');
+    sel.innerHTML='<option value="">— manuell eingeben —</option>'+pvProjects.map(p=>{
+      const liveCustomer=customerById(p.customerId);
+      const customerName=liveCustomer?.name||p.customerName||'';
+      return `<option value="${escapeHtml(p.id)}">${escapeHtml(customerName)}${customerName&&p.name?' · ':''}${escapeHtml(p.name||'PV-Anlage')}</option>`;
+    }).join('');
     if([...sel.options].some(o=>o.value===current))sel.value=current;
   }
   renderMaterialDemandRows();
@@ -3723,6 +3730,29 @@ function saveCustomer() {
       photoIds:Array.isArray(previous.photoIds)?previous.photoIds:[]
     };
     syncTouchChanged(previous,db.customers[idx],SYNC_FIELDS.customers);
+
+    // Verknüpfte Baustellen und Tagebucheinträge konsistent halten.
+    // Eine individuell abweichende Baustellenadresse bleibt unverändert; nur eine bisher aus den
+    // Kundendaten übernommene/leer gebliebene Adresse wird mitgeführt.
+    const linkedProjects=(db.projects||[]).filter(project=>project.customerId===db.customers[idx].id);
+    const oldAddress=customerAddress(previous);
+    const newAddress=customerAddress(db.customers[idx]);
+    linkedProjects.forEach(project=>{
+      const beforeProject=syncClone(project);
+      project.customerName=name;
+      if(!project.address || project.address===oldAddress) project.address=newAddress;
+      syncTouchChanged(beforeProject,project,['customerName','address']);
+    });
+    const linkedProjectIds=new Set(linkedProjects.map(project=>project.id));
+    (db.diary||[]).forEach(entry=>{
+      if(linkedProjectIds.has(entry.projectId) || entry.customerIndex===idx){
+        const beforeEntry=syncClone(entry);
+        entry.customerName=name;
+        entry.customerIndex=idx;
+        syncTouchChanged(beforeEntry,entry,['customerName','customerIndex']);
+      }
+    });
+
     selectedCustomerIndex=idx;
     toast('Kundendaten geändert');
   }
@@ -3809,13 +3839,30 @@ function deleteCustomer(index) {
   delete db.materialLists[`customer:${deletedCustomerId}`];
   syncTombstone('customers',customer);
   db.customers.splice(index, 1);
+  const detachedProjectIds=new Set();
   (db.projects||[]).forEach(project=>{
     if(project.customerId===deletedCustomerId){
       const before=syncClone(project);
       project.customerId='';
-      project.customerName=project.customerName||customer.name||'';
+      project.customerName=customer.name||project.customerName||'';
+      detachedProjectIds.add(project.id);
       syncTouchChanged(before,project,['customerId','customerName']);
     }
+  });
+  // customerIndex ist ein Legacy-/Kompatibilitätsfeld. Nach splice müssen nachfolgende Indizes
+  // angepasst werden, damit Fotos und ältere Einträge nicht versehentlich einem anderen Kunden zugeordnet werden.
+  (db.diary||[]).forEach(entry=>{
+    const before=syncClone(entry);
+    let changed=false;
+    if(detachedProjectIds.has(entry.projectId) || entry.customerIndex===index){
+      entry.customerIndex=-1;
+      entry.customerName=customer.name||entry.customerName||'';
+      changed=true;
+    }else if(Number.isInteger(entry.customerIndex) && entry.customerIndex>index){
+      entry.customerIndex-=1;
+      changed=true;
+    }
+    if(changed) syncTouchChanged(before,entry,['customerIndex','customerName']);
   });
 
   if(selectedCustomerIndex===index){
@@ -3993,6 +4040,18 @@ function saveNewProject(){
       db.projects[idx]={...db.projects[idx],...payload};
       syncTouchChanged(previousProject,db.projects[idx],SYNC_FIELDS.projects);
       savedProjectId=db.projects[idx].id;
+
+      // Tagebuch ist über projectId verknüpft. Anzeigename/Kundenzuordnung werden bei einer
+      // Baustellenänderung mitgeführt, damit die globale Tagebuchansicht nicht veraltet ist.
+      const newCustomerIndex=(db.customers||[]).findIndex(c=>c.id===customerId);
+      (db.diary||[]).forEach(entry=>{
+        if(entry.projectId!==savedProjectId) return;
+        const beforeEntry=syncClone(entry);
+        entry.site=name;
+        entry.customerName=customer.name||'';
+        entry.customerIndex=newCustomerIndex;
+        syncTouchChanged(beforeEntry,entry,['site','customerName','customerIndex']);
+      });
       toast('Baustelle geändert');
     }
   }else{
@@ -5287,8 +5346,6 @@ function selectCustomer(index){
 const DAILY_BACKUP_DB='allround_weber_daily_backups_v1';
 const DAILY_BACKUP_STORE='snapshots';
 const EXTERNAL_BACKUP_META_KEY='allround_weber_external_backup_v1';
-let dailySnapshotTimer=null;
-
 function backupDateKey(date=new Date()){
   const p=n=>String(n).padStart(2,'0');
   return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}`;
@@ -5344,7 +5401,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.58',db:syncClone(db)
+      appVersion:'1.61',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -5359,7 +5416,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.58',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.61',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -5531,7 +5588,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.58',
+      appVersion:'1.61',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
@@ -6356,10 +6413,7 @@ function startEvccAutoRefresh(){
   evccTimer=setInterval(()=>refreshEvcc(false),Math.max(15,Number(current.refreshSeconds||30))*1000);
 }
 
-window.addEventListener('focus',()=>refreshEvcc(false));
-document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden) refreshEvcc(false);
-});
+// EVCC-Liveansicht ist in der aktuellen App deaktiviert. Keine automatischen Hintergrundabrufe.
 window.addEventListener('load',()=>{
   syncPeerInfo();
   renderProjectTab();
