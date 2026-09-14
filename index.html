@@ -1227,13 +1227,37 @@ textarea{
 @media(max-width:520px){.sync-grid,.sync-conflict-values{grid-template-columns:1fr}.sync-summary{grid-template-columns:1fr 1fr}}
 
 
-/* Version 1.61 – Materialbedarf */
+/* Version 1.64 – Materialbedarf */
+/* Version 1.64 – PV-Reihenplanung */
+
+.pv-forecast-box{margin-top:12px;padding:12px;border:1px solid #234f74;border-radius:12px;background:#071a2c}
+.pv-forecast-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+.pv-roof-card{padding:10px;margin:8px 0;border:1px solid #1e4669;border-radius:10px;background:#081d31}
+.pv-roof-grid{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:8px}
+.pv-roof-grid label{font-size:11px;color:var(--muted)}
+.pv-roof-grid input,.pv-roof-grid select{margin-top:4px}
+.pv-forecast-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.pv-forecast-summary>div{padding:10px;border-radius:10px;background:#0a2239;border:1px solid #234f74}
+.pv-month-bars{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:130px;margin-top:12px}
+.pv-month-bar{min-width:0;text-align:center;font-size:9px;color:var(--muted)}
+.pv-month-bar i{display:block;background:#1687e8;border-radius:4px 4px 0 0;min-height:2px;margin-bottom:3px}
+@media(max-width:600px){.pv-roof-grid{grid-template-columns:1fr 1fr}.pv-forecast-summary{grid-template-columns:1fr}.pv-month-bars{gap:2px}}
+.pv-row-planner{margin-top:10px;padding:10px;border:1px solid #234f74;border-radius:12px;background:#071a2c}
+.pv-row-planner-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.pv-row-list{display:flex;flex-direction:column;gap:8px}
+.pv-row-entry{display:grid;grid-template-columns:1fr 1fr 1.15fr 42px;gap:7px;align-items:end;padding:8px;border:1px solid #1e4669;border-radius:10px;background:#081d31}
+.pv-row-entry label{font-size:11px;color:var(--muted);margin-bottom:4px;display:block}
+.pv-row-entry input,.pv-row-entry select{margin:0;min-width:0}
+.pv-row-remove{height:40px;width:40px;padding:0;border-radius:9px;background:#31161b;border:1px solid #6d3038;color:#ff9da8}
+.pv-row-summary{margin-top:8px;font-size:12px;color:var(--muted)}
+@media(max-width:520px){.pv-row-entry{grid-template-columns:1fr 1fr}.pv-row-entry .pv-row-orientation{grid-column:1/-1}.pv-row-remove{grid-column:2;justify-self:end}}
+
 .material-demand-category{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
 .material-demand-category button{width:auto;min-width:92px;padding:9px 13px;border-radius:999px}
 .material-demand-category button.active{background:var(--blue);border-color:var(--blue);color:#fff}
 .material-demand-controls{display:grid;grid-template-columns:1.5fr .7fr .7fr;gap:10px;align-items:end}
 .material-demand-table{display:grid;gap:8px;margin-top:10px;overflow-x:auto}
-.material-demand-head,.material-demand-row{display:grid;grid-template-columns:minmax(145px,2fr) 66px 88px 88px 78px 72px 44px;gap:7px;align-items:center;min-width:710px}
+.material-demand-head,.material-demand-row{display:grid;grid-template-columns:minmax(145px,2fr) 66px 82px 82px 72px 82px 72px 44px;gap:7px;align-items:center;min-width:815px}
 .material-demand-head{font-size:11px;color:var(--muted);padding:0 4px}
 .material-demand-row{background:#071a2c;border:1px solid #234f74;border-radius:12px;padding:8px}
 .material-demand-row input{min-width:0;margin:0;padding:9px 8px}
@@ -1327,21 +1351,21 @@ textarea{
     </div>
 
     <div class="material-demand-summary">
-      <div><span class="muted">Geplante Module</span><br><b id="mdModuleSummary">0</b><div class="muted" id="mdOrientationSummary">0 senkrecht · 0 horizontal</div></div>
+      <div><span class="muted">Geplante Module</span><br><b id="mdModuleSummary">0</b><div class="muted" id="mdOrientationSummary">0 senkrecht · 0 horizontal</div><div class="muted" id="mdRowSummary">Reihen: 0</div></div>
       <div><span class="muted">Artikelpositionen</span><br><b id="mdItemSummary">0</b></div>
     </div>
 
     <div class="rule"></div>
     <div class="hours"><b>Standardbedarf</b><span class="muted">getrennt nach Modul-Ausrichtung</span></div>
     <div class="material-demand-table">
-      <div class="material-demand-head"><span>Artikel</span><span>Einheit</span><span>je senkr.</span><span>je horiz.</span><span>Grund</span><span>Bedarf</span><span></span></div>
+      <div class="material-demand-head"><span>Artikel</span><span>Einheit</span><span>je senkr.</span><span>je horiz.</span><span>je Reihe</span><span>Grund</span><span>Bedarf</span><span></span></div>
       <div id="materialDemandRows"></div>
     </div>
     <div class="actions" style="margin-top:10px;">
       <button class="btn btn2" type="button" onclick="addMaterialDemandItem()">＋ Artikel hinzufügen</button>
       <button class="btn btn2" type="button" onclick="resetMaterialDemandPvDefaults()">Standardwerte zurücksetzen</button>
     </div>
-    <div class="material-demand-note">Die Standardwerte sind frei anpassbare Rechenwerte und können für senkrechte und horizontale Module getrennt eingestellt werden. Bei Stück-/Pack-/Satz-Einheiten wird auf volle Einheiten aufgerundet. Die tatsächliche Montageplanung, Dachaufteilung, Modulmaße und Herstellerangaben können den Bedarf verändern.</div>
+    <div class="material-demand-note">Die Standardwerte sind frei anpassbare Rechenwerte und können für senkrechte und horizontale Module sowie je Modulreihe getrennt eingestellt werden. Bei Auswahl einer PV-Baustelle wird deren genaue Reihenaufteilung berücksichtigt. Bei Stück-/Pack-/Satz-Einheiten wird auf volle Einheiten aufgerundet. Die tatsächliche Montageplanung, Dachaufteilung, Modulmaße und Herstellerangaben können den Bedarf verändern.</div>
   </div>
 
   <div class="card" id="materialDemandDrywallCeilingCard" hidden>
@@ -1714,13 +1738,21 @@ textarea{
       <input id="newProjectStorage" type="text" placeholder="z. B. Fronius Reserva">
       <div class="project-form-grid">
         <div>
-          <label>Anzahl Module</label>
-          <input id="newProjectModules" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+          <label>Anzahl Module gesamt</label>
+          <input id="newProjectModules" type="number" min="0" step="1" inputmode="numeric" placeholder="0" readonly>
         </div>
         <div>
           <label>Dachart</label>
           <input id="newProjectRoof" type="text" placeholder="z. B. Satteldach">
         </div>
+      </div>
+      <div class="pv-row-planner">
+        <div class="pv-row-planner-head">
+          <div><b>Modulreihen</b><div class="muted">Module pro Reihe, Anzahl gleicher Reihen und Ausrichtung</div></div>
+          <button class="btn btn2" type="button" onclick="addProjectModuleRow()">＋ Reihe</button>
+        </div>
+        <div id="newProjectModuleRows" class="pv-row-list"></div>
+        <div id="newProjectModuleRowsSummary" class="pv-row-summary">0 Module</div>
       </div>
     </div>
 
@@ -1734,6 +1766,27 @@ textarea{
       <button class="btn" id="projectSaveBtn" type="button" onclick="saveNewProject()">Baustelle speichern</button>
       <button class="btn btn2" type="button" onclick="closeNewProjectForm()">Abbrechen</button>
     </div>
+  </div>
+</div>
+
+<div id="pvForecastModal" class="modal" hidden>
+  <div class="modal-card" style="max-width:760px">
+    <div class="modal-head"><div><b>PV-Ertragsprognose</b><div class="muted" id="pvForecastProjectName"></div></div><button class="icon-btn" type="button" onclick="closePvForecast()">×</button></div>
+    <label>Standort</label><input id="pvForecastLocation" type="text" placeholder="Straße, Hausnummer, PLZ, Ort">
+    <div class="project-form-grid">
+      <div><label>Modulleistung je Modul (Wp)</label><input id="pvForecastModuleWp" type="number" min="1" step="1" value="500" oninput="renderPvRoofAreas()"></div>
+      <div><label>Standard-Verluste (%)</label><input id="pvForecastLoss" type="number" min="0" max="100" step="0.1" value="14"></div>
+    </div>
+    <label>Modultyp</label>
+    <select id="pvForecastTech"><option value="crystSi">Kristallines Silizium</option><option value="crystSi2025">Kristallines Silizium 2025</option><option value="CIS">CIS</option><option value="CdTe">CdTe</option><option value="Unknown">Unbekannt / Standard</option></select>
+    <div class="pv-forecast-box">
+      <div class="pv-forecast-head"><div><b>Dachflächen</b><div class="muted">Neigung, Ausrichtung und Modulbelegung je Dachfläche</div></div><button class="btn btn2" type="button" onclick="addPvRoofArea()">＋ Dachfläche</button></div>
+      <div id="pvRoofAreas"></div>
+    </div>
+    <label>PVGIS-Vermittlungsdienst</label><input id="pvForecastBridgeUrl" type="url" placeholder="https://…workers.dev">
+    <div class="muted">Für die Online-Prognose wird PVGIS 5.3 verwendet. Die Adresse wird im Vermittlungsdienst in Koordinaten umgewandelt.</div>
+    <div class="actions" style="margin-top:12px"><button class="btn" type="button" onclick="runPvForecast()">☀️ Prognose berechnen</button><button class="btn btn2" type="button" onclick="runPvForecastTest()">🧪 Testberechnung</button><button class="btn btn2" type="button" onclick="savePvForecastSetup()">Eingaben speichern</button><button class="btn btn2" type="button" onclick="closePvForecast()">Schließen</button></div>
+    <div id="pvForecastResult"></div>
   </div>
 </div>
 
@@ -1775,7 +1828,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.61</div>
+    <div class="blue" style="margin-top:6px;">Version 1.64</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -2023,14 +2076,14 @@ ensureMaterialLists();
 let dailySnapshotTimer=null;
 
 const MATERIAL_DEMAND_PV_DEFAULTS=[
-  {id:'pv_modules',name:'PV-Module',unit:'Stk.',perPortrait:1,perLandscape:1,base:0},
-  {id:'roof_hooks',name:'Dachhaken',unit:'Stk.',perPortrait:2,perLandscape:3,base:0},
-  {id:'rails',name:'Montageschienen',unit:'m',perPortrait:2.3,perLandscape:3.6,base:0},
-  {id:'mid_clamps',name:'Mittelklemmen',unit:'Stk.',perPortrait:2,perLandscape:2,base:0},
-  {id:'end_clamps',name:'Endklemmen',unit:'Stk.',perPortrait:0.5,perLandscape:0.5,base:0},
-  {id:'dc_red',name:'Solarkabel 6 mm² rot',unit:'m',perPortrait:2,perLandscape:2,base:0},
-  {id:'dc_black',name:'Solarkabel 6 mm² schwarz',unit:'m',perPortrait:2,perLandscape:2,base:0},
-  {id:'cable_clips',name:'Kabelclips',unit:'Stk.',perPortrait:2,perLandscape:2,base:0}
+  {id:'pv_modules',name:'PV-Module',unit:'Stk.',perPortrait:1,perLandscape:1,perRow:0,base:0},
+  {id:'roof_hooks',name:'Dachhaken',unit:'Stk.',perPortrait:2,perLandscape:3,perRow:0,base:0},
+  {id:'rails',name:'Montageschienen',unit:'m',perPortrait:2.3,perLandscape:3.6,perRow:0,base:0},
+  {id:'mid_clamps',name:'Mittelklemmen',unit:'Stk.',perPortrait:2,perLandscape:2,perRow:-2,base:0},
+  {id:'end_clamps',name:'Endklemmen',unit:'Stk.',perPortrait:0,perLandscape:0,perRow:4,base:0},
+  {id:'dc_red',name:'Solarkabel 6 mm² rot',unit:'m',perPortrait:2,perLandscape:2,perRow:0,base:0},
+  {id:'dc_black',name:'Solarkabel 6 mm² schwarz',unit:'m',perPortrait:2,perLandscape:2,perRow:0,base:0},
+  {id:'cable_clips',name:'Kabelclips',unit:'Stk.',perPortrait:2,perLandscape:2,perRow:0,base:0}
 ];
 const MATERIAL_DEMAND_DRYWALL_CEILING_DEFAULTS=[
   {id:'drywall_board',name:'Gipskartonplatte 12,5 mm',unit:'m²',perSqm:1.10,base:0},
@@ -2052,6 +2105,12 @@ function ensureMaterialDemand(){
     db.materialDemand.pv.items.forEach(item=>{
       if(!('perPortrait' in item)){item.perPortrait=Number(item.perModule)||0;changed=true}
       if(!('perLandscape' in item)){item.perLandscape=Number(item.perModule)||0;changed=true}
+      if(!('perRow' in item)){
+        if(item.id==='mid_clamps' && Number(item.perPortrait)===2 && Number(item.perLandscape)===2){item.perRow=-2;}
+        else if(item.id==='end_clamps' && Number(item.perPortrait)===0.5 && Number(item.perLandscape)===0.5){item.perPortrait=0;item.perLandscape=0;item.perRow=4;}
+        else item.perRow=0;
+        changed=true
+      }
     });
     if(changed)saveDB();
   }
@@ -2080,7 +2139,7 @@ const SYNC_ROLLBACK_KEY='allround_weber_sync_rollback_v1';
 const SYNC_PENDING_KEY='allround_weber_sync_pending_v1';
 const SYNC_FIELDS={
   customers:['name','contact','street','zip','place','phone','email','notes'],
-  projects:['customerId','customerName','status','type','name','address','plan','inverter','storage','modules','roofType','windowArea','invoiceTaxRate','invoiceServiceDate','lexwareDraftId','lexwareDraftCreatedAt','lexwareDraftResourceUri'],
+  projects:['customerId','customerName','status','type','name','address','plan','inverter','storage','modules','moduleRows','roofAreas','pvForecast','roofType','windowArea','invoiceTaxRate','invoiceServiceDate','lexwareDraftId','lexwareDraftCreatedAt','lexwareDraftResourceUri'],
   diary:['projectId','customerIndex','customerName','site','date','start','end','pause','hours','note','mat','ownHours','employeeHours'],
   customProjectTypes:['name'],
   hourPayments:['name','paid','paidDate','paidHours','entries'],
@@ -2262,7 +2321,7 @@ function syncCreatePC(){
 }
 function syncWireDC(){
   if(!syncDC)return; syncDC.binaryType='arraybuffer';
-  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.61'})};
+  syncDC.onopen=()=>{syncStatus('Direktverbindung hergestellt. Geräte prüfen Datenbestand …','ok');syncPeerInfo();syncSend('HELLO',{protocol:SYNC_PROTOCOL,deviceId:db.sync.deviceId,deviceName:db.sync.deviceName,lastSuccessfulSyncId:db.sync.lastSuccessfulSyncId,appVersion:'1.64'})};
   syncDC.onmessage=e=>syncReceiveWire(String(e.data||''));
   syncDC.onclose=()=>syncStatus('Verbindung geschlossen.','warn');
   syncDC.onerror=()=>syncStatus('Fehler im WebRTC-DataChannel.','bad');
@@ -2533,10 +2592,14 @@ function materialDemandProjectChanged(){
   if(!sel||!portrait||!landscape)return;
   const p=(db.projects||[]).find(x=>x.id===sel.value);
   if(p){
-    // Bestehende PV-Baustellen speichern bisher nur die Gesamtzahl. Deshalb zunächst als senkrecht übernehmen;
-    // die Aufteilung kann anschließend direkt angepasst werden.
-    portrait.value=Math.max(0,Number(p.modules)||0);
-    landscape.value=0;
+    const stats=moduleRowsStats(p.moduleRows);
+    if(stats.rows.length){
+      portrait.value=stats.portrait;
+      landscape.value=stats.landscape;
+    }else{
+      portrait.value=Math.max(0,Number(p.modules)||0);
+      landscape.value=0;
+    }
   }
   renderMaterialDemandRows();
 }
@@ -2557,16 +2620,21 @@ function renderMaterialDemandRows(){
   const portrait=Math.max(0,Number(document.getElementById('mdPvPortraitModules')?.value)||0);
   const landscape=Math.max(0,Number(document.getElementById('mdPvLandscapeModules')?.value)||0);
   const modules=portrait+landscape;
+  const selectedProject=(db.projects||[]).find(p=>p.id===document.getElementById('mdPvProject')?.value);
+  const selectedStats=moduleRowsStats(selectedProject?.moduleRows);
+  const rowCount=selectedStats.rows.length?selectedStats.rowCount:((portrait>0?1:0)+(landscape>0?1:0));
   const items=db.materialDemand.pv.items||[];
   wrap.innerHTML=items.map((item,index)=>{
     const perPortrait=Number(item.perPortrait)||0;
     const perLandscape=Number(item.perLandscape)||0;
-    const result=materialDemandRound(portrait*perPortrait+landscape*perLandscape+(Number(item.base)||0),item.unit);
+    const perRow=Number(item.perRow)||0;
+    const result=materialDemandRound(portrait*perPortrait+landscape*perLandscape+rowCount*perRow+(Number(item.base)||0),item.unit);
     return `<div class="material-demand-row">
       <input class="md-name" aria-label="Artikel" value="${escapeHtml(item.name||'')}" onchange="saveMaterialDemandItem(${index},'name',this.value)">
       <input class="md-unit" aria-label="Einheit" value="${escapeHtml(item.unit||'')}" onchange="saveMaterialDemandItem(${index},'unit',this.value,true)">
       <input class="md-portrait" aria-label="Bedarf je senkrechtem Modul" type="number" min="0" step="any" inputmode="decimal" value="${escapeHtml(item.perPortrait??0)}" onchange="saveMaterialDemandItem(${index},'perPortrait',this.value,true)">
       <input class="md-landscape" aria-label="Bedarf je horizontalem Modul" type="number" min="0" step="any" inputmode="decimal" value="${escapeHtml(item.perLandscape??0)}" onchange="saveMaterialDemandItem(${index},'perLandscape',this.value,true)">
+      <input class="md-row" aria-label="Bedarf je Modulreihe" type="number" step="any" inputmode="decimal" value="${escapeHtml(item.perRow??0)}" onchange="saveMaterialDemandItem(${index},'perRow',this.value,true)">
       <input class="md-base" aria-label="Grundbedarf" type="number" min="0" step="any" inputmode="decimal" value="${escapeHtml(item.base??0)}" onchange="saveMaterialDemandItem(${index},'base',this.value,true)">
       <div class="material-demand-result" title="Berechneter Bedarf">${escapeHtml(formatDemandNumber(result,item.unit))}</div>
       <button class="material-demand-delete" type="button" aria-label="Artikel löschen" onclick="deleteMaterialDemandItem(${index})">×</button>
@@ -2574,18 +2642,19 @@ function renderMaterialDemandRows(){
   }).join('');
   const ms=document.getElementById('mdModuleSummary');if(ms)ms.textContent=String(modules);
   const os=document.getElementById('mdOrientationSummary');if(os)os.textContent=`${portrait} senkrecht · ${landscape} horizontal`;
+  const rs=document.getElementById('mdRowSummary');if(rs)rs.textContent=`Reihen: ${rowCount}${selectedStats.rows.length?' · genaue Baustellenaufteilung':' · geschätzt'}`;
   const is=document.getElementById('mdItemSummary');if(is)is.textContent=String(items.length);
 }
 function saveMaterialDemandItem(index,field,value,rerender=false){
   ensureMaterialDemand();
   const item=db.materialDemand.pv.items[index]; if(!item)return;
-  item[field]=(['perPortrait','perLandscape','perModule','base'].includes(field))?(value===''?'':Number(String(value).replace(',','.'))):value;
+  item[field]=(['perPortrait','perLandscape','perRow','perModule','base'].includes(field))?(value===''?'':Number(String(value).replace(',','.'))):value;
   saveDB();
   if(rerender)renderMaterialDemandRows();
 }
 function addMaterialDemandItem(){
   ensureMaterialDemand();
-  db.materialDemand.pv.items.push({id:makeStableId('md'),name:'Neuer Artikel',unit:'Stk.',perPortrait:0,perLandscape:0,base:0});
+  db.materialDemand.pv.items.push({id:makeStableId('md'),name:'Neuer Artikel',unit:'Stk.',perPortrait:0,perLandscape:0,perRow:0,base:0});
   saveDB();renderMaterialDemandRows();
   setTimeout(()=>{const rows=document.querySelectorAll('#materialDemandRows .md-name');const el=rows[rows.length-1];if(el){el.focus();el.select();}},0);
 }
@@ -3907,6 +3976,60 @@ function refreshProjectCustomerSelect(selectedId=''){
   if(selectedId && customers.some(c=>c.id===selectedId)) select.value=selectedId;
 }
 
+let projectModuleRowsDraft=[];
+function normalizeModuleRows(rows){
+  return (Array.isArray(rows)?rows:[]).map(r=>({
+    modulesPerRow:Math.max(0,Math.floor(Number(r?.modulesPerRow)||0)),
+    rowCount:Math.max(0,Math.floor(Number(r?.rowCount)||0)),
+    orientation:r?.orientation==='landscape'?'landscape':'portrait'
+  })).filter(r=>r.modulesPerRow>0&&r.rowCount>0);
+}
+function moduleRowsStats(rows){
+  const clean=normalizeModuleRows(rows);
+  let portrait=0,landscape=0,rowCount=0;
+  clean.forEach(r=>{
+    const modules=r.modulesPerRow*r.rowCount;
+    rowCount+=r.rowCount;
+    if(r.orientation==='landscape')landscape+=modules;else portrait+=modules;
+  });
+  return {rows:clean,portrait,landscape,rowCount,total:portrait+landscape};
+}
+function moduleRowsText(rows){
+  const clean=normalizeModuleRows(rows);
+  if(!clean.length)return 'Keine Reihenaufteilung';
+  return clean.map(r=>`${r.rowCount}× ${r.modulesPerRow} ${r.orientation==='landscape'?'waagerecht':'senkrecht'}`).join(' · ');
+}
+function updateProjectModuleRowsSummary(){
+  const st=moduleRowsStats(projectModuleRowsDraft);
+  const total=document.getElementById('newProjectModules');if(total)total.value=st.total||'';
+  const sum=document.getElementById('newProjectModuleRowsSummary');if(sum)sum.textContent=`${st.total} Module · ${st.rowCount} Reihen · ${st.portrait} senkrecht · ${st.landscape} waagerecht`;
+}
+function renderProjectModuleRows(){
+  const wrap=document.getElementById('newProjectModuleRows');if(!wrap)return;
+  wrap.innerHTML=projectModuleRowsDraft.map((r,i)=>`<div class="pv-row-entry">
+    <div><label>Module pro Reihe</label><input type="number" min="1" step="1" inputmode="numeric" value="${escapeHtml(r.modulesPerRow||'')}" oninput="updateProjectModuleRow(${i},'modulesPerRow',this.value)"></div>
+    <div><label>Anzahl Reihen</label><input type="number" min="1" step="1" inputmode="numeric" value="${escapeHtml(r.rowCount||1)}" oninput="updateProjectModuleRow(${i},'rowCount',this.value)"></div>
+    <div class="pv-row-orientation"><label>Ausrichtung</label><select onchange="updateProjectModuleRow(${i},'orientation',this.value)"><option value="portrait" ${r.orientation!=='landscape'?'selected':''}>Senkrecht</option><option value="landscape" ${r.orientation==='landscape'?'selected':''}>Waagerecht</option></select></div>
+    <button class="pv-row-remove" type="button" aria-label="Reihe entfernen" onclick="removeProjectModuleRow(${i})">×</button>
+  </div>`).join('');
+  updateProjectModuleRowsSummary();
+}
+function addProjectModuleRow(seed){
+  projectModuleRowsDraft.push({modulesPerRow:seed?.modulesPerRow||'',rowCount:seed?.rowCount||1,orientation:seed?.orientation==='landscape'?'landscape':'portrait'});
+  renderProjectModuleRows();
+}
+function removeProjectModuleRow(index){projectModuleRowsDraft.splice(index,1);if(!projectModuleRowsDraft.length)addProjectModuleRow();else renderProjectModuleRows()}
+function updateProjectModuleRow(index,field,value){
+  const r=projectModuleRowsDraft[index];if(!r)return;
+  if(field==='orientation')r.orientation=value==='landscape'?'landscape':'portrait';else r[field]=Math.max(0,Math.floor(Number(value)||0));
+  updateProjectModuleRowsSummary();
+}
+function setProjectModuleRows(rows,legacyModules=0){
+  const clean=normalizeModuleRows(rows);
+  projectModuleRowsDraft=clean.length?clean.map(r=>({...r})):(Number(legacyModules)>0?[{modulesPerRow:Number(legacyModules),rowCount:1,orientation:'portrait'}]:[{modulesPerRow:'',rowCount:1,orientation:'portrait'}]);
+  renderProjectModuleRows();
+}
+
 function projectCustomerChanged(){
   const customer=customerById(document.getElementById('newProjectCustomer')?.value);
   if(!customer) return;
@@ -3942,6 +4065,7 @@ function resetProjectForm(){
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
 
   toggleInlineProjectCustomer(false);
+  setProjectModuleRows([],0);
   updateNewProjectFields();
 }
 
@@ -4027,7 +4151,10 @@ function saveNewProject(){
     plan,
     inverter:type==='pv'?document.getElementById('newProjectInverter').value.trim():'',
     storage:type==='pv'?document.getElementById('newProjectStorage').value.trim():'',
-    modules:type==='pv'?(Number(document.getElementById('newProjectModules').value)||0):0,
+    modules:type==='pv'?moduleRowsStats(projectModuleRowsDraft).total:0,
+    moduleRows:type==='pv'?normalizeModuleRows(projectModuleRowsDraft):[],
+    roofAreas:type==='pv'?(editId?((db.projects||[]).find(p=>p.id===editId)?.roofAreas||[]):[]):[],
+    pvForecast:type==='pv'?(editId?((db.projects||[]).find(p=>p.id===editId)?.pvForecast||null):null):null,
     roofType:type==='pv'?document.getElementById('newProjectRoof').value.trim():'',
     windowArea:type==='fenster'?(Number(String(document.getElementById('newProjectWindowArea').value||0).replace(',','.'))||0):0
   };
@@ -4104,6 +4231,7 @@ function editProject(projectId){
   document.getElementById('newProjectInverter').value=project.inverter||'';
   document.getElementById('newProjectStorage').value=project.storage||'';
   document.getElementById('newProjectModules').value=project.modules||'';
+  setProjectModuleRows(project.moduleRows,project.modules);
   document.getElementById('newProjectRoof').value=project.roofType||'';
   document.getElementById('newProjectWindowArea').value=project.windowArea||'';
   updateNewProjectFields();
@@ -4130,6 +4258,29 @@ function deleteProject(projectId){
   renderCustomers();
   toast('Baustelle gelöscht');
 }
+
+
+const PV_FORECAST_BRIDGE_KEY='allround_weber_pvgis_bridge_v1';
+let pvForecastProjectId='';
+let pvRoofAreasDraft=[];
+const PV_ASPECTS=[['Süd',0],['Südwest',45],['West',90],['Nordwest',135],['Nord',180],['Nordost',-135],['Ost',-90],['Südost',-45]];
+function pvBridgeUrl(){try{return JSON.parse(localStorage.getItem(PV_FORECAST_BRIDGE_KEY)||'{}').url||JSON.parse(localStorage.getItem('allround_weber_lexware_bridge_v1')||'{}').url||''}catch{return ''}}
+function normalizeRoofAreas(rows){return Array.isArray(rows)?rows.map((r,i)=>({id:r.id||makeStableId('roof'),name:String(r.name||`Dachfläche ${i+1}`),modules:Math.max(0,Math.round(Number(r.modules)||0)),angle:Math.max(0,Math.min(90,Number(r.angle)||0)),aspect:Number.isFinite(Number(r.aspect))?Number(r.aspect):0,loss:r.loss===''||r.loss==null?'':Math.max(0,Math.min(100,Number(r.loss)||0))})).filter(r=>r.modules>0||r.name):[]}
+function defaultRoofAreas(project){const stats=moduleRowsStats(project?.moduleRows);if(!stats.total)return [{id:makeStableId('roof'),name:'Dachfläche 1',modules:Number(project?.modules)||0,angle:30,aspect:0,loss:''}];let out=[];if(stats.portrait)out.push({id:makeStableId('roof'),name:'Dachfläche 1',modules:stats.portrait,angle:30,aspect:0,loss:''});if(stats.landscape)out.push({id:makeStableId('roof'),name:out.length?'Dachfläche 2':'Dachfläche 1',modules:stats.landscape,angle:30,aspect:0,loss:''});return out}
+function pvForecastProjectHtml(project){const f=project.pvForecast;const roofs=normalizeRoofAreas(project.roofAreas);return `<div class="pv-forecast-box"><div class="pv-forecast-head"><div><b>☀️ Ertragsprognose</b><div class="muted">${roofs.length?`${roofs.length} Dachfläche${roofs.length===1?'':'n'}`:'Noch nicht eingerichtet'}</div></div><button class="btn btn2" type="button" onclick="openPvForecast('${escapeHtml(project.id)}')">${f?'Neu berechnen':'Einrichten'}</button></div>${f?`<div class="pv-forecast-summary"><div><span class="muted">Anlagenleistung</span><br><b>${Number(f.peakPower||0).toFixed(2).replace('.',',')} kWp</b></div><div><span class="muted">Jahresertrag</span><br><b>${Math.round(f.yearly||0).toLocaleString('de-DE')} kWh</b></div><div><span class="muted">Spezifisch</span><br><b>${Math.round(f.specific||0).toLocaleString('de-DE')} kWh/kWp</b></div></div>${f.isTest?'<div class="muted"><b>🧪 Testwert – keine PVGIS-Prognose</b></div>':''}<div class="muted">Stand: ${escapeHtml(f.calculatedAt?new Date(f.calculatedAt).toLocaleDateString('de-DE'):'—')} · ${escapeHtml(f.location||project.address||'')}</div>`:'<div class="muted">Noch keine Prognose berechnet.</div>'}</div>`}
+function openPvForecast(projectId){const p=(db.projects||[]).find(x=>x.id===projectId);if(!p)return;pvForecastProjectId=projectId;pvRoofAreasDraft=normalizeRoofAreas(p.roofAreas);if(!pvRoofAreasDraft.length)pvRoofAreasDraft=defaultRoofAreas(p);document.getElementById('pvForecastProjectName').textContent=p.name||'';document.getElementById('pvForecastLocation').value=p.pvForecast?.location||p.address||'';document.getElementById('pvForecastModuleWp').value=p.pvForecast?.moduleWp||500;document.getElementById('pvForecastLoss').value=p.pvForecast?.loss??14;document.getElementById('pvForecastTech').value=p.pvForecast?.tech||'crystSi';document.getElementById('pvForecastBridgeUrl').value=pvBridgeUrl();renderPvRoofAreas();renderPvForecastResult(p.pvForecast);document.getElementById('pvForecastModal').hidden=false;document.body.classList.add('modal-open')}
+function closePvForecast(){document.getElementById('pvForecastModal').hidden=true;document.body.classList.remove('modal-open')}
+function addPvRoofArea(){pvRoofAreasDraft.push({id:makeStableId('roof'),name:`Dachfläche ${pvRoofAreasDraft.length+1}`,modules:0,angle:30,aspect:0,loss:''});renderPvRoofAreas()}
+function removePvRoofArea(i){pvRoofAreasDraft.splice(i,1);renderPvRoofAreas()}
+function updatePvRoofArea(i,k,v){const r=pvRoofAreasDraft[i];if(!r)return;if(['modules','angle','aspect','loss'].includes(k))r[k]=v===''?'':Number(String(v).replace(',','.'));else r[k]=v;renderPvRoofAreas(false)}
+function renderPvRoofAreas(full=true){const wrap=document.getElementById('pvRoofAreas');if(!wrap)return;const wp=Math.max(0,Number(document.getElementById('pvForecastModuleWp')?.value)||0);if(full)wrap.innerHTML=pvRoofAreasDraft.map((r,i)=>`<div class="pv-roof-card"><div class="pv-roof-grid"><div><label>Bezeichnung</label><input value="${escapeHtml(r.name)}" onchange="updatePvRoofArea(${i},'name',this.value)"></div><div><label>Module</label><input type="number" min="0" step="1" value="${r.modules||''}" onchange="updatePvRoofArea(${i},'modules',this.value)"></div><div><label>Leistung</label><input value="${((Number(r.modules)||0)*wp/1000).toFixed(2).replace('.',',')} kWp" readonly></div><div><label>Dachneigung °</label><input type="number" min="0" max="90" step="1" value="${r.angle??30}" onchange="updatePvRoofArea(${i},'angle',this.value)"></div><div><label>Ausrichtung</label><select onchange="updatePvRoofArea(${i},'aspect',this.value)">${PV_ASPECTS.map(([n,a])=>`<option value="${a}" ${Number(r.aspect)===a?'selected':''}>${n}</option>`).join('')}</select></div><div><label>Verluste % (optional)</label><input type="number" min="0" max="100" step="0.1" value="${r.loss??''}" placeholder="Standard" onchange="updatePvRoofArea(${i},'loss',this.value)"></div></div><div class="actions"><button class="btn btn2 diary-danger" type="button" onclick="removePvRoofArea(${i})">Entfernen</button></div></div>`).join('');else{[...wrap.querySelectorAll('.pv-roof-card')].forEach((c,i)=>{const ro=pvRoofAreasDraft[i];const inp=c.querySelectorAll('input')[2];if(inp&&ro)inp.value=((Number(ro.modules)||0)*wp/1000).toFixed(2).replace('.',',')+' kWp'})}}
+function pvForecastSetup(){const p=(db.projects||[]).find(x=>x.id===pvForecastProjectId);if(!p)return null;const location=document.getElementById('pvForecastLocation').value.trim();const moduleWp=Math.max(1,Number(document.getElementById('pvForecastModuleWp').value)||500);const loss=Math.max(0,Math.min(100,Number(String(document.getElementById('pvForecastLoss').value).replace(',','.'))||0));const tech=document.getElementById('pvForecastTech').value;const roofs=normalizeRoofAreas(pvRoofAreasDraft).filter(r=>r.modules>0);return {p,location,moduleWp,loss,tech,roofs}}
+function savePvForecastSetup(silent=false){const x=pvForecastSetup();if(!x)return false;if(!x.location){if(!silent)toast('Bitte Standort eingeben');return false}if(!x.roofs.length){if(!silent)toast('Bitte mindestens eine Dachfläche mit Modulen anlegen');return false}const before=syncClone(x.p);x.p.roofAreas=x.roofs;x.p.pvForecast={...(x.p.pvForecast||{}),location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech};syncTouchChanged(before,x.p,SYNC_FIELDS.projects);localStorage.setItem(PV_FORECAST_BRIDGE_KEY,JSON.stringify({url:document.getElementById('pvForecastBridgeUrl').value.trim().replace(/\/$/,'')}));saveDB();renderProjectTab();if(!silent)toast('Ertragsprognose-Eingaben gespeichert');return true}
+function pvTestOrientationFactor(aspect){const a=Math.abs(Number(aspect)||0);if(a<=22.5)return 1;if(a<=67.5)return .95;if(a<=112.5)return .84;if(a<=157.5)return .70;return .60}
+function pvTestTiltFactor(angle){const d=Math.abs((Number(angle)||0)-35);return Math.max(.78,1-d*.004)}
+function runPvForecastTest(){const x=pvForecastSetup();if(!x||!savePvForecastSetup(true))return;const monthShares=[.035,.055,.085,.105,.125,.135,.135,.12,.09,.06,.035,.02];const areas=x.roofs.map(r=>{const peakPower=r.modules*x.moduleWp/1000;const effectiveLoss=r.loss===''?x.loss:Number(r.loss);const specificBase=1050;const specific=specificBase*pvTestOrientationFactor(r.aspect)*pvTestTiltFactor(r.angle)*(1-Math.max(0,Math.min(100,effectiveLoss))/100);const yearly=peakPower*specific;return {name:r.name,modules:r.modules,peakPower,yearly,monthly:monthShares.map(v=>yearly*v),angle:r.angle,aspect:r.aspect,loss:effectiveLoss}});const peakPower=areas.reduce((a,r)=>a+r.peakPower,0);const yearly=areas.reduce((a,r)=>a+r.yearly,0);const monthly=monthShares.map((_,i)=>areas.reduce((a,r)=>a+(r.monthly[i]||0),0));const p=(db.projects||[]).find(q=>q.id===pvForecastProjectId);if(!p)return;const before=syncClone(p);p.roofAreas=x.roofs;p.pvForecast={location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,peakPower,yearly,specific:peakPower?yearly/peakPower:0,monthly,areas,calculatedAt:new Date().toISOString(),source:'Lokale Testberechnung',isTest:true};syncTouchChanged(before,p,SYNC_FIELDS.projects);saveDB();renderPvForecastResult(p.pvForecast);renderProjectTab();toast('Lokale Testberechnung abgeschlossen')}
+async function runPvForecast(){const x=pvForecastSetup();if(!x||!savePvForecastSetup(true))return;const base=document.getElementById('pvForecastBridgeUrl').value.trim().replace(/\/$/,'');if(!base){toast('Bitte PVGIS-Vermittlungsdienst eintragen');return}const result=document.getElementById('pvForecastResult');result.innerHTML='<div class="card"><b>PVGIS wird berechnet …</b></div>';try{const res=await fetch(base+'/api/pvgis/forecast',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,roofAreas:x.roofs})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||`HTTP ${res.status}`);const p=(db.projects||[]).find(q=>q.id===pvForecastProjectId);if(!p)return;const before=syncClone(p);p.roofAreas=x.roofs;p.pvForecast={location:x.location,moduleWp:x.moduleWp,loss:x.loss,tech:x.tech,lat:data.lat,lon:data.lon,peakPower:data.peakPower,yearly:data.yearly,specific:data.specific,monthly:data.monthly||[],areas:data.areas||[],calculatedAt:new Date().toISOString(),source:'PVGIS 5.3'};syncTouchChanged(before,p,SYNC_FIELDS.projects);saveDB();renderPvForecastResult(p.pvForecast);renderProjectTab();toast('Ertragsprognose berechnet')}catch(e){console.error(e);result.innerHTML=`<div class="card"><b>Prognose nicht möglich</b><div class="muted">${escapeHtml(e.message||String(e))}</div></div>`}}
+function renderPvForecastResult(f){const el=document.getElementById('pvForecastResult');if(!el)return;if(!f?.yearly){el.innerHTML='';return}const monthly=Array.isArray(f.monthly)?f.monthly:[];const max=Math.max(1,...monthly);const names=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];el.innerHTML=`<div class="pv-forecast-box"><b>Gesamtprognose</b><div class="pv-forecast-summary"><div><span class="muted">Leistung</span><br><b>${Number(f.peakPower||0).toFixed(2).replace('.',',')} kWp</b></div><div><span class="muted">Jahresertrag</span><br><b>${Math.round(f.yearly||0).toLocaleString('de-DE')} kWh</b></div><div><span class="muted">Spezifisch</span><br><b>${Math.round(f.specific||0).toLocaleString('de-DE')} kWh/kWp</b></div></div><div class="pv-month-bars">${monthly.map((v,i)=>`<div class="pv-month-bar"><i style="height:${Math.max(2,Math.round(v/max*95))}px"></i>${names[i]}<br>${Math.round(v)}</div>`).join('')}</div>${(f.areas||[]).map(a=>`<div class="item"><div class="grow"><b>${escapeHtml(a.name)}</b><div class="muted">${a.modules} Module · ${Number(a.peakPower).toFixed(2).replace('.',',')} kWp</div></div><b>${Math.round(a.yearly).toLocaleString('de-DE')} kWh</b></div>`).join('')}${f.isTest?`<div class="card" style="margin-top:10px"><b>🧪 TESTBERECHNUNG</b><div class="muted">Keine PVGIS-Prognose – nur zum Prüfen der App-Logik.</div></div><div class="muted" style="margin-top:8px">Quelle: Lokale Testberechnung · ${escapeHtml(f.location||'')}</div>`:`<div class="muted" style="margin-top:8px">Quelle: PVGIS 5.3 · Standort ${Number(f.lat).toFixed(4)}, ${Number(f.lon).toFixed(4)}</div>`}</div>`}
 
 
 const BUILTIN_PROJECT_TYPES=[
@@ -4967,8 +5118,10 @@ function renderProjectTab(){
               <span>Wechselrichter<b>${escapeHtml(project.inverter||'—')}</b></span>
               <span>Speicher<b>${escapeHtml(project.storage||'—')}</b></span>
               <span>Module<b>${project.modules||'—'}</b></span>
+              <span>Reihen<b>${escapeHtml(moduleRowsText(project.moduleRows))}</b></span>
               <span>Dachart<b>${escapeHtml(project.roofType||'—')}</b></span>
-            </div>`:''}
+            </div>
+            ${pvForecastProjectHtml(project)}`:''}
           ${project.type==='fenster'?`
             <div class="project-specs one"><span>Fensterfläche<b>${project.windowArea?String(project.windowArea).replace('.',',')+' m²':'—'}</b></span></div>`:''}
           <div class="project-own-hours"><span>Meine Stunden gesamt</span><b>${formatHoursNumber(ownTotal)}</b></div>
@@ -5401,7 +5554,7 @@ async function createOrUpdateDailySnapshot(force=false){
     const key='daily:'+backupDateKey(now);
     await backupPutSnapshot({
       key,kind:'daily',dateKey:backupDateKey(now),createdAt:now.toISOString(),updatedAt:now.toISOString(),
-      appVersion:'1.61',db:syncClone(db)
+      appVersion:'1.64',db:syncClone(db)
     });
     await pruneDailySnapshots();
     if(force){toast('Lokaler Tagesstand gesichert');setBackupStatus('Lokaler Tagesstand wurde gespeichert.');}
@@ -5416,7 +5569,7 @@ async function createManualDailySnapshot(){await createOrUpdateDailySnapshot(tru
 async function createSafetySnapshot(reason='Vor Wiederherstellung'){
   const now=new Date();
   const key='safety:'+now.getTime();
-  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.61',db:syncClone(db)});
+  await backupPutSnapshot({key,kind:'safety',label:reason,createdAt:now.toISOString(),updatedAt:now.toISOString(),appVersion:'1.64',db:syncClone(db)});
   await pruneDailySnapshots();
   return key;
 }
@@ -5588,7 +5741,7 @@ async function exportBackup(){
     const backup={
       format:'allround-weber-backup',
       version:1,
-      appVersion:'1.61',
+      appVersion:'1.64',
       createdAt:new Date().toISOString(),
       data:{
         customers:Array.isArray(db.customers)?db.customers:[],
