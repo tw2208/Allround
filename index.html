@@ -1869,7 +1869,7 @@ textarea{
 
   <div class="card">
     <b>Allround Weber PWA</b>
-    <div class="blue" style="margin-top:6px;">Version 1.69</div>
+    <div class="blue" style="margin-top:6px;">Version 1.70</div>
     <div class="muted" style="margin-top:8px;">Die Daten werden lokal auf diesem Gerät gespeichert.</div>
   </div>
 
@@ -2035,7 +2035,7 @@ textarea{
 
 <script>
 const DBKEY='allround_weber_pwa_v1';
-const APP_VERSION='1.69';
+const APP_VERSION='1.70';
 const STARTUP_SAFETY_KEY='allround_weber_startup_safety_v1';
 let db={diary:[],customers:[],projects:[]};
 let dbLoadState={hadStored:false,parseFailed:false,error:''};
@@ -2102,49 +2102,10 @@ function ensureDataModel(){
     }
   });
 
-  // Einmalige Übernahme der bisherigen, kundenbasierten Baustellen in die neue Projektliste.
-  if(!localStorage.getItem('allround_weber_projects_migrated_v1')){
-    const existingProjectCustomers=db.customers.filter(c=>
-      c.projectType || c.projectPlan || c.projectAddress || c.inverter ||
-      c.storage || c.modules || c.roofType || c.windowArea
-    );
-
-    existingProjectCustomers.forEach(customer=>{
-      const legacyAddress=customer.projectAddress || [
-        customer.street||'',
-        [customer.zip||'',customer.place||''].filter(Boolean).join(' ')
-      ].filter(Boolean).join(', ');
-      const legacyName=customer.projectName || customer.name || 'Baustelle';
-      const legacyType=customer.projectType||'pv';
-      // Falls der separate Migrationsmarker verloren ging, keine bereits übernommene Baustelle duplizieren.
-      const alreadyMigrated=db.projects.some(p=>
-        p && p.customerId===customer.id &&
-        (p.legacySourceCustomerId===customer.id ||
-          ((p.type||'pv')===legacyType && (p.name||'')===legacyName && (p.address||'')===legacyAddress))
-      );
-      if(alreadyMigrated) return;
-      db.projects.push({
-        id:makeStableId('proj'),
-        legacySourceCustomerId:customer.id,
-        customerId:customer.id,
-        customerName:customer.name||'',
-        type:customer.projectType||'pv',
-        status:'running',
-        name:customer.projectName || customer.name || 'Baustelle',
-        address:legacyAddress,
-        plan:customer.projectPlan || customer.notes || '',
-        inverter:customer.inverter||'',
-        storage:customer.storage||'',
-        modules:Number(customer.modules)||0,
-        roofType:customer.roofType||'',
-        windowArea:Number(customer.windowArea)||0,
-        createdAt:new Date().toISOString()
-      });
-    });
-
-    localStorage.setItem('allround_weber_projects_migrated_v1','1');
-    changed=true;
-  }
+  // v1.70: Alte Kunden→Baustellen-Migration NICHT mehr automatisch ausführen.
+  // Hintergrund: Ein verlorener/gelöschter Migrationsmarker konnte historische Kundenfelder
+  // erneut als Baustellen interpretieren. Bestehende db.projects sind ab jetzt die alleinige
+  // Quelle für Baustellen. Der Marker wird absichtlich nicht zum Anlass für Datenänderungen genommen.
 
   db.projects.forEach(project=>{
     if(!project.status){
@@ -2648,8 +2609,22 @@ function syncRollbackLocal(){
   try{const raw=localStorage.getItem(SYNC_ROLLBACK_KEY);if(raw){const snap=JSON.parse(raw);if(snap?.db){db=snap.db;saveDB();renderCustomers();renderDiary();renderHoursAccounts();renderProjectTab()}}}catch(e){}localStorage.removeItem(SYNC_ROLLBACK_KEY);localStorage.removeItem(SYNC_PENDING_KEY);
 }
 function syncRecoveryCheck(){
-  // Pending commits are restored to the pre-sync snapshot on reload. This prevents a half-written local database after a crash/force-close.
-  if(localStorage.getItem(SYNC_PENDING_KEY)&&localStorage.getItem(SYNC_ROLLBACK_KEY)){syncRollbackLocal();setTimeout(()=>syncStatus('Eine unterbrochene Synchronisierung wurde sicher auf den vorherigen Datenstand zurückgesetzt.','warn'),0)}
+  // v1.70 DATENSCHUTZ: Beim App-Start niemals automatisch einen alten Sync-Rollback
+  // über die aktuelle Datenbank schreiben. localStorage schreibt den DB-String atomar;
+  // ein liegengebliebener Pending/Rollback-Marker ist daher kein Grund, neuere Daten zu ersetzen.
+  const pendingRaw=localStorage.getItem(SYNC_PENDING_KEY);
+  const rollbackRaw=localStorage.getItem(SYNC_ROLLBACK_KEY);
+  if(!pendingRaw && !rollbackRaw) return;
+  try{
+    const archive={archivedAt:syncNow(),pending:pendingRaw?JSON.parse(pendingRaw):null,rollback:rollbackRaw?JSON.parse(rollbackRaw):null};
+    localStorage.setItem('allround_weber_sync_recovery_archive_v1',JSON.stringify(archive));
+  }catch(_e){
+    try{localStorage.setItem('allround_weber_sync_recovery_archive_v1',JSON.stringify({archivedAt:syncNow(),pendingRaw,rollbackRaw}))}catch(__e){}
+  }
+  // Nur Transaktionsmarker entfernen – db selbst bleibt unangetastet.
+  localStorage.removeItem(SYNC_PENDING_KEY);
+  localStorage.removeItem(SYNC_ROLLBACK_KEY);
+  setTimeout(()=>syncStatus('Alter Synchronisierungs-Transaktionsstand verworfen. Aktuelle Daten wurden beibehalten.','warn'),0);
 }
 syncRecoveryCheck();
 setTimeout(()=>syncPeerInfo(),0);
